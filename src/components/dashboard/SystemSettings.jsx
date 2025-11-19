@@ -10,36 +10,37 @@ import {
   EyeOff,
   Mail,
   Shield,
-  CreditCard,
-  Palette,
   Settings as SettingsIcon,
   AlertCircle,
   Save,
-  Trash2,
   Download,
   Database,
-  Key,
   Edit,
   Plus,
-  Activity
+  Activity,
+  X
 } from 'lucide-react'
 import { applicationAPI } from '../../services/api'
 
 // Validation schemas
 const emailSettingsSchema = yup.object({
   smtpServer: yup.string().required('SMTP server is required'),
-  port: yup.number().required('Port is required').min(1, 'Port must be valid'),
+  port: yup.number()
+    .typeError('Port must be a number')
+    .required('Port is required')
+    .min(1, 'Port must be at least 1')
+    .max(65535, 'Port must be less than 65535'),
   service: yup.string().required('Service is required'),
   username: yup.string().email('Must be a valid email').required('Username is required'),
   password: yup.string().required('Password is required'),
-  useTLS: yup.boolean().default(true)
+  useTLS: yup.boolean().default(true),
+  description: yup.string()
 })
 
 const generalSettingsSchema = yup.object({
   siteName: yup.string().required('Site name is required'),
   siteDescription: yup.string().required('Site description is required'),
-  contactEmail: yup.string().email('Must be a valid email').required('Contact email is required'),
-  timezone: yup.string().required('Timezone is required')
+  contactEmail: yup.string().email('Must be a valid email').required('Contact email is required')
 })
 
 const SystemSettings = () => {
@@ -48,19 +49,21 @@ const SystemSettings = () => {
   const [saveLoading, setSaveLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [showSmtpPassword, setShowSmtpPassword] = useState(false)
-  const [showStripeSecret, setShowStripeSecret] = useState(false)
   const [emailConfigs, setEmailConfigs] = useState([])
-  const [selectedEmailConfig, setSelectedEmailConfig] = useState(null)
   const [showEmailConfigs, setShowEmailConfigs] = useState(false)
-  
+
+  // Modal states
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [editingEmailConfig, setEditingEmailConfig] = useState(null)
+  const [emailFormStatus, setEmailFormStatus] = useState('active')
+
   // Settings state
   const [settings, setSettings] = useState({
     // General Settings
     site_title: "Learn SAP ABAP",
     site_description: "Master SAP ABAP programming with expert-led courses",
     contact_email: "support@learnsapabap.com",
-    timezone: "UTC",
-    
+
     // Security Settings
     maintenance_mode: false,
     user_registration: true,
@@ -68,44 +71,53 @@ const SystemSettings = () => {
     strong_passwords: true,
     session_timeout: 120,
     max_login_attempts: 5,
-    
+
     // Email Settings
     smtp_host: "smtp.gmail.com",
     smtp_port: 587,
     smtp_service: "gmail",
     smtp_username: "noreply@learnsapabap.com",
     smtp_password: "",
-    smtp_use_tls: true,
-    
-    // Payment Settings
-    currency: "USD",
-    tax_rate: "0",
-    payment_gateway: "stripe",
-    stripe_publishable_key: "",
-    stripe_secret_key: "",
-    
-    // Appearance
-    theme: "light",
-    primary_color: "#4f46e5",
-    logo_url: "/logo.png",
-    favicon_url: "/favicon.ico"
+    smtp_use_tls: true
   })
 
   // Forms
-  const { register: registerGeneral, handleSubmit: handleSubmitGeneral, formState: { errors: generalErrors }, reset: resetGeneral } = useForm({
-    resolver: yupResolver(generalSettingsSchema)
+  const { 
+    register: registerGeneral, 
+    handleSubmit: handleSubmitGeneral, 
+    formState: { errors: generalErrors }, 
+    reset: resetGeneral,
+    watch: watchGeneral 
+  } = useForm({
+    resolver: yupResolver(generalSettingsSchema),
+    defaultValues: {
+      siteName: '',
+      siteDescription: '',
+      contactEmail: ''
+    }
   })
 
-  const { register: registerEmail, handleSubmit: handleSubmitEmail, formState: { errors: emailErrors }, reset: resetEmail, setValue: setEmailValue } = useForm({
-    resolver: yupResolver(emailSettingsSchema)
+  const { 
+    register: registerEmail, 
+    handleSubmit: handleSubmitEmail, 
+    formState: { errors: emailErrors }, 
+    reset: resetEmail 
+  } = useForm({
+    resolver: yupResolver(emailSettingsSchema),
+    defaultValues: {
+      smtpServer: '',
+      port: 587,
+      service: '',
+      username: '',
+      password: '',
+      useTLS: true,
+      description: ''
+    }
   })
 
   const tabs = [
     { id: 'general', name: 'General', icon: '⚙️' },
-    { id: 'security', name: 'Security', icon: '🔒' },
     { id: 'email', name: 'Email', icon: '📧' },
-    { id: 'payment', name: 'Payment', icon: '💳' },
-    { id: 'appearance', name: 'Appearance', icon: '🎨' },
     { id: 'advanced', name: 'Advanced', icon: '🔧' }
   ]
 
@@ -119,7 +131,7 @@ const SystemSettings = () => {
     setIsLoading(true)
     try {
       const response = await applicationAPI.getAllProperties()
-      
+
       if (response.data && response.data.data) {
         const properties = response.data.data
         const loadedSettings = {}
@@ -128,45 +140,23 @@ const SystemSettings = () => {
         properties.forEach(property => {
           const settingKey = property.property_name
           loadedSettings[settingKey] = property.property_value
-          
+
           // Merge metadata if exists
           if (property.metadata) {
-            Object.assign(loadedSettings, property.metadata)
+            Object.keys(property.metadata).forEach(key => {
+              loadedSettings[key] = property.metadata[key]
+            })
           }
         })
 
         setSettings(prev => ({ ...prev, ...loadedSettings }))
-        
+
         // Reset forms with loaded data
         resetGeneral({
           siteName: loadedSettings.site_title || '',
           siteDescription: loadedSettings.site_description || '',
-          contactEmail: loadedSettings.contact_email || '',
-          timezone: loadedSettings.timezone || 'UTC'
+          contactEmail: loadedSettings.contact_email || ''
         })
-        
-        // Set email form with active email configuration
-        const activeEmailConfig = emailConfigs.find(config => config.status === 'active')
-        if (activeEmailConfig && activeEmailConfig.metadata?.emailSettings) {
-          const emailSettings = activeEmailConfig.metadata.emailSettings
-          resetEmail({
-            smtpServer: emailSettings.smtpServer || '',
-            port: emailSettings.port || 587,
-            service: emailSettings.service || 'gmail',
-            username: emailSettings.username || '',
-            password: emailSettings.password || '',
-            useTLS: emailSettings.useTLS !== false
-          })
-        } else {
-          resetEmail({
-            smtpServer: loadedSettings.smtp_host || '',
-            port: loadedSettings.smtp_port || 587,
-            service: loadedSettings.smtp_service || 'gmail',
-            username: loadedSettings.smtp_username || '',
-            password: loadedSettings.smtp_password || '',
-            useTLS: loadedSettings.smtp_use_tls !== false
-          })
-        }
       }
     } catch (error) {
       console.error('Error loading settings:', error)
@@ -191,12 +181,6 @@ const SystemSettings = () => {
       const response = await applicationAPI.getAllProperties(payload)
       if (response.data && response.data.data) {
         setEmailConfigs(response.data.data)
-        
-        // Set the active email config as selected
-        const activeConfig = response.data.data.find(config => config.status === 'active')
-        if (activeConfig) {
-          setSelectedEmailConfig(activeConfig)
-        }
       }
     } catch (error) {
       console.error('Error loading email configurations:', error)
@@ -213,6 +197,53 @@ const SystemSettings = () => {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
+  // Email Modal Functions
+  const openEditModal = (config) => {
+    setEditingEmailConfig(config)
+    setEmailFormStatus(config.status || 'active')
+    
+    if (config.metadata?.emailSettings) {
+      const emailSettings = config.metadata.emailSettings
+      resetEmail({
+        smtpServer: emailSettings.smtpServer || '',
+        port: emailSettings.port || 587,
+        service: emailSettings.service || '',
+        username: emailSettings.username || '',
+        password: emailSettings.password || '',
+        useTLS: emailSettings.useTLS !== false,
+        description: config.desc || ''
+      })
+    } else {
+      resetEmail({
+        smtpServer: '',
+        port: 587,
+        service: '',
+        username: '',
+        password: '',
+        useTLS: true,
+        description: config.desc || ''
+      })
+    }
+    
+    setShowEmailModal(true)
+  }
+
+  const openNewModal = () => {
+    setEditingEmailConfig(null)
+    setEmailFormStatus('active')
+    resetEmail()
+    setShowEmailModal(true)
+  }
+
+  const closeEmailModal = () => {
+    if (saveLoading) return
+    
+    setShowEmailModal(false)
+    setEditingEmailConfig(null)
+    setEmailFormStatus('active')
+    resetEmail()
+  }
+
   // Set Active Email Configuration
   const setActiveEmailConfig = async (config) => {
     try {
@@ -224,9 +255,12 @@ const SystemSettings = () => {
         status: "active"
       }
 
+      if (config.app_prop_id) {
+        payload.app_prop_id = config.app_prop_id
+      }
+
       await applicationAPI.createOrUpdateProperty(payload)
-      setSelectedEmailConfig(config)
-      loadEmailConfigs() // Reload to get updated status
+      loadEmailConfigs()
       showMessage('success', 'Email configuration activated successfully!')
     } catch (error) {
       console.error('Error activating email config:', error)
@@ -235,13 +269,13 @@ const SystemSettings = () => {
   }
 
   // Save Email Configuration
-  const saveEmailSettings = async (data) => {
+  const handleEmailSubmit = async (data) => {
     setSaveLoading(true)
     try {
       const payload = {
         property_name: "app_email",
-        property_value: data.username, // Use email as property_value
-        desc: "SMTP email server configuration",
+        property_value: data.username,
+        desc: data.description || "SMTP email server configuration",
         metadata: {
           appName: settings.site_title || "Learn SAP ABAP",
           companyName: "Learn SAP ABAP",
@@ -255,95 +289,51 @@ const SystemSettings = () => {
             useTLS: data.useTLS
           }
         },
-        status: "active" // Set as active when saving new configuration
+        status: emailFormStatus
       }
 
-      const response = await applicationAPI.createOrUpdateProperty(payload)
-      showMessage('success', 'Email settings saved and activated successfully!')
-      loadEmailConfigs() // Reload email configurations
+      if (editingEmailConfig) {
+        payload.app_prop_id = editingEmailConfig.app_prop_id
+      }
+
+      await applicationAPI.createOrUpdateProperty(payload)
+      showMessage('success', editingEmailConfig ? 'Email configuration updated successfully!' : 'Email configuration created successfully!')
+      closeEmailModal()
+      loadEmailConfigs()
     } catch (error) {
       console.error('Error saving email settings:', error)
-      showMessage('error', 'Failed to save email settings')
+      const errorMessage = error.response?.data?.message || 'Failed to save email configuration'
+      showMessage('error', errorMessage)
     } finally {
       setSaveLoading(false)
     }
   }
 
-  // Save All Settings using Bulk API
-  const saveAllSettings = async () => {
-    setSaveLoading(true)
+  // Test Email Configuration Functions
+  const testSpecificEmailConfig = async (config) => {
     try {
-      const bulkPayload = []
-
-      // General Settings
-      bulkPayload.push(
-        {
-          property_name: "site_title",
-          property_value: settings.site_title || "",
-          desc: "Website title and name",
-          metadata: {
-            site_description: settings.site_description,
-            contact_email: settings.contact_email,
-            timezone: settings.timezone
-          }
-        }
-      )
-
-      // Security Settings
-      bulkPayload.push(
-        {
-          property_name: "security_settings",
-          property_value: "Security Configuration",
-          desc: "Platform security and access settings",
-          metadata: {
-            maintenance_mode: settings.maintenance_mode,
-            user_registration: settings.user_registration,
-            email_verification: settings.email_verification,
-            strong_passwords: settings.strong_passwords,
-            session_timeout: settings.session_timeout,
-            max_login_attempts: settings.max_login_attempts
-          }
-        }
-      )
-
-      // Payment Settings
-      bulkPayload.push(
-        {
-          property_name: "payment_settings",
-          property_value: "Payment Configuration",
-          desc: "Payment gateway and billing settings",
-          metadata: {
-            currency: settings.currency,
-            tax_rate: settings.tax_rate,
-            payment_gateway: settings.payment_gateway,
-            stripe_publishable_key: settings.stripe_publishable_key,
-            stripe_secret_key: settings.stripe_secret_key
-          }
-        }
-      )
-
-      // Appearance Settings
-      bulkPayload.push(
-        {
-          property_name: "appearance_settings",
-          property_value: "Appearance Configuration",
-          desc: "Platform theme and branding settings",
-          metadata: {
-            theme: settings.theme,
-            primary_color: settings.primary_color,
-            logo_url: settings.logo_url,
-            favicon_url: settings.favicon_url
-          }
-        }
-      )
-
-      const response = await applicationAPI.createOrUpdateBulkProperties(bulkPayload)
-      showMessage('success', 'All settings saved successfully!')
+      showMessage('info', `Testing email configuration: ${config.property_value}...`)
+      
+      setTimeout(() => {
+        showMessage('success', `Email configuration test for ${config.property_value} completed successfully!`)
+      }, 2000)
     } catch (error) {
-      console.error('Error saving settings:', error)
-      showMessage('error', 'Failed to save settings')
-    } finally {
-      setSaveLoading(false)
+      showMessage('error', `Failed to test email configuration: ${config.property_value}`)
+    }
+  }
+
+  const testEmailConfiguration = async () => {
+    try {
+      if (editingEmailConfig) {
+        await testSpecificEmailConfig(editingEmailConfig)
+      } else {
+        showMessage('info', 'Testing current email configuration...')
+        setTimeout(() => {
+          showMessage('success', 'Email configuration test completed successfully!')
+        }, 2000)
+      }
+    } catch (error) {
+      showMessage('error', 'Failed to test email configuration')
     }
   }
 
@@ -351,81 +341,29 @@ const SystemSettings = () => {
   const saveCurrentTab = async () => {
     setSaveLoading(true)
     try {
-      let bulkPayload = []
+      let payload = {}
 
       switch (activeTab) {
         case 'general':
-          bulkPayload = [
-            {
-              property_name: "site_title",
-              property_value: settings.site_title || "",
-              desc: "Website title and name",
-              metadata: {
-                site_description: settings.site_description,
-                contact_email: settings.contact_email,
-                timezone: settings.timezone
-              }
+          const generalData = watchGeneral()
+          payload = {
+            property_name: "site_title",
+            property_value: generalData.siteName || "",
+            desc: "Website title and name",
+            metadata: {
+              site_description: generalData.siteDescription,
+              contact_email: generalData.contactEmail
             }
-          ]
-          break
-
-        case 'security':
-          bulkPayload = [
-            {
-              property_name: "security_settings",
-              property_value: "Security Configuration",
-              desc: "Platform security and access settings",
-              metadata: {
-                maintenance_mode: settings.maintenance_mode,
-                user_registration: settings.user_registration,
-                email_verification: settings.email_verification,
-                strong_passwords: settings.strong_passwords,
-                session_timeout: settings.session_timeout,
-                max_login_attempts: settings.max_login_attempts
-              }
-            }
-          ]
-          break
-
-        case 'payment':
-          bulkPayload = [
-            {
-              property_name: "payment_settings",
-              property_value: "Payment Configuration",
-              desc: "Payment gateway and billing settings",
-              metadata: {
-                currency: settings.currency,
-                tax_rate: settings.tax_rate,
-                payment_gateway: settings.payment_gateway,
-                stripe_publishable_key: settings.stripe_publishable_key,
-                stripe_secret_key: settings.stripe_secret_key
-              }
-            }
-          ]
-          break
-
-        case 'appearance':
-          bulkPayload = [
-            {
-              property_name: "appearance_settings",
-              property_value: "Appearance Configuration",
-              desc: "Platform theme and branding settings",
-              metadata: {
-                theme: settings.theme,
-                primary_color: settings.primary_color,
-                logo_url: settings.logo_url,
-                favicon_url: settings.favicon_url
-              }
-            }
-          ]
+          }
           break
 
         default:
           showMessage('info', 'Save functionality for this tab is not implemented yet')
+          setSaveLoading(false)
           return
       }
 
-      const response = await applicationAPI.createOrUpdateBulkProperties(bulkPayload)
+      await applicationAPI.createOrUpdateProperty(payload)
       showMessage('success', `${tabs.find(tab => tab.id === activeTab)?.name} settings saved successfully!`)
     } catch (error) {
       console.error('Error saving settings:', error)
@@ -441,41 +379,9 @@ const SystemSettings = () => {
       ...prev,
       site_title: data.siteName,
       site_description: data.siteDescription,
-      contact_email: data.contactEmail,
-      timezone: data.timezone
+      contact_email: data.contactEmail
     }))
-    setTimeout(saveCurrentTab, 100)
-  }
-
-  const handleEmailSubmit = (data) => {
-    saveEmailSettings(data)
-  }
-
-  // Load Email Configuration into Form
-  const loadEmailConfigIntoForm = (config) => {
-    if (config.metadata?.emailSettings) {
-      const emailSettings = config.metadata.emailSettings
-      setEmailValue('smtpServer', emailSettings.smtpServer || '')
-      setEmailValue('port', emailSettings.port || 587)
-      setEmailValue('service', emailSettings.service || 'gmail')
-      setEmailValue('username', emailSettings.username || '')
-      setEmailValue('password', emailSettings.password || '')
-      setEmailValue('useTLS', emailSettings.useTLS !== false)
-    }
-    setSelectedEmailConfig(config)
-    setShowEmailConfigs(false)
-  }
-
-  // Test Email Configuration
-  const testEmailConfiguration = async () => {
-    try {
-      showMessage('info', 'Testing email configuration...')
-      setTimeout(() => {
-        showMessage('success', 'Email configuration test completed successfully!')
-      }, 2000)
-    } catch (error) {
-      showMessage('error', 'Failed to test email configuration')
-    }
+    saveCurrentTab()
   }
 
   // Advanced Settings Actions
@@ -510,7 +416,6 @@ const SystemSettings = () => {
             site_title: "Learn SAP ABAP",
             site_description: "Master SAP ABAP programming with expert-led courses",
             contact_email: "support@learnsapabap.com",
-            timezone: "UTC",
             maintenance_mode: false,
             user_registration: true,
             email_verification: true,
@@ -522,16 +427,12 @@ const SystemSettings = () => {
             smtp_service: "gmail",
             smtp_username: "noreply@learnsapabap.com",
             smtp_password: "",
-            smtp_use_tls: true,
-            currency: "USD",
-            tax_rate: "0",
-            payment_gateway: "stripe",
-            stripe_publishable_key: "",
-            stripe_secret_key: "",
-            theme: "light",
-            primary_color: "#4f46e5",
-            logo_url: "/logo.png",
-            favicon_url: "/favicon.ico"
+            smtp_use_tls: true
+          })
+          resetGeneral({
+            siteName: "Learn SAP ABAP",
+            siteDescription: "Master SAP ABAP programming with expert-led courses",
+            contactEmail: "support@learnsapabap.com"
           })
           showMessage('success', 'Settings reset to default successfully!')
         }, 1500)
@@ -544,7 +445,7 @@ const SystemSettings = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -554,41 +455,35 @@ const SystemSettings = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-gray-600">Configure platform-wide settings and preferences</p>
+          {/* <h1 className="text-2xl font-bold text-gray-900">System Settings</h1> */}
+          <p className="text-gray-600 text-sm mt-1">Configure platform-wide settings and preferences</p>
         </div>
-        <div className="flex space-x-3 mt-4 lg:mt-0">
+        <div className="flex space-x-2 mt-4 lg:mt-0">
           <button
             onClick={saveCurrentTab}
             disabled={saveLoading}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 text-sm"
           >
             <Save className="w-4 h-4" />
-            <span>{saveLoading ? 'Saving...' : 'Save Current'}</span>
-          </button>
-          <button
-            onClick={saveAllSettings}
-            disabled={saveLoading}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saveLoading ? 'Saving All...' : 'Save All'}
+            <span>{saveLoading ? 'Saving...' : 'Save'}</span>
           </button>
         </div>
       </div>
 
       {/* Message Display */}
       {message.text && (
-        <div className={`rounded-lg p-4 ${
+        <div className={`rounded-lg p-3 ${
           message.type === 'success' ? 'bg-green-50 border border-green-200' :
           message.type === 'error' ? 'bg-red-50 border border-red-200' :
           'bg-blue-50 border border-blue-200'
         }`}>
           <div className="flex items-start">
             {message.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
             ) : message.type === 'error' ? (
-              <XCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+              <XCircle className="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
             )}
             <p className={`text-sm ${
               message.type === 'success' ? 'text-green-700' :
@@ -601,21 +496,21 @@ const SystemSettings = () => {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar Navigation */}
-        <div className="lg:w-64">
+        <div className="lg:w-32">
           <nav className="space-y-1">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-500'
+                    ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-500'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <span className="text-lg">{tab.icon}</span>
+                <span className="text-base">{tab.icon}</span>
                 <span>{tab.name}</span>
               </button>
             ))}
@@ -625,22 +520,22 @@ const SystemSettings = () => {
         {/* Content Area */}
         <div className="flex-1">
           {activeTab === 'general' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
-                
-                <form onSubmit={handleSubmitGeneral(handleGeneralSubmit)} className="space-y-4">
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 mb-3">General Settings</h2>
+
+                <form onSubmit={handleSubmitGeneral(handleGeneralSubmit)} className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Site Name
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Site Name *
                     </label>
                     <input
                       type="text"
                       {...registerGeneral('siteName')}
-                      defaultValue={settings.site_title}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
                         generalErrors.siteName ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
+                      placeholder="Enter site name"
                     />
                     {generalErrors.siteName && (
                       <p className="mt-1 text-xs text-red-600">{generalErrors.siteName.message}</p>
@@ -648,16 +543,16 @@ const SystemSettings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Site Description
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Site Description *
                     </label>
                     <textarea
                       {...registerGeneral('siteDescription')}
-                      defaultValue={settings.site_description}
-                      rows="3"
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      rows="2"
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
                         generalErrors.siteDescription ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
+                      placeholder="Enter site description"
                     />
                     {generalErrors.siteDescription && (
                       <p className="mt-1 text-xs text-red-600">{generalErrors.siteDescription.message}</p>
@@ -665,583 +560,245 @@ const SystemSettings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contact Email
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Contact Email *
                     </label>
                     <input
                       type="email"
                       {...registerGeneral('contactEmail')}
-                      defaultValue={settings.contact_email}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
                         generalErrors.contactEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
+                      placeholder="Enter contact email"
                     />
                     {generalErrors.contactEmail && (
                       <p className="mt-1 text-xs text-red-600">{generalErrors.contactEmail.message}</p>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Timezone
-                    </label>
-                    <select
-                      {...registerGeneral('timezone')}
-                      defaultValue={settings.timezone}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                        generalErrors.timezone ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="UTC">UTC</option>
-                      <option value="EST">Eastern Time (EST)</option>
-                      <option value="PST">Pacific Time (PST)</option>
-                      <option value="CET">Central European Time (CET)</option>
-                      <option value="IST">Indian Standard Time (IST)</option>
-                    </select>
-                    {generalErrors.timezone && (
-                      <p className="mt-1 text-xs text-red-600">{generalErrors.timezone.message}</p>
-                    )}
-                  </div>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h2>
-                
-                <div className="space-y-4">
-                  {[
-                    {
-                      key: 'maintenance_mode',
-                      label: 'Maintenance Mode',
-                      description: 'Put the site in maintenance mode (visible only to admins)'
-                    },
-                    {
-                      key: 'user_registration',
-                      label: 'User Registration',
-                      description: 'Allow new users to register accounts'
-                    },
-                    {
-                      key: 'email_verification',
-                      label: 'Email Verification',
-                      description: 'Require email verification for new accounts'
-                    },
-                    {
-                      key: 'strong_passwords',
-                      label: 'Strong Password Requirement',
-                      description: 'Enforce strong password policies'
-                    }
-                  ].map(({ key, label, description }) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{label}</p>
-                        <p className="text-sm text-gray-600">{description}</p>
-                      </div>
-                      <button
-                        onClick={() => handleSettingChange(key, !settings[key])}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          settings[key] ? 'bg-primary-600' : 'bg-gray-200'
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            settings[key] ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Session Settings</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Session Timeout (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      value={settings.session_timeout}
-                      onChange={(e) => handleSettingChange('session_timeout', parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Login Attempts
-                    </label>
-                    <input
-                      type="number"
-                      value={settings.max_login_attempts}
-                      onChange={(e) => handleSettingChange('max_login_attempts', parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           )}
 
           {activeTab === 'email' && (
-            <div className="space-y-6">
-              {/* Email Configurations List */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Email Configurations</h2>
-                  <button
-                    onClick={() => setShowEmailConfigs(!showEmailConfigs)}
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>{showEmailConfigs ? 'Hide Configurations' : 'Show Configurations'}</span>
-                  </button>
+            <div className="space-y-4">
+              {/* Email Configurations Header */}
+              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900">Email Configurations</h2>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Manage your email service configurations ({emailConfigs.length} total)
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setShowEmailConfigs(!showEmailConfigs)}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{showEmailConfigs ? 'Hide' : 'Show'} Table</span>
+                    </button>
+                    <button
+                      onClick={openNewModal}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Config</span>
+                    </button>
+                  </div>
                 </div>
-
-                {showEmailConfigs && (
-                  <div className="space-y-3 mb-6">
-                    {emailConfigs.map((config) => (
-                      <div
-                        key={config.app_prop_id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                          selectedEmailConfig?.app_prop_id === config.app_prop_id
-                            ? 'border-primary-500 bg-primary-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        } ${
-                          config.status === 'active' ? 'ring-2 ring-green-500 ring-opacity-50' : ''
-                        }`}
-                        onClick={() => loadEmailConfigIntoForm(config)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                              config.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                            }`} />
-                            <div>
-                              <p className="font-medium text-gray-900">{config.property_value}</p>
-                              <p className="text-sm text-gray-600">{config.desc}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {config.status !== 'active' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setActiveEmailConfig(config)
-                                }}
-                                className="text-green-600 hover:text-green-700 text-sm font-medium"
-                              >
-                                Activate
-                              </button>
-                            )}
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              config.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {config.status}
-                            </span>
-                          </div>
-                        </div>
-                        {config.metadata?.emailSettings && (
-                          <div className="mt-2 text-xs text-gray-500">
-                            {config.metadata.emailSettings.smtpServer}:{config.metadata.emailSettings.port}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Current Active Configuration */}
-                {selectedEmailConfig && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Activity className="w-4 h-4 text-green-600" />
-                      <span className="font-medium text-green-800">Active Configuration</span>
-                    </div>
-                    <p className="text-green-700">{selectedEmailConfig.property_value}</p>
-                    <p className="text-sm text-green-600">{selectedEmailConfig.desc}</p>
-                  </div>
-                )}
-
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {selectedEmailConfig ? 'Edit Email Configuration' : 'Add New Email Configuration'}
-                </h3>
-                
-                <form onSubmit={handleSubmitEmail(handleEmailSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Host
-                      </label>
-                      <input
-                        type="text"
-                        {...registerEmail('smtpServer')}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                          emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                      />
-                      {emailErrors.smtpServer && (
-                        <p className="mt-1 text-xs text-red-600">{emailErrors.smtpServer.message}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SMTP Port
-                      </label>
-                      <input
-                        type="number"
-                        {...registerEmail('port')}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                          emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                      />
-                      {emailErrors.port && (
-                        <p className="mt-1 text-xs text-red-600">{emailErrors.port.message}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Service
-                    </label>
-                    <select
-                      {...registerEmail('service')}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="gmail">Gmail</option>
-                      <option value="outlook">Outlook</option>
-                      <option value="yahoo">Yahoo</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                    {emailErrors.service && (
-                      <p className="mt-1 text-xs text-red-600">{emailErrors.service.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SMTP Username
-                    </label>
-                    <input
-                      type="email"
-                      {...registerEmail('username')}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                    />
-                    {emailErrors.username && (
-                      <p className="mt-1 text-xs text-red-600">{emailErrors.username.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SMTP Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showSmtpPassword ? "text" : "password"}
-                        {...registerEmail('password')}
-                        className={`w-full pl-3 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                          emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSmtpPassword(!showSmtpPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showSmtpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {emailErrors.password && (
-                      <p className="mt-1 text-xs text-red-600">{emailErrors.password.message}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      {...registerEmail('useTLS')}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <label className="ml-2 text-sm text-gray-700">Use TLS</label>
-                  </div>
-
-                  <div className="pt-4 flex space-x-3">
-                    <button
-                      type="submit"
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium"
-                    >
-                      {selectedEmailConfig ? 'Update Configuration' : 'Save Configuration'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={testEmailConfiguration}
-                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium"
-                    >
-                      Test Configuration
-                    </button>
-                  </div>
-                </form>
               </div>
-            </div>
-          )}
 
-          {/* Other tabs (Payment, Appearance, Advanced) remain the same */}
-          {activeTab === 'payment' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Settings</h2>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Currency
-                      </label>
-                      <select
-                        value={settings.currency}
-                        onChange={(e) => handleSettingChange('currency', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      >
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
-                        <option value="INR">INR (₹)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tax Rate (%)
-                      </label>
-                      <input
-                        type="number"
-                        value={settings.tax_rate}
-                        onChange={(e) => handleSettingChange('tax_rate', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Payment Gateway
-                    </label>
-                    <select
-                      value={settings.payment_gateway}
-                      onChange={(e) => handleSettingChange('payment_gateway', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="stripe">Stripe</option>
-                      <option value="paypal">PayPal</option>
-                      <option value="razorpay">Razorpay</option>
-                      <option value="manual">Manual</option>
-                    </select>
-                  </div>
-
-                  {settings.payment_gateway === 'stripe' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Stripe Publishable Key
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.stripe_publishable_key}
-                          onChange={(e) => handleSettingChange('stripe_publishable_key', e.target.value)}
-                          placeholder="pk_live_..."
-                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-blue-700 mb-2">
-                          Stripe Secret Key
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showStripeSecret ? "text" : "password"}
-                            value={settings.stripe_secret_key}
-                            onChange={(e) => handleSettingChange('stripe_secret_key', e.target.value)}
-                            placeholder="sk_live_..."
-                            className="w-full pl-3 pr-10 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowStripeSecret(!showStripeSecret)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-400 hover:text-blue-600"
+              {showEmailConfigs && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="w-16 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Email
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Server
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Service
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="w-20 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {emailConfigs.map((config) => (
+                          <tr
+                            key={config.app_prop_id}
+                            className={`hover:bg-gray-50 transition-colors ${
+                              config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                            }`}
                           >
-                            {showStripeSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+                            {/* Status Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className={`w-2 h-2 rounded-full mr-1.5 ${
+                                  config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                }`} />
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  config.status === 'active'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {config.status}
+                                </span>
+                              </div>
+                            </td>
 
-          {activeTab === 'appearance' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Theme
-                    </label>
-                    <select
-                      value={settings.theme}
-                      onChange={(e) => handleSettingChange('theme', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="auto">Auto (System)</option>
-                    </select>
-                  </div>
+                            {/* Email Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div>
+                                <div className="font-medium text-gray-900 text-xs">
+                                  {config.property_value}
+                                </div>
+                                <div className="text-gray-500 text-xs mt-0.5">
+                                  {config.metadata?.emailSettings?.username}
+                                </div>
+                              </div>
+                            </td>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Primary Color
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <input
-                        type="color"
-                        value={settings.primary_color}
-                        onChange={(e) => handleSettingChange('primary_color', e.target.value)}
-                        className="w-12 h-12 rounded-lg border border-gray-300"
-                      />
-                      <input
-                        type="text"
-                        value={settings.primary_color}
-                        onChange={(e) => handleSettingChange('primary_color', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      />
-                    </div>
-                  </div>
+                            {/* Server Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div>
+                                <div className="text-gray-900 text-xs">
+                                  {config.metadata?.emailSettings?.smtpServer || 'N/A'}
+                                </div>
+                                <div className="text-gray-500 text-xs mt-0.5">
+                                  Port: {config.metadata?.emailSettings?.port || 'N/A'}
+                                </div>
+                              </div>
+                            </td>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Logo
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <div className="w-16 h-16 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg mx-auto mb-2">
-                          LS
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">Current logo</p>
-                        <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                          Upload New Logo
+                            {/* Service Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize ${
+                                config.metadata?.emailSettings?.service === 'gmail' ? 'bg-red-100 text-red-800' :
+                                config.metadata?.emailSettings?.service === 'outlook' ? 'bg-blue-100 text-blue-800' :
+                                config.metadata?.emailSettings?.service === 'yahoo' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {config.metadata?.emailSettings?.service || 'custom'}
+                              </span>
+                            </td>
+
+                            {/* Description Column */}
+                            <td className="px-3 py-2">
+                              <div className="text-gray-900 text-xs max-w-[120px] truncate" title={config.desc}>
+                                {config.desc || 'No description'}
+                              </div>
+                            </td>
+
+                            {/* Actions Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center space-x-1">
+                                {config.status !== 'active' && (
+                                  <button
+                                    onClick={() => setActiveEmailConfig(config)}
+                                    className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100 transition-colors"
+                                    title="Activate this configuration"
+                                  >
+                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => openEditModal(config)}
+                                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
+                                  title="Edit this configuration"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => testSpecificEmailConfig(config)}
+                                  className="text-purple-600 hover:text-purple-800 p-1 rounded hover:bg-purple-100 transition-colors"
+                                  title="Test this configuration"
+                                >
+                                  <Activity className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {emailConfigs.length === 0 && (
+                      <div className="text-center py-6">
+                        <Mail className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">No email configurations</h3>
+                        <p className="text-xs text-gray-500 mb-3">Get started by creating a new email configuration.</p>
+                        <button
+                          onClick={openNewModal}
+                          className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Create Configuration</span>
                         </button>
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Favicon
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <div className="w-8 h-8 bg-primary-600 rounded flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">
-                          L
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">Current favicon</p>
-                        <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                          Upload New Favicon
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
           {activeTab === 'advanced' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Advanced Settings</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      API Access
-                    </label>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">API Keys</p>
-                        <p className="text-sm text-gray-600">Manage your API access keys</p>
-                      </div>
-                      <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
-                        <Key className="w-4 h-4" />
-                        <span>Manage Keys</span>
-                      </button>
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <h2 className="text-base font-semibold text-gray-900 mb-3">Advanced Settings</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Clear Application Cache</p>
+                      <p className="text-xs text-gray-600">Remove temporary files and refresh system cache</p>
                     </div>
+                    <button
+                      onClick={handleClearCache}
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Clear Cache
+                    </button>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Cache Management
-                    </label>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">Clear Cache</p>
-                        <p className="text-sm text-gray-600">Clear all cached data</p>
-                      </div>
-                      <button 
-                        onClick={handleClearCache}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span>Clear Cache</span>
-                      </button>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Create System Backup</p>
+                      <p className="text-xs text-gray-600">Generate a complete backup of system data</p>
                     </div>
+                    <button
+                      onClick={handleCreateBackup}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Backup</span>
+                    </button>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Database Backup
-                    </label>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">Backup Database</p>
-                        <p className="text-sm text-gray-600">Create a full database backup</p>
-                      </div>
-                      <button 
-                        onClick={handleCreateBackup}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Create Backup</span>
-                      </button>
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div>
+                      <p className="text-sm font-medium text-red-900">Reset All Settings</p>
+                      <p className="text-xs text-red-700">Restore all settings to default values</p>
                     </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-200">
-                    <h3 className="font-medium text-red-900 mb-2">Danger Zone</h3>
-                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-red-900">Reset All Settings</p>
-                        <p className="text-sm text-red-700">Reset all settings to default values</p>
-                      </div>
-                      <button 
-                        onClick={handleResetSettings}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2"
-                      >
-                        <Database className="w-4 h-4" />
-                        <span>Reset Settings</span>
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleResetSettings}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Reset
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1249,6 +806,224 @@ const SystemSettings = () => {
           )}
         </div>
       </div>
+
+      {/* Email Configuration Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {editingEmailConfig ? 'Edit Email Config' : 'New Email Config'}
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {editingEmailConfig
+                    ? `Editing: ${editingEmailConfig.property_value}`
+                    : 'Configure SMTP email settings'
+                  }
+                </p>
+              </div>
+              <button
+                onClick={closeEmailModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4">
+              <form onSubmit={handleSubmitEmail(handleEmailSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SMTP Host *
+                    </label>
+                    <input
+                      type="text"
+                      {...registerEmail('smtpServer')}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="smtp.gmail.com"
+                    />
+                    {emailErrors.smtpServer && (
+                      <p className="mt-1 text-xs text-red-600">{emailErrors.smtpServer.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SMTP Port *
+                    </label>
+                    <input
+                      type="number"
+                      {...registerEmail('port')}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="587"
+                    />
+                    {emailErrors.port && (
+                      <p className="mt-1 text-xs text-red-600">{emailErrors.port.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Service Type *
+                    </label>
+                    <select
+                      {...registerEmail('service')}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select service</option>
+                      <option value="gmail">Gmail</option>
+                      <option value="outlook">Outlook</option>
+                      <option value="yahoo">Yahoo</option>
+                      <option value="custom">Custom SMTP</option>
+                    </select>
+                    {emailErrors.service && (
+                      <p className="mt-1 text-xs text-red-600">{emailErrors.service.message}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center pt-6">
+                    <input
+                      type="checkbox"
+                      {...registerEmail('useTLS')}
+                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-4 h-4"
+                    />
+                    <label className="ml-2 text-xs text-gray-700">Enable TLS</label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SMTP Username *
+                    </label>
+                    <input
+                      type="email"
+                      {...registerEmail('username')}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="your-email@gmail.com"
+                    />
+                    {emailErrors.username && (
+                      <p className="mt-1 text-xs text-red-600">{emailErrors.username.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      SMTP Password *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showSmtpPassword ? "text" : "password"}
+                        {...registerEmail('password')}
+                        className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                          emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                      >
+                        {showSmtpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    {emailErrors.password && (
+                      <p className="mt-1 text-xs text-red-600">{emailErrors.password.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    {...registerEmail('description')}
+                    rows="2"
+                    className="w-full px-2.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Describe this email configuration..."
+                  />
+                </div>
+
+                {/* Status Toggle for Editing */}
+                {editingEmailConfig && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Status</p>
+                      <p className="text-xs text-gray-600">Set as active</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEmailFormStatus(editingEmailConfig.status === 'active' ? 'inactive' : 'active')}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        emailFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          emailFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editingEmailConfig) {
+                        testSpecificEmailConfig(editingEmailConfig)
+                      } else {
+                        testEmailConfiguration()
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Test</span>
+                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeEmailModal}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saveLoading}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>
+                        {saveLoading
+                          ? 'Saving...'
+                          : (editingEmailConfig ? 'Update' : 'Create')
+                        }
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

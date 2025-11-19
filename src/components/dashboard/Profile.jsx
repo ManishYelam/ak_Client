@@ -481,13 +481,14 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/30 py-4">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+    <div className="min-h-screen bg-gray-50/30 py-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <div className="flex-1 min-w-0">
-            <p className="text-gray-500 text-sm mt-1">Manage your personal and professional information</p>
+            <h1 className="text-xl font-bold text-gray-900">Profile Settings</h1>
+            <p className="text-gray-500 text-xs mt-1">Manage your personal and professional information</p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             {isEditing ? (
@@ -495,14 +496,14 @@ const Profile = () => {
                 <button
                   onClick={handleCancel}
                   disabled={isLoading}
-                  className="flex-1 sm:flex-none px-4 py-2.5 text-sm border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 disabled:opacity-50 shadow-sm"
+                  className="flex-1 sm:flex-none px-3 py-2 text-xs border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 disabled:opacity-50 shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={isLoading}
-                  className="flex-1 sm:flex-none bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm hover:shadow-md"
+                  className="flex-1 sm:flex-none bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-3 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-sm hover:shadow-md"
                 >
                   {isLoading ? (
                     <>
@@ -517,7 +518,7 @@ const Profile = () => {
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex-1 sm:flex-none bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-2.5 rounded-xl font-medium transition-all duration-200 text-sm shadow-sm hover:shadow-md"
+                className="flex-1 sm:flex-none bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 text-xs shadow-sm hover:shadow-md"
               >
                 Edit Profile
               </button>
@@ -526,34 +527,34 @@ const Profile = () => {
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           
           {/* Left Column - Form Sections */}
-          <div className="xl:col-span-2 space-y-5 lg:space-y-6">
+          <div className="xl:col-span-2 space-y-4">
             
             {/* Personal Information */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-6 bg-gradient-to-b from-primary-500 to-primary-600 rounded-full"></div>
-                  <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
-                </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500">
-                    {completionData.sections.basicInfo?.percentage || 0}% complete
+                  <div className="w-1.5 h-5 bg-gradient-to-b from-primary-500 to-primary-600 rounded-full"></div>
+                  <h2 className="text-base font-semibold text-gray-900">Personal Information</h2>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">
+                    {completionData.sections.basicInfo?.percentage || 0}%
                   </span>
-                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                  <div className="w-12 bg-gray-200 rounded-full h-1">
                     <div 
-                      className="h-1.5 rounded-full bg-gradient-to-r from-green-500 to-green-600"
+                      className="h-1 rounded-full bg-gradient-to-r from-green-500 to-green-600"
                       style={{ width: `${completionData.sections.basicInfo?.percentage || 0}%` }}
                     ></div>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {personalFields.map((field) => (
-                  <div key={field.name} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div key={field.name} className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-700">
                       {field.label}
                     </label>
                     {isEditing && field.name !== 'email' ? (
@@ -562,7 +563,7 @@ const Profile = () => {
                           name={field.name}
                           value={formData[field.name]}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
+                          className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                         >
                           <option value="">Select Gender</option>
                           <option value="male">Male</option>
@@ -576,7 +577,7 @@ const Profile = () => {
                           name={field.name}
                           value={formData[field.name]}
                           onChange={field.name === 'date_of_birth' ? handleDOBChange : field.name === 'age' ? handleAgeChange : handleInputChange}
-                          className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 ${
+                          className={`w-full px-2.5 py-2 text-xs border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 ${
                             shouldShowError(field.name) ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
                           }`}
                           placeholder={field.placeholder}
@@ -585,8 +586,8 @@ const Profile = () => {
                         />
                       )
                     ) : (
-                      <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                        <p className="text-gray-900 text-sm font-medium">
+                      <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900 text-xs font-medium">
                           {field.name === 'email' ? userData?.email : 
                            field.name === 'date_of_birth' ? formatDateForDisplay(userData?.date_of_birth) :
                            field.name === 'age' ? (userData?.age ? `${userData.age} years` : 'Not provided') :
@@ -596,7 +597,7 @@ const Profile = () => {
                       </div>
                     )}
                     {field.name === 'email' && (
-                      <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Email cannot be changed</p>
                     )}
                     {shouldShowError(field.name) && (
                       <p className="text-red-500 text-xs flex items-center gap-1">
@@ -609,28 +610,28 @@ const Profile = () => {
             </div>
 
             {/* Professional Information */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
-                  <h2 className="text-lg font-semibold text-gray-900">Professional Information</h2>
-                </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500">
-                    {completionData.sections.professional?.percentage || 0}% complete
+                  <div className="w-1.5 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+                  <h2 className="text-base font-semibold text-gray-900">Professional Information</h2>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">
+                    {completionData.sections.professional?.percentage || 0}%
                   </span>
-                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                  <div className="w-12 bg-gray-200 rounded-full h-1">
                     <div 
-                      className="h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
+                      className="h-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
                       style={{ width: `${completionData.sections.professional?.percentage || 0}%` }}
                     ></div>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {professionalFields.map((field) => (
-                  <div key={field.name} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div key={field.name} className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-700">
                       {field.label}
                     </label>
                     {isEditing ? (
@@ -638,12 +639,12 @@ const Profile = () => {
                         type={field.type}
                         value={formData[field.name]}
                         onChange={(e) => handleInputChange({ target: { name: field.name, value: e.target.value } })}
-                        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
+                        className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                         placeholder={field.placeholder}
                       />
                     ) : (
-                      <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                        <p className="text-gray-900 text-sm font-medium">
+                      <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900 text-xs font-medium">
                           {formData[field.name] || 'Not provided'}
                         </p>
                       </div>
@@ -654,40 +655,40 @@ const Profile = () => {
             </div>
 
             {/* About Me Section */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
-                  <h2 className="text-lg font-semibold text-gray-900">About Me</h2>
-                </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500">
-                    {completionData.sections.aboutMe?.percentage || 0}% complete
+                  <div className="w-1.5 h-5 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
+                  <h2 className="text-base font-semibold text-gray-900">About Me</h2>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">
+                    {completionData.sections.aboutMe?.percentage || 0}%
                   </span>
-                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                  <div className="w-12 bg-gray-200 rounded-full h-1">
                     <div 
-                      className="h-1.5 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600"
+                      className="h-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600"
                       style={{ width: `${completionData.sections.aboutMe?.percentage || 0}%` }}
                     ></div>
                   </div>
                 </div>
               </div>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 
                 {/* Bio */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Bio</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-700">Bio</label>
                   {isEditing ? (
                     <textarea
                       value={formData.bio}
                       onChange={(e) => handleInputChange({ target: { name: 'bio', value: e.target.value } })}
                       rows="2"
-                      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
+                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
                       placeholder="Tell us about yourself..."
                     />
                   ) : (
-                    <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                      <p className="text-gray-700 text-sm leading-relaxed">
+                    <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 text-xs leading-relaxed">
                         {formData.bio || 'No bio provided yet.'}
                       </p>
                     </div>
@@ -695,19 +696,19 @@ const Profile = () => {
                 </div>
 
                 {/* Detailed About Me */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Detailed About Me</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-700">Detailed About Me</label>
                   {isEditing ? (
                     <textarea
                       value={formData.user_metadata.about_me}
                       onChange={(e) => handleMetadataChange('about_me', e.target.value)}
-                      rows="3"
-                      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
-                      placeholder="Share more about yourself, your background, and interests..."
+                      rows="2"
+                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
+                      placeholder="Share more about yourself..."
                     />
                   ) : (
-                    <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                      <p className="text-gray-700 text-sm leading-relaxed">
+                    <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 text-xs leading-relaxed">
                         {formData.user_metadata.about_me || 'No detailed information provided yet.'}
                       </p>
                     </div>
@@ -715,44 +716,44 @@ const Profile = () => {
                 </div>
 
                 {/* Skills Section */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">Skills & Expertise</label>
+                <div className="space-y-2">
+                  <label className="block text-xs font-medium text-gray-700">Skills & Expertise</label>
                   {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex gap-2">
+                    <div className="space-y-2">
+                      <div className="flex gap-1.5">
                         <input
                           type="text"
                           value={currentSkill}
                           onChange={(e) => setCurrentSkill(e.target.value)}
                           onKeyPress={handleSkillKeyPress}
-                          className="flex-1 px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
+                          className="flex-1 px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                           placeholder="Add a new skill..."
                         />
                         <button
                           onClick={handleAddSkill}
-                          className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+                          className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md"
                         >
                           Add
                         </button>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         <input
                           type="text"
                           placeholder="Add multiple skills (comma separated)"
-                          className="flex-1 px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
+                          className="flex-1 px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
                           onBlur={(e) => handleBulkSkillsImport(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (handleBulkSkillsImport(e.target.value), e.target.value = '')}
                         />
                       </div>
 
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-1.5 mt-2">
                         {formData.user_metadata.skills?.map((skill, index) => (
-                          <div key={index} className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 border border-blue-200">
+                          <div key={index} className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs flex items-center gap-1 border border-blue-200">
                             <span className="font-medium">{skill}</span>
                             <button
                               onClick={() => handleRemoveSkill(skill)}
-                              className="text-blue-500 hover:text-blue-700 text-sm font-bold transition-colors duration-200"
+                              className="text-blue-500 hover:text-blue-700 text-xs font-bold transition-colors duration-200"
                             >
                               ×
                             </button>
@@ -766,16 +767,16 @@ const Profile = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {formData.user_metadata.skills?.length > 0 ? (
                         formData.user_metadata.skills.map((skill, index) => (
-                          <span key={index} className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium border border-blue-200">
+                          <span key={index} className="bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium border border-blue-200">
                             {skill}
                           </span>
                         ))
                       ) : (
-                        <div className="px-3 py-2.5 bg-gray-50 rounded-xl w-full">
-                          <p className="text-gray-500 text-sm">No skills added yet</p>
+                        <div className="px-2.5 py-2 bg-gray-50 rounded-lg w-full">
+                          <p className="text-gray-500 text-xs">No skills added yet</p>
                         </div>
                       )}
                     </div>
@@ -783,39 +784,39 @@ const Profile = () => {
                 </div>
 
                 {/* Experience & Education Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Experience</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-700">Experience</label>
                     {isEditing ? (
                       <textarea
                         value={formData.user_metadata.experience}
                         onChange={(e) => handleMetadataChange('experience', e.target.value)}
-                        rows="3"
-                        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
+                        rows="2"
+                        className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
                         placeholder="Your professional experience..."
                       />
                     ) : (
-                      <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                        <p className="text-gray-700 text-sm leading-relaxed">
+                      <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                        <p className="text-gray-700 text-xs leading-relaxed">
                           {formData.user_metadata.experience || 'No experience information provided.'}
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Education</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-700">Education</label>
                     {isEditing ? (
                       <textarea
                         value={formData.user_metadata.education}
                         onChange={(e) => handleMetadataChange('education', e.target.value)}
-                        rows="3"
-                        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
+                        rows="2"
+                        className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
                         placeholder="Your educational background..."
                       />
                     ) : (
-                      <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                        <p className="text-gray-700 text-sm leading-relaxed">
+                      <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                        <p className="text-gray-700 text-xs leading-relaxed">
                           {formData.user_metadata.education || 'No education information provided.'}
                         </p>
                       </div>
@@ -824,19 +825,19 @@ const Profile = () => {
                 </div>
 
                 {/* Interests */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Interests</label>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-700">Interests</label>
                   {isEditing ? (
                     <textarea
                       value={formData.user_metadata.interests}
                       onChange={(e) => handleMetadataChange('interests', e.target.value)}
                       rows="2"
-                      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
+                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white resize-none"
                       placeholder="Your hobbies and interests..."
                     />
                   ) : (
-                    <div className="px-3 py-2.5 bg-gray-50 rounded-xl">
-                      <p className="text-gray-700 text-sm leading-relaxed">
+                    <div className="px-2.5 py-2 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 text-xs leading-relaxed">
                         {formData.user_metadata.interests || 'No interests provided.'}
                       </p>
                     </div>
@@ -847,36 +848,36 @@ const Profile = () => {
           </div>
 
           {/* Right Column - Profile Summary */}
-          <div className="space-y-5 lg:space-y-6">
+          <div className="space-y-4">
             
             {/* Profile Card */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-md">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mx-auto mb-3 shadow-md">
                 {userData?.full_name?.charAt(0) || 'U'}
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
+              <h3 className="text-base font-bold text-gray-900 mb-1 truncate">
                 {userData?.full_name || 'User'}
               </h3>
-              <p className="text-gray-500 text-sm mb-4 truncate">{userData?.email}</p>
-              <div className="flex flex-col space-y-2 mb-4">
-                <span className="text-xs text-gray-600 capitalize bg-gradient-to-r from-gray-100 to-gray-50 rounded-full px-3 py-1.5 inline-block border border-gray-200 font-medium">
+              <p className="text-gray-500 text-xs mb-3 truncate">{userData?.email}</p>
+              <div className="flex flex-col space-y-1.5 mb-3">
+                <span className="text-xs text-gray-600 capitalize bg-gradient-to-r from-gray-100 to-gray-50 rounded-full px-2 py-1 inline-block border border-gray-200 font-medium">
                   {userData?.role} Account
                 </span>
-                <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                   userData?.status === 'active' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'
                 }`}>
                   {userData?.status || 'Unknown'}
                 </span>
               </div>
 
-              <div className="mt-4 space-y-3 text-left border-t border-gray-100 pt-4">
+              <div className="mt-3 space-y-2 text-left border-t border-gray-100 pt-3">
                 {[
                   { label: 'Member since', value: formatDateForDisplay(userData?.createdAt), icon: '📅' },
                   { label: 'Last login', value: userData?.last_login_at ? formatDateForDisplay(userData.last_login_at) : 'Never', icon: '🔐' },
                   { label: 'User ID', value: `#${userData?.user_id}`, icon: '🆔' }
                 ].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-500">
+                  <div key={index} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 text-gray-500">
                       <span>{item.icon}</span>
                       <span>{item.label}</span>
                     </div>
@@ -887,24 +888,24 @@ const Profile = () => {
             </div>
 
             {/* Profile Completion */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 text-sm uppercase tracking-wide">Profile Completion</h3>
-                <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 text-xs uppercase tracking-wide">Profile Completion</h3>
+                <span className="text-xs font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
                   {completionData.overall}%
                 </span>
               </div>
               
               {/* Main Progress */}
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center mb-3">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center bg-gray-100">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center bg-gray-100">
                     <div 
                       className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-green-600 opacity-20"
                       style={{ clipPath: `inset(0 ${100 - completionData.overall}% 0 0)` }}
                     ></div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900">{completionData.overall}%</div>
+                      <div className="text-lg font-bold text-gray-900">{completionData.overall}%</div>
                       <div className="text-xs text-gray-500">Complete</div>
                     </div>
                   </div>
@@ -912,12 +913,12 @@ const Profile = () => {
               </div>
 
               {/* Progress Message */}
-              <p className="text-xs text-gray-600 text-center mb-4 px-2">
+              <p className="text-xs text-gray-600 text-center mb-3 px-1">
                 {getCompletionMessage(completionData.overall)}
               </p>
 
               {/* Section Progress Bars */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {Object.entries(completionData.sections).map(([key, section]) => (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
@@ -929,9 +930,9 @@ const Profile = () => {
                         {section.percentage}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 rounded-full h-1">
                       <div 
-                        className={`h-1.5 rounded-full transition-all duration-500 ${
+                        className={`h-1 rounded-full transition-all duration-500 ${
                           section.color === 'green' ? 'bg-green-500' :
                           section.color === 'blue' ? 'bg-blue-500' : 'bg-yellow-500'
                         }`} 
@@ -944,11 +945,11 @@ const Profile = () => {
 
               {/* Completion Tips */}
               {getCompletionTips.length > 0 && completionData.overall < 100 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-2">Next steps to complete:</h4>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <h4 className="text-xs font-semibold text-gray-700 mb-1.5">Next steps to complete:</h4>
                   <ul className="space-y-1">
                     {getCompletionTips.map((tip, index) => (
-                      <li key={index} className="flex items-center gap-2 text-xs text-gray-600">
+                      <li key={index} className="flex items-center gap-1.5 text-xs text-gray-600">
                         <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
                         {tip}
                       </li>
@@ -958,8 +959,8 @@ const Profile = () => {
               )}
 
               {completionData.overall === 100 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-xs text-green-600 font-semibold">
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
                     <span>🎉</span>
                     <span>Profile Complete! Excellent work!</span>
                   </div>

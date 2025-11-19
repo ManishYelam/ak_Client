@@ -51,13 +51,18 @@ export const contactAPI = {
 };
 
 export const applicationAPI = {
-  createOrUpdateProperty: (data) => api.post("/property", data),
-  createOrUpdateBulkProperties: (data) => api.get("/properties/bulk", data),
-  getAllProperties: (data) => api.post(`/properties`,data),
-  getPropertyById: (id) => api.get(`/property/${id}`),
-  deleteProperty: (id) => api.delete(`/property/${id}`),
+  createOrUpdateProperty: (data) => api.post("/application/property", data),
+  createOrUpdateBulkProperties: (data) => api.post("/application/properties/bulk", data),
+  getAllProperties: (data) => api.post(`/application/properties`,data),
+  getPropertyById: (id) => api.get(`/application/property/${id}`),
+  deleteProperty: (id) => api.delete(`/application/property/${id}`),
 };
 
-
+export const genericAPI = {
+  createOrUpdateLOV: (data) => api.post("/generics/lov", data),
+  createOrUpdateLOV: (data) => api.post("/generics/lov", data),
+  getLOVById: (id) => api.get(`/generics/lov/${id}`),
+  deleteLOV: (id) => api.delete(`/generics/lov/${id}`),
+};
 
 export default api
