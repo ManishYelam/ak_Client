@@ -60,7 +60,7 @@ export const applicationAPI = {
 
 export const genericAPI = {
   createOrUpdateLOV: (data) => api.post("/generics/lov", data),
-  createOrUpdateLOV: (data) => api.post("/generics/lov", data),
+  getAllLOVs: (data) => api.post("/generics/lov/all", data),
   getLOVById: (id) => api.get(`/generics/lov/${id}`),
   deleteLOV: (id) => api.delete(`/generics/lov/${id}`),
 };
