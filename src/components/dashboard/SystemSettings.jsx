@@ -679,7 +679,7 @@ const SystemSettings = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-900">System Settings</h1> */}
           <p className="text-gray-600 text-sm mt-1">Configure platform-wide settings and preferences</p>
         </div>
         <div className="flex space-x-2 mt-4 lg:mt-0">

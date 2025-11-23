@@ -144,7 +144,7 @@ const Home = () => {
         const [featuredResponse, regularResponse] = await Promise.allSettled([
           coursesAPI.getAll({
             page: 1,
-            limit: 6,
+            limit: 8, // Increased to 8 for 4x2 grid
             filters: { featured: true },
             sortBy: 'created_at',
             sortOrder: 'DESC'
@@ -169,7 +169,7 @@ const Home = () => {
         }
 
         // If we need more courses, add from regular
-        if (allCourses.length < 6 && regularResponse.status === 'fulfilled') {
+        if (allCourses.length < 8 && regularResponse.status === 'fulfilled') {
           const regularData = regularResponse.value.data?.data || regularResponse.value.data
           let regularCourses = []
           
@@ -184,15 +184,15 @@ const Home = () => {
             !existingIds.has(course.course_id || course.id)
           )
           
-          allCourses = [...allCourses, ...uniqueRegularCourses.slice(0, 6 - allCourses.length)]
+          allCourses = [...allCourses, ...uniqueRegularCourses.slice(0, 8 - allCourses.length)]
         }
 
         // Final fallback if still not enough
-        if (allCourses.length < 6) {
+        if (allCourses.length < 8) {
           try {
             const fallbackResponse = await coursesAPI.getAll({
               page: 1,
-              limit: 8,
+              limit: 12,
               sortBy: 'view_count',
               sortOrder: 'DESC'
             })
@@ -211,14 +211,14 @@ const Home = () => {
               !existingIds.has(course.course_id || course.id)
             )
             
-            allCourses = [...allCourses, ...uniqueFallbackCourses.slice(0, 6 - allCourses.length)]
+            allCourses = [...allCourses, ...uniqueFallbackCourses.slice(0, 8 - allCourses.length)]
           } catch (fallbackError) {
             console.error('Fallback fetch failed:', fallbackError)
           }
         }
 
         if (isMounted) {
-          setFeaturedCourses(allCourses.slice(0, 6))
+          setFeaturedCourses(allCourses.slice(0, 8)) // Show 8 courses for 4x2 grid
         }
         
       } catch (err) {
@@ -241,21 +241,21 @@ const Home = () => {
   }, [])
 
   const LoadingSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, index) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Updated to 4 columns */}
+      {Array.from({ length: 8 }).map((_, index) => ( // Increased to 8 skeletons
         <div
           key={index}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden animate-pulse"
+          className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse"
         >
-          <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-40 w-full" />
-          <div className="p-5">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-gray-200 rounded w-1/2 mb-3" />
-            <div className="h-3 bg-gray-200 rounded w-full mb-1" />
-            <div className="h-3 bg-gray-200 rounded w-4/5 mb-3" />
+          <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-36 w-full" />
+          <div className="p-4">
+            <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-2 bg-gray-200 rounded w-1/2 mb-3" />
+            <div className="h-2 bg-gray-200 rounded w-full mb-1" />
+            <div className="h-2 bg-gray-200 rounded w-4/5 mb-3" />
             <div className="flex justify-between items-center">
-              <div className="h-5 bg-gray-200 rounded w-16" />
-              <div className="h-9 bg-gray-200 rounded-lg w-20" />
+              <div className="h-4 bg-gray-200 rounded w-12" />
+              <div className="h-8 bg-gray-200 rounded-lg w-16" />
             </div>
           </div>
         </div>
@@ -455,7 +455,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Enhanced Courses Section */}
+      {/* Enhanced Courses Section - Updated to 4 columns */}
       <section className="py-12 bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/30 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl"></div>
@@ -508,7 +508,7 @@ const Home = () => {
           ) : (
             <>
               {featuredCourses.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Updated to 4 columns */}
                   <Suspense fallback={<LoadingSkeleton />}>
                     {featuredCourses.map((course, index) => (
                       <CourseCard 

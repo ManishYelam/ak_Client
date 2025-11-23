@@ -17,8 +17,8 @@ export const coursesAPI = {
 }
 
 export const paymentsAPI = {
-  createOrder: (orderData) => api.post('/payments/create-order', orderData),
-  verify: (paymentData) => api.post('/payments/verify', paymentData),
+  createRazorpayOrder: (orderData) => api.post('/payments/create-order', orderData),
+  verifyPayment: (paymentData) => api.post('/payments/verify-payment', paymentData),
   getHistory: (params = {}) => api.get('/payments/history', { params }),
 }
 
@@ -53,7 +53,7 @@ export const contactAPI = {
 export const applicationAPI = {
   createOrUpdateProperty: (data) => api.post("/application/property", data),
   createOrUpdateBulkProperties: (data) => api.post("/application/properties/bulk", data),
-  getAllProperties: (data) => api.post(`/application/properties`,data),
+  getAllProperties: (data) => api.post(`/application/properties`, data),
   getPropertyById: (id) => api.get(`/application/property/${id}`),
   deleteProperty: (id) => api.delete(`/application/property/${id}`),
 };
@@ -64,5 +64,41 @@ export const genericAPI = {
   getLOVById: (id) => api.get(`/generics/lov/${id}`),
   deleteLOV: (id) => api.delete(`/generics/lov/${id}`),
 };
+
+export const feedbackAPI = {
+  submitFeedback: (feedbackData) => api.post(`/feedback/submit`, feedbackData),
+  getUserFeedback: (page = 1, limit = 10) => api.get(`/feedback/my-feedback?page=${page}&limit=${limit}`),
+  getAllFeedback: (queryParams) => api.get(`/feedback?${queryParams.toString()}`),
+  getFeedbackStats: () => api.get(`/feedback/stats`,),
+  updateFeedbackStatus: (id, status, adminNotes = '') => api.patch(`/feedback/${id}/status`, { status, adminNotes },),
+  deleteFeedback: (id) => api.delete(`/feedback/${id}`)
+};
+
+// import api from "./axiosInstance";
+
+// export const supportAPI = {
+//   // 🎟️ Ticket methods
+//   createTicket: (ticketData) => api.post(`/support/tickets`, ticketData),
+//   getTickets: (params = {}) => api.get(`/support/tickets`, { params }),
+//   getUserTickets: (params = {}) => api.get(`/support/tickets/user`, { params }),
+//   getTicket: (ticketId) => api.get(`/support/tickets/${ticketId}`),
+//   updateTicket: (ticketId, updateData) => api.put(`/support/tickets/${ticketId}`, updateData),
+//   deleteTicket: (ticketId) => api.delete(`/support/tickets/${ticketId}`),
+//   // 💬 Message methods
+//   addMessage: (ticketId, messageData) => api.post(`/support/tickets/${ticketId}/messages`, messageData),
+//   getTicketMessages: (ticketId) => api.get(`/support/tickets/${ticketId}/messages`),
+//   // ❓ FAQ methods
+//   getFAQs: (params = {}) => api.get(`/support/faqs`, { params }),
+//   createFAQ: (faqData) => api.post(`/support/faqs`, faqData),
+//   updateFAQ: (faqId, updateData) => api.put(`/support/faqs/${faqId}`, updateData),
+//   deleteFAQ: (faqId) => api.delete(`/support/faqs/${faqId}`),
+//   // 📊 Stats
+//   getStats: () => api.get(`/support/tickets/stats`),
+//   // 👤 User support history
+//   getUserSupportHistory: (userId) => api.get(`/support/users/${userId}/support-history`),
+//   // 🧾 Case tickets
+//   getCaseTickets: (caseId) => api.get(`/support/cases/${caseId}/tickets`),
+// };
+
 
 export default api
