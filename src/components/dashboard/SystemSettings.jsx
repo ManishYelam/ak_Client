@@ -28,7 +28,8 @@ import {
   Calendar,
   User,
   CreditCard,
-  DollarSign
+  DollarSign,
+  AlertTriangle
 } from 'lucide-react'
 import { applicationAPI, genericAPI } from '../../services/api'
 
@@ -113,6 +114,16 @@ const SystemSettings = () => {
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0
+  })
+
+  // Confirmation Modal State
+  const [confirmationModal, setConfirmationModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: '', // 'delete', 'reset', 'lovDelete'
+    onConfirm: null,
+    data: null
   })
 
   // Settings state
@@ -221,6 +232,36 @@ const SystemSettings = () => {
 
     return () => clearTimeout(timer)
   }, [filters.page, filters.limit, filters.search, filters.category, filters.status])
+
+  // Confirmation Modal Functions
+  const showConfirmation = (title, message, type, onConfirm, data = null) => {
+    setConfirmationModal({
+      show: true,
+      title,
+      message,
+      type,
+      onConfirm,
+      data
+    })
+  }
+
+  const hideConfirmation = () => {
+    setConfirmationModal({
+      show: false,
+      title: '',
+      message: '',
+      type: '',
+      onConfirm: null,
+      data: null
+    })
+  }
+
+  const handleConfirm = () => {
+    if (confirmationModal.onConfirm) {
+      confirmationModal.onConfirm(confirmationModal.data)
+    }
+    hideConfirmation()
+  }
 
   const loadSettings = async () => {
     setIsLoading(true)
@@ -445,33 +486,67 @@ const SystemSettings = () => {
     }
   }
 
-  // Delete Functions
-  const deleteEmailConfig = async (config) => {
-    if (window.confirm(`Are you sure you want to delete the email configuration for "${config.property_value}"? This action cannot be undone.`)) {
-      try {
-        await applicationAPI.deleteProperty(config.app_prop_id)
-        showMessage('success', 'Email configuration deleted successfully!')
-        loadEmailConfigs()
-      } catch (error) {
-        console.error('Error deleting email config:', error)
-        const errorMessage = error.response?.data?.message || 'Failed to delete email configuration'
-        showMessage('error', errorMessage)
-      }
-    }
+  // Delete Functions with Custom Confirmation
+  const deleteEmailConfig = (config) => {
+    showConfirmation(
+      'Delete Email Configuration',
+      `Are you sure you want to delete the email configuration for "${config.property_value}"? This action cannot be undone.`,
+      'delete',
+      async (data) => {
+        try {
+          await applicationAPI.deleteProperty(data.app_prop_id)
+          showMessage('success', 'Email configuration deleted successfully!')
+          loadEmailConfigs()
+        } catch (error) {
+          console.error('Error deleting email config:', error)
+          const errorMessage = error.response?.data?.message || 'Failed to delete email configuration'
+          showMessage('error', errorMessage)
+        }
+      },
+      config
+    )
   }
 
-  const deleteRazorpayConfig = async (config) => {
-    if (window.confirm(`Are you sure you want to delete the Razorpay configuration for "${config.property_value}"? This action cannot be undone.`)) {
-      try {
-        await applicationAPI.deleteProperty(config.app_prop_id)
-        showMessage('success', 'Razorpay configuration deleted successfully!')
-        loadRazorpayConfigs()
-      } catch (error) {
-        console.error('Error deleting Razorpay config:', error)
-        const errorMessage = error.response?.data?.message || 'Failed to delete Razorpay configuration'
-        showMessage('error', errorMessage)
-      }
-    }
+  const deleteRazorpayConfig = (config) => {
+    showConfirmation(
+      'Delete Razorpay Configuration',
+      `Are you sure you want to delete the Razorpay configuration for "${config.property_value}"? This action cannot be undone.`,
+      'delete',
+      async (data) => {
+        try {
+          await applicationAPI.deleteProperty(data.app_prop_id)
+          showMessage('success', 'Razorpay configuration deleted successfully!')
+          loadRazorpayConfigs()
+        } catch (error) {
+          console.error('Error deleting Razorpay config:', error)
+          const errorMessage = error.response?.data?.message || 'Failed to delete Razorpay configuration'
+          showMessage('error', errorMessage)
+        }
+      },
+      config
+    )
+  }
+
+  const deleteLOV = (lovId) => {
+    const lov = lovs.find(l => l.lov_id === lovId)
+    showConfirmation(
+      'Delete List of Value',
+      `Are you sure you want to delete the LOV item "${lov?.code}"? This action cannot be undone.`,
+      'lovDelete',
+      async (data) => {
+        try {
+          const response = await genericAPI.deleteLOV(data)
+          if (response.data && response.data.success) {
+            showMessage('success', 'LOV deleted successfully!')
+            loadLOVs()
+          }
+        } catch (error) {
+          console.error('Error deleting LOV:', error)
+          showMessage('error', 'Failed to delete LOV')
+        }
+      },
+      lovId
+    )
   }
 
   const showMessage = (type, text) => {
@@ -793,54 +868,44 @@ const SystemSettings = () => {
     }
   }
 
-  const handleResetSettings = async () => {
-    if (window.confirm('Are you sure you want to reset all settings to default? This action cannot be undone.')) {
-      try {
-        showMessage('info', 'Resetting settings to default...')
-        setTimeout(() => {
-          setSettings({
-            site_title: "Learn SAP ABAP",
-            site_description: "Master SAP ABAP programming with expert-led courses",
-            contact_email: "support@learnsapabap.com",
-            maintenance_mode: false,
-            user_registration: true,
-            email_verification: true,
-            strong_passwords: true,
-            session_timeout: 120,
-            max_login_attempts: 5,
-            smtp_host: "smtp.gmail.com",
-            smtp_port: 587,
-            smtp_service: "gmail",
-            smtp_username: "noreply@learnsapabap.com",
-            smtp_password: "",
-            smtp_use_tls: true
-          })
-          resetGeneral({
-            siteName: "Learn SAP ABAP",
-            siteDescription: "Master SAP ABAP programming with expert-led courses",
-            contactEmail: "support@learnsapabap.com"
-          })
-          showMessage('success', 'Settings reset to default successfully!')
-        }, 1500)
-      } catch (error) {
-        showMessage('error', 'Failed to reset settings')
-      }
-    }
-  }
-
-  const deleteLOV = async (lovId) => {
-    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-      try {
-        const response = await genericAPI.deleteLOV(lovId)
-        if (response.data && response.data.success) {
-          showMessage('success', 'LOV deleted successfully!')
-          loadLOVs()
+  const handleResetSettings = () => {
+    showConfirmation(
+      'Reset All Settings',
+      'Are you sure you want to reset all settings to default values? This action cannot be undone and will restore all settings to their original state.',
+      'reset',
+      () => {
+        try {
+          showMessage('info', 'Resetting settings to default...')
+          setTimeout(() => {
+            setSettings({
+              site_title: "Learn SAP ABAP",
+              site_description: "Master SAP ABAP programming with expert-led courses",
+              contact_email: "support@learnsapabap.com",
+              maintenance_mode: false,
+              user_registration: true,
+              email_verification: true,
+              strong_passwords: true,
+              session_timeout: 120,
+              max_login_attempts: 5,
+              smtp_host: "smtp.gmail.com",
+              smtp_port: 587,
+              smtp_service: "gmail",
+              smtp_username: "noreply@learnsapabap.com",
+              smtp_password: "",
+              smtp_use_tls: true
+            })
+            resetGeneral({
+              siteName: "Learn SAP ABAP",
+              siteDescription: "Master SAP ABAP programming with expert-led courses",
+              contactEmail: "support@learnsapabap.com"
+            })
+            showMessage('success', 'Settings reset to default successfully!')
+          }, 1500)
+        } catch (error) {
+          showMessage('error', 'Failed to reset settings')
         }
-      } catch (error) {
-        console.error('Error deleting LOV:', error)
-        showMessage('error', 'Failed to delete LOV')
       }
-    }
+    )
   }
 
   const toggleLOVStatus = async (lov) => {
@@ -1700,6 +1765,48 @@ const SystemSettings = () => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmationModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full">
+            <div className="flex items-center space-x-3 p-4 border-b border-gray-200">
+              <div className={`p-2 rounded-full ${confirmationModal.type === 'delete' || confirmationModal.type === 'lovDelete' || confirmationModal.type === 'reset'
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-blue-100 text-blue-600'
+                }`}>
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{confirmationModal.title}</h3>
+                <p className="text-sm text-gray-600 mt-0.5">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <div className="p-4">
+              <p className="text-sm text-gray-700">{confirmationModal.message}</p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200">
+              <button
+                onClick={hideConfirmation}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${confirmationModal.type === 'delete' || confirmationModal.type === 'lovDelete' || confirmationModal.type === 'reset'
+                    ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                    : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                  }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Email Configuration Modal */}
       {showEmailModal && (
