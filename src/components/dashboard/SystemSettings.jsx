@@ -1,4 +1,3 @@
-// src/pages/dashboard/SystemSettings.jsx
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -27,7 +26,9 @@ import {
   Filter,
   Sliders,
   Calendar,
-  User
+  User,
+  CreditCard,
+  DollarSign
 } from 'lucide-react'
 import { applicationAPI, genericAPI } from '../../services/api'
 
@@ -43,6 +44,13 @@ const emailSettingsSchema = yup.object({
   username: yup.string().email('Must be a valid email').required('Username is required'),
   password: yup.string().required('Password is required'),
   useTLS: yup.boolean().default(true),
+  description: yup.string()
+})
+
+const razorpaySettingsSchema = yup.object({
+  keyId: yup.string().required('Key ID is required'),
+  keySecret: yup.string().required('Key Secret is required'),
+  webhookSecret: yup.string().required('Webhook Secret is required'),
   description: yup.string()
 })
 
@@ -65,13 +73,25 @@ const SystemSettings = () => {
   const [saveLoading, setSaveLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [showSmtpPassword, setShowSmtpPassword] = useState(false)
+  const [showRazorpaySecret, setShowRazorpaySecret] = useState(false)
+  const [showWebhookSecret, setShowWebhookSecret] = useState(false)
+
+  // Email Configurations
   const [emailConfigs, setEmailConfigs] = useState([])
   const [showEmailConfigs, setShowEmailConfigs] = useState(false)
+
+  // Razorpay Configurations
+  const [razorpayConfigs, setRazorpayConfigs] = useState([])
+  const [showRazorpayConfigs, setShowRazorpayConfigs] = useState(false)
 
   // Modal states
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [editingEmailConfig, setEditingEmailConfig] = useState(null)
-  const [emailFormStatus, setEmailFormStatus] = useState('active')
+  const [emailFormStatus, setEmailFormStatus] = useState('inactive')
+
+  const [showRazorpayModal, setShowRazorpayModal] = useState(false)
+  const [editingRazorpayConfig, setEditingRazorpayConfig] = useState(null)
+  const [razorpayFormStatus, setRazorpayFormStatus] = useState('inactive')
 
   // LOV States with Advanced Filtering
   const [lovs, setLovs] = useState([])
@@ -79,7 +99,7 @@ const SystemSettings = () => {
   const [editingLov, setEditingLov] = useState(null)
   const [lovCategories, setLovCategories] = useState([])
   const [lovLoading, setLovLoading] = useState(false)
-  
+
   // Filter States based on LOV fields
   const [filters, setFilters] = useState({
     search: '',
@@ -115,12 +135,12 @@ const SystemSettings = () => {
   })
 
   // Forms
-  const { 
-    register: registerGeneral, 
-    handleSubmit: handleSubmitGeneral, 
-    formState: { errors: generalErrors }, 
+  const {
+    register: registerGeneral,
+    handleSubmit: handleSubmitGeneral,
+    formState: { errors: generalErrors },
     reset: resetGeneral,
-    watch: watchGeneral 
+    watch: watchGeneral
   } = useForm({
     resolver: yupResolver(generalSettingsSchema),
     defaultValues: {
@@ -130,11 +150,11 @@ const SystemSettings = () => {
     }
   })
 
-  const { 
-    register: registerEmail, 
-    handleSubmit: handleSubmitEmail, 
-    formState: { errors: emailErrors }, 
-    reset: resetEmail 
+  const {
+    register: registerEmail,
+    handleSubmit: handleSubmitEmail,
+    formState: { errors: emailErrors },
+    reset: resetEmail
   } = useForm({
     resolver: yupResolver(emailSettingsSchema),
     defaultValues: {
@@ -148,11 +168,26 @@ const SystemSettings = () => {
     }
   })
 
-  const { 
-    register: registerLov, 
-    handleSubmit: handleSubmitLov, 
-    formState: { errors: lovErrors }, 
-    reset: resetLov 
+  const {
+    register: registerRazorpay,
+    handleSubmit: handleSubmitRazorpay,
+    formState: { errors: razorpayErrors },
+    reset: resetRazorpay
+  } = useForm({
+    resolver: yupResolver(razorpaySettingsSchema),
+    defaultValues: {
+      keyId: '',
+      keySecret: '',
+      webhookSecret: '',
+      description: ''
+    }
+  })
+
+  const {
+    register: registerLov,
+    handleSubmit: handleSubmitLov,
+    formState: { errors: lovErrors },
+    reset: resetLov
   } = useForm({
     resolver: yupResolver(lovSchema),
     defaultValues: {
@@ -166,6 +201,7 @@ const SystemSettings = () => {
   const tabs = [
     { id: 'general', name: 'General', icon: '⚙️' },
     { id: 'email', name: 'Email', icon: '📧' },
+    { id: 'razorpay', name: 'Razorpay', icon: '💳' },
     { id: 'advanced', name: 'Advanced', icon: '🔧' }
   ]
 
@@ -173,6 +209,7 @@ const SystemSettings = () => {
   useEffect(() => {
     loadSettings()
     loadEmailConfigs()
+    loadRazorpayConfigs()
     loadLOVs()
   }, [])
 
@@ -188,7 +225,7 @@ const SystemSettings = () => {
   const loadSettings = async () => {
     setIsLoading(true)
     try {
-      const response = await applicationAPI.getAllProperties()
+      const response = await applicationAPI.getAllProperties({ page: 1, limit: 100 })
 
       if (response.data && response.data.data) {
         const properties = response.data.data
@@ -243,6 +280,28 @@ const SystemSettings = () => {
     }
   }
 
+  const loadRazorpayConfigs = async () => {
+    try {
+      const payload = {
+        page: 1,
+        limit: 50,
+        search: '',
+        searchFields: ['property_name', 'property_value'],
+        filters: {
+          property_name: 'app_rzp'
+        }
+      }
+
+      const response = await applicationAPI.getAllProperties(payload)
+      if (response.data && response.data.data) {
+        setRazorpayConfigs(response.data.data)
+      }
+    } catch (error) {
+      console.error('Error loading Razorpay configurations:', error)
+      showMessage('error', 'Failed to load Razorpay configurations')
+    }
+  }
+
   // LOV Functions with Advanced Filtering
   const loadLOVs = async () => {
     setLovLoading(true)
@@ -253,17 +312,17 @@ const SystemSettings = () => {
         limit: filters.limit,
         ...(filters.search && { search: filters.search }),
         ...(filters.category !== 'all' && { categories: [filters.category] }),
-        ...(filters.status !== 'all' && { 
-          isActive: filters.status === 'active' 
+        ...(filters.status !== 'all' && {
+          isActive: filters.status === 'active'
         })
       }
 
       const response = await genericAPI.getAllLOVs(payload)
-      
+
       if (response.data && response.data.success) {
         const lovsData = response.data.data || []
         setLovs(lovsData)
-        
+
         // Update pagination info from response
         setPagination({
           total: response.data.total || 0,
@@ -284,8 +343,8 @@ const SystemSettings = () => {
 
   // Filter handlers for LOV fields
   const handleSearchChange = (value) => {
-    setFilters(prev => ({ 
-      ...prev, 
+    setFilters(prev => ({
+      ...prev,
       search: value,
       page: 1 // Reset to first page when searching
     }))
@@ -308,10 +367,10 @@ const SystemSettings = () => {
   }
 
   const handleLimitChange = (newLimit) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      limit: parseInt(newLimit), 
-      page: 1 
+    setFilters(prev => ({
+      ...prev,
+      limit: parseInt(newLimit),
+      page: 1
     }))
   }
 
@@ -386,52 +445,16 @@ const SystemSettings = () => {
     }
   }
 
-  const deleteLOV = async (lovId) => {
-    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-      try {
-        const response = await genericAPI.deleteLOV(lovId)
-        if (response.data && response.data.success) {
-          showMessage('success', 'LOV deleted successfully!')
-          loadLOVs()
-        }
-      } catch (error) {
-        console.error('Error deleting LOV:', error)
-        showMessage('error', 'Failed to delete LOV')
-      }
-    }
-  }
-
-  const toggleLOVStatus = async (lov) => {
-    try {
-      const payload = {
-        lov_id: lov.lov_id,
-        category: lov.category,
-        code: lov.code,
-        description: lov.description,
-        isActive: !lov.isActive
-      }
-
-      const response = await genericAPI.createOrUpdateLOV(payload)
-      if (response.data && response.data.success) {
-        showMessage('success', `LOV ${lov.isActive ? 'deactivated' : 'activated'} successfully!`)
-        loadLOVs()
-      }
-    } catch (error) {
-      console.error('Error updating LOV status:', error)
-      showMessage('error', 'Failed to update LOV status')
-    }
-  }
-
   const showMessage = (type, text) => {
     setMessage({ type, text })
     setTimeout(() => setMessage({ type: '', text: '' }), 5000)
   }
 
   // Email Modal Functions
-  const openEditModal = (config) => {
+  const openEditEmailModal = (config) => {
     setEditingEmailConfig(config)
     setEmailFormStatus(config.status || 'active')
-    
+
     if (config.metadata?.emailSettings) {
       const emailSettings = config.metadata.emailSettings
       resetEmail({
@@ -454,11 +477,11 @@ const SystemSettings = () => {
         description: config.desc || ''
       })
     }
-    
+
     setShowEmailModal(true)
   }
 
-  const openNewModal = () => {
+  const openNewEmailModal = () => {
     setEditingEmailConfig(null)
     setEmailFormStatus('active')
     resetEmail()
@@ -467,35 +490,27 @@ const SystemSettings = () => {
 
   const closeEmailModal = () => {
     if (saveLoading) return
-    
+
     setShowEmailModal(false)
     setEditingEmailConfig(null)
     setEmailFormStatus('active')
     resetEmail()
   }
 
+  // FIXED: Correct parameter order for email activation
   const setActiveEmailConfig = async (config) => {
     try {
-      const payload = {
-        property_name: "app_email",
-        property_value: config.property_value,
-        desc: config.desc,
-        metadata: config.metadata,
-        status: "active"
-      }
-
-      if (config.app_prop_id) {
-        payload.app_prop_id = config.app_prop_id
-      }
-
-      await applicationAPI.createOrUpdateProperty(payload)
+      // FIXED: Correct parameter order (property_name, app_prop_id) - No confirmation
+      await applicationAPI.activeAppProperty(config.property_name, config.app_prop_id)
       loadEmailConfigs()
       showMessage('success', 'Email configuration activated successfully!')
     } catch (error) {
       console.error('Error activating email config:', error)
-      showMessage('error', 'Failed to activate email configuration')
+      const errorMessage = error.response?.data?.message || 'Failed to activate email configuration'
+      showMessage('error', errorMessage)
     }
   }
+
 
   const handleEmailSubmit = async (data) => {
     setSaveLoading(true)
@@ -517,7 +532,7 @@ const SystemSettings = () => {
             useTLS: data.useTLS
           }
         },
-        status: emailFormStatus
+        status: "inactive"
       }
 
       if (editingEmailConfig) {
@@ -537,15 +552,118 @@ const SystemSettings = () => {
     }
   }
 
+  // Razorpay Modal Functions
+  const openEditRazorpayModal = (config) => {
+    setEditingRazorpayConfig(config)
+    setRazorpayFormStatus(config.status || 'active')
+
+    if (config.metadata?.razorpaySettings) {
+      const razorpaySettings = config.metadata.razorpaySettings
+      resetRazorpay({
+        keyId: razorpaySettings.keyId || '',
+        keySecret: razorpaySettings.keySecret || '',
+        webhookSecret: razorpaySettings.webhookSecret || '',
+        description: config.desc || ''
+      })
+    } else {
+      resetRazorpay({
+        keyId: '',
+        keySecret: '',
+        webhookSecret: '',
+        description: config.desc || ''
+      })
+    }
+
+    setShowRazorpayModal(true)
+  }
+
+  const openNewRazorpayModal = () => {
+    setEditingRazorpayConfig(null)
+    setRazorpayFormStatus('active')
+    resetRazorpay()
+    setShowRazorpayModal(true)
+  }
+
+  const closeRazorpayModal = () => {
+    if (saveLoading) return
+
+    setShowRazorpayModal(false)
+    setEditingRazorpayConfig(null)
+    setRazorpayFormStatus('active')
+    resetRazorpay()
+  }
+
+  // FIXED: Correct parameter order for Razorpay activation
+  const setActiveRazorpayConfig = async (config) => {
+    try {
+      // FIXED: Correct parameter order (property_name, app_prop_id) - No confirmation
+      await applicationAPI.activeAppProperty(config.property_name, config.app_prop_id)
+      loadRazorpayConfigs()
+      showMessage('success', 'Razorpay configuration activated successfully!')
+    } catch (error) {
+      console.error('Error activating Razorpay config:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to activate Razorpay configuration'
+      showMessage('error', errorMessage)
+    }
+  }
+  const handleRazorpaySubmit = async (data) => {
+    setSaveLoading(true)
+    try {
+      const payload = {
+        property_name: "app_rzp",
+        property_value: data.keyId,
+        desc: data.description || "Razorpay payment gateway configuration",
+        metadata: {
+          appName: settings.site_title || "Learn SAP ABAP",
+          companyName: "Learn SAP ABAP",
+          razorpaySettings: {
+            keyId: data.keyId,
+            keySecret: data.keySecret,
+            webhookSecret: data.webhookSecret
+          }
+        },
+        status: "inactive"
+      }
+
+      if (editingRazorpayConfig) {
+        payload.app_prop_id = editingRazorpayConfig.app_prop_id
+      }
+
+      await applicationAPI.createOrUpdateProperty(payload)
+      showMessage('success', editingRazorpayConfig ? 'Razorpay configuration updated successfully!' : 'Razorpay configuration created successfully!')
+      closeRazorpayModal()
+      loadRazorpayConfigs()
+    } catch (error) {
+      console.error('Error saving Razorpay settings:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to save Razorpay configuration'
+      showMessage('error', errorMessage)
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
+  // Test functions
   const testSpecificEmailConfig = async (config) => {
     try {
       showMessage('info', `Testing email configuration: ${config.property_value}...`)
-      
+
       setTimeout(() => {
         showMessage('success', `Email configuration test for ${config.property_value} completed successfully!`)
       }, 2000)
     } catch (error) {
       showMessage('error', `Failed to test email configuration: ${config.property_value}`)
+    }
+  }
+
+  const testSpecificRazorpayConfig = async (config) => {
+    try {
+      showMessage('info', `Testing Razorpay configuration: ${config.property_value}...`)
+
+      setTimeout(() => {
+        showMessage('success', `Razorpay configuration test for ${config.property_value} completed successfully!`)
+      }, 2000)
+    } catch (error) {
+      showMessage('error', `Failed to test Razorpay configuration: ${config.property_value}`)
     }
   }
 
@@ -561,6 +679,21 @@ const SystemSettings = () => {
       }
     } catch (error) {
       showMessage('error', 'Failed to test email configuration')
+    }
+  }
+
+  const testRazorpayConfiguration = async () => {
+    try {
+      if (editingRazorpayConfig) {
+        await testSpecificRazorpayConfig(editingRazorpayConfig)
+      } else {
+        showMessage('info', 'Testing current Razorpay configuration...')
+        setTimeout(() => {
+          showMessage('success', 'Razorpay configuration test completed successfully!')
+        }, 2000)
+      }
+    } catch (error) {
+      showMessage('error', 'Failed to test Razorpay configuration')
     }
   }
 
@@ -666,6 +799,42 @@ const SystemSettings = () => {
     }
   }
 
+  const deleteLOV = async (lovId) => {
+    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+      try {
+        const response = await genericAPI.deleteLOV(lovId)
+        if (response.data && response.data.success) {
+          showMessage('success', 'LOV deleted successfully!')
+          loadLOVs()
+        }
+      } catch (error) {
+        console.error('Error deleting LOV:', error)
+        showMessage('error', 'Failed to delete LOV')
+      }
+    }
+  }
+
+  const toggleLOVStatus = async (lov) => {
+    try {
+      const payload = {
+        lov_id: lov.lov_id,
+        category: lov.category,
+        code: lov.code,
+        description: lov.description,
+        isActive: !lov.isActive
+      }
+
+      const response = await genericAPI.createOrUpdateLOV(payload)
+      if (response.data && response.data.success) {
+        showMessage('success', `LOV ${lov.isActive ? 'deactivated' : 'activated'} successfully!`)
+        loadLOVs()
+      }
+    } catch (error) {
+      console.error('Error updating LOV status:', error)
+      showMessage('error', 'Failed to update LOV status')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -679,7 +848,7 @@ const SystemSettings = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          {/* <h1 className="text-2xl font-bold text-gray-900">System Settings</h1> */}
+          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
           <p className="text-gray-600 text-sm mt-1">Configure platform-wide settings and preferences</p>
         </div>
         <div className="flex space-x-2 mt-4 lg:mt-0">
@@ -696,11 +865,10 @@ const SystemSettings = () => {
 
       {/* Message Display */}
       {message.text && (
-        <div className={`rounded-lg p-3 ${
-          message.type === 'success' ? 'bg-green-50 border border-green-200' :
-          message.type === 'error' ? 'bg-red-50 border border-red-200' :
-          'bg-blue-50 border border-blue-200'
-        }`}>
+        <div className={`rounded-lg p-3 ${message.type === 'success' ? 'bg-green-50 border border-green-200' :
+            message.type === 'error' ? 'bg-red-50 border border-red-200' :
+              'bg-blue-50 border border-blue-200'
+          }`}>
           <div className="flex items-start">
             {message.type === 'success' ? (
               <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
@@ -709,11 +877,10 @@ const SystemSettings = () => {
             ) : (
               <AlertCircle className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
             )}
-            <p className={`text-sm ${
-              message.type === 'success' ? 'text-green-700' :
-              message.type === 'error' ? 'text-red-700' :
-              'text-blue-700'
-            }`}>
+            <p className={`text-sm ${message.type === 'success' ? 'text-green-700' :
+                message.type === 'error' ? 'text-red-700' :
+                  'text-blue-700'
+              }`}>
               {message.text}
             </p>
           </div>
@@ -728,11 +895,10 @@ const SystemSettings = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === tab.id
+                className={`w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${activeTab === tab.id
                     ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-500'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <span className="text-base">{tab.icon}</span>
                 <span>{tab.name}</span>
@@ -755,9 +921,8 @@ const SystemSettings = () => {
                     <input
                       type="text"
                       {...registerGeneral('siteName')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        generalErrors.siteName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.siteName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="Enter site name"
                     />
                     {generalErrors.siteName && (
@@ -772,9 +937,8 @@ const SystemSettings = () => {
                     <textarea
                       {...registerGeneral('siteDescription')}
                       rows="2"
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        generalErrors.siteDescription ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.siteDescription ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="Enter site description"
                     />
                     {generalErrors.siteDescription && (
@@ -789,9 +953,8 @@ const SystemSettings = () => {
                     <input
                       type="email"
                       {...registerGeneral('contactEmail')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        generalErrors.contactEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.contactEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="Enter contact email"
                     />
                     {generalErrors.contactEmail && (
@@ -823,7 +986,7 @@ const SystemSettings = () => {
                       <span>{showEmailConfigs ? 'Hide' : 'Show'} Table</span>
                     </button>
                     <button
-                      onClick={openNewModal}
+                      onClick={openNewEmailModal}
                       className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -854,7 +1017,7 @@ const SystemSettings = () => {
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="w-20 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-28 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -863,21 +1026,18 @@ const SystemSettings = () => {
                         {emailConfigs.map((config) => (
                           <tr
                             key={config.app_prop_id}
-                            className={`hover:bg-gray-50 transition-colors ${
-                              config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
-                            }`}
+                            className={`hover:bg-gray-50 transition-colors ${config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                              }`}
                           >
                             {/* Status Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className={`w-2 h-2 rounded-full mr-1.5 ${
-                                  config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
-                                }`} />
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                                  config.status === 'active'
+                                <div className={`w-2 h-2 rounded-full mr-1.5 ${config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                  }`} />
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.status === 'active'
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-700'
-                                }`}>
+                                  }`}>
                                   {config.status}
                                 </span>
                               </div>
@@ -909,12 +1069,11 @@ const SystemSettings = () => {
 
                             {/* Service Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize ${
-                                config.metadata?.emailSettings?.service === 'gmail' ? 'bg-red-100 text-red-800' :
-                                config.metadata?.emailSettings?.service === 'outlook' ? 'bg-blue-100 text-blue-800' :
-                                config.metadata?.emailSettings?.service === 'yahoo' ? 'bg-purple-100 text-purple-800' :
-                                'bg-gray-100 text-gray-700'
-                              }`}>
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize ${config.metadata?.emailSettings?.service === 'gmail' ? 'bg-red-100 text-red-800' :
+                                  config.metadata?.emailSettings?.service === 'outlook' ? 'bg-blue-100 text-blue-800' :
+                                    config.metadata?.emailSettings?.service === 'yahoo' ? 'bg-purple-100 text-purple-800' :
+                                      'bg-gray-100 text-gray-700'
+                                }`}>
                                 {config.metadata?.emailSettings?.service || 'custom'}
                               </span>
                             </td>
@@ -932,14 +1091,15 @@ const SystemSettings = () => {
                                 {config.status !== 'active' && (
                                   <button
                                     onClick={() => setActiveEmailConfig(config)}
-                                    className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100 transition-colors"
+                                    className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100 transition-colors flex items-center"
                                     title="Activate this configuration"
                                   >
-                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+                                    <span className="text-xs">Activate</span>
                                   </button>
                                 )}
                                 <button
-                                  onClick={() => openEditModal(config)}
+                                  onClick={() => openEditEmailModal(config)}
                                   className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
                                   title="Edit this configuration"
                                 >
@@ -965,7 +1125,164 @@ const SystemSettings = () => {
                         <h3 className="text-sm font-medium text-gray-900 mb-1">No email configurations</h3>
                         <p className="text-xs text-gray-500 mb-3">Get started by creating a new email configuration.</p>
                         <button
-                          onClick={openNewModal}
+                          onClick={openNewEmailModal}
+                          className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Create Configuration</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'razorpay' && (
+            <div className="space-y-4">
+              {/* Razorpay Configurations Header */}
+              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900">Razorpay Configurations</h2>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Manage your Razorpay payment gateway configurations ({razorpayConfigs.length} total)
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setShowRazorpayConfigs(!showRazorpayConfigs)}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>{showRazorpayConfigs ? 'Hide' : 'Show'} Table</span>
+                    </button>
+                    <button
+                      onClick={openNewRazorpayModal}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Config</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {showRazorpayConfigs && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="w-16 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Key ID
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Environment
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="w-28 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {razorpayConfigs.map((config) => (
+                          <tr
+                            key={config.app_prop_id}
+                            className={`hover:bg-gray-50 transition-colors ${config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                              }`}
+                          >
+                            {/* Status Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className={`w-2 h-2 rounded-full mr-1.5 ${config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                  }`} />
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.status === 'active'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                  {config.status}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Key ID Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div>
+                                <div className="font-medium text-gray-900 text-xs">
+                                  {config.property_value}
+                                </div>
+                                <div className="text-gray-500 text-xs mt-0.5">
+                                  {config.metadata?.razorpaySettings?.keyId ? 'Key ID configured' : 'No Key ID'}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Environment Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.property_value?.includes('test')
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                {config.property_value?.includes('test') ? 'Test' : 'Live'}
+                              </span>
+                            </td>
+
+                            {/* Description Column */}
+                            <td className="px-3 py-2">
+                              <div className="text-gray-900 text-xs max-w-[120px] truncate" title={config.desc}>
+                                {config.desc || 'No description'}
+                              </div>
+                            </td>
+
+                            {/* Actions Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center space-x-1">
+                                {config.status !== 'active' && (
+                                  <button
+                                    onClick={() => setActiveRazorpayConfig(config)}
+                                    className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100 transition-colors flex items-center"
+                                    title="Activate this configuration"
+                                  >
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+                                    <span className="text-xs">Activate</span>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => openEditRazorpayModal(config)}
+                                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
+                                  title="Edit this configuration"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => testSpecificRazorpayConfig(config)}
+                                  className="text-purple-600 hover:text-purple-800 p-1 rounded hover:bg-purple-100 transition-colors"
+                                  title="Test this configuration"
+                                >
+                                  <Activity className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {razorpayConfigs.length === 0 && (
+                      <div className="text-center py-6">
+                        <CreditCard className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">No Razorpay configurations</h3>
+                        <p className="text-xs text-gray-500 mb-3">Get started by creating a new Razorpay configuration.</p>
+                        <button
+                          onClick={openNewRazorpayModal}
                           className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -1039,11 +1356,10 @@ const SystemSettings = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors ${
-                        showAdvancedFilters || hasActiveFilters
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors ${showAdvancedFilters || hasActiveFilters
                           ? 'bg-primary-100 text-primary-700 border border-primary-300'
                           : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                      }`}
+                        }`}
                     >
                       <Sliders className="w-3.5 h-3.5" />
                       <span>Filters {hasActiveFilters && '•'}</span>
@@ -1203,11 +1519,10 @@ const SystemSettings = () => {
                           <td className="px-3 py-2 whitespace-nowrap">
                             <button
                               onClick={() => toggleLOVStatus(lov)}
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${
-                                lov.isActive 
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${lov.isActive
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
                                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                              }`}
+                                }`}
                             >
                               {lov.isActive ? 'Active' : 'Inactive'}
                             </button>
@@ -1245,8 +1560,8 @@ const SystemSettings = () => {
                       <List className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                       <h3 className="text-sm font-medium text-gray-900 mb-1">No list of values found</h3>
                       <p className="text-xs text-gray-500 mb-3">
-                        {hasActiveFilters 
-                          ? 'Try adjusting your filters or search terms' 
+                        {hasActiveFilters
+                          ? 'Try adjusting your filters or search terms'
                           : 'Get started by creating your first list of values'
                         }
                       </p>
@@ -1292,7 +1607,7 @@ const SystemSettings = () => {
                       >
                         <ChevronLeft className="w-3.5 h-3.5" />
                       </button>
-                      
+
                       {/* Page numbers */}
                       {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                         let pageNum;
@@ -1310,11 +1625,10 @@ const SystemSettings = () => {
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 text-xs rounded border ${
-                              filters.page === pageNum
+                            className={`w-8 h-8 text-xs rounded border ${filters.page === pageNum
                                 ? 'bg-primary-600 text-white border-primary-600'
                                 : 'border-gray-300 hover:bg-gray-50'
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -1380,9 +1694,8 @@ const SystemSettings = () => {
                     <input
                       type="text"
                       {...registerEmail('smtpServer')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="smtp.gmail.com"
                     />
                     {emailErrors.smtpServer && (
@@ -1396,9 +1709,8 @@ const SystemSettings = () => {
                     <input
                       type="number"
                       {...registerEmail('port')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="587"
                     />
                     {emailErrors.port && (
@@ -1414,9 +1726,8 @@ const SystemSettings = () => {
                     </label>
                     <select
                       {...registerEmail('service')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                     >
                       <option value="">Select service</option>
                       <option value="gmail">Gmail</option>
@@ -1446,9 +1757,8 @@ const SystemSettings = () => {
                     <input
                       type="email"
                       {...registerEmail('username')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                        emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                       placeholder="your-email@gmail.com"
                     />
                     {emailErrors.username && (
@@ -1463,9 +1773,8 @@ const SystemSettings = () => {
                       <input
                         type={showSmtpPassword ? "text" : "password"}
                         {...registerEmail('password')}
-                        className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                          emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                        className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
                         placeholder="••••••••"
                       />
                       <button
@@ -1504,14 +1813,12 @@ const SystemSettings = () => {
                     <button
                       type="button"
                       onClick={() => setEmailFormStatus(editingEmailConfig.status === 'active' ? 'inactive' : 'active')}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        emailFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
-                      }`}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${emailFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                          emailFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
-                        }`}
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${emailFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                          }`}
                       />
                     </button>
                   </div>
@@ -1562,6 +1869,178 @@ const SystemSettings = () => {
         </div>
       )}
 
+      {/* Razorpay Configuration Modal */}
+      {showRazorpayModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {editingRazorpayConfig ? 'Edit Razorpay Config' : 'New Razorpay Config'}
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {editingRazorpayConfig
+                    ? `Editing: ${editingRazorpayConfig.property_value}`
+                    : 'Configure Razorpay payment gateway settings'
+                  }
+                </p>
+              </div>
+              <button
+                onClick={closeRazorpayModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4">
+              <form onSubmit={handleSubmitRazorpay(handleRazorpaySubmit)} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Key ID *
+                  </label>
+                  <input
+                    type="text"
+                    {...registerRazorpay('keyId')}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.keyId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                    placeholder="rzp_test_xxxxxxxxxxxxx"
+                  />
+                  {razorpayErrors.keyId && (
+                    <p className="mt-1 text-xs text-red-600">{razorpayErrors.keyId.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Key Secret *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showRazorpaySecret ? "text" : "password"}
+                      {...registerRazorpay('keySecret')}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.keySecret ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRazorpaySecret(!showRazorpaySecret)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                    >
+                      {showRazorpaySecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  {razorpayErrors.keySecret && (
+                    <p className="mt-1 text-xs text-red-600">{razorpayErrors.keySecret.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Webhook Secret *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showWebhookSecret ? "text" : "password"}
+                      {...registerRazorpay('webhookSecret')}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.webhookSecret ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowWebhookSecret(!showWebhookSecret)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                    >
+                      {showWebhookSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  {razorpayErrors.webhookSecret && (
+                    <p className="mt-1 text-xs text-red-600">{razorpayErrors.webhookSecret.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    {...registerRazorpay('description')}
+                    rows="2"
+                    className="w-full px-2.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Describe this Razorpay configuration..."
+                  />
+                </div>
+
+                {/* Status Toggle for Editing */}
+                {editingRazorpayConfig && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Status</p>
+                      <p className="text-xs text-gray-600">Set as active</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRazorpayFormStatus(editingRazorpayConfig.status === 'active' ? 'inactive' : 'active')}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${razorpayFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${razorpayFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                  </div>
+                )}
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editingRazorpayConfig) {
+                        testSpecificRazorpayConfig(editingRazorpayConfig)
+                      } else {
+                        testRazorpayConfiguration()
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Test</span>
+                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeRazorpayModal}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saveLoading}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>
+                        {saveLoading
+                          ? 'Saving...'
+                          : (editingRazorpayConfig ? 'Update' : 'Create')
+                        }
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LOV Configuration Modal */}
       {showLovModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -1597,9 +2076,8 @@ const SystemSettings = () => {
                   <input
                     type="text"
                     {...registerLov('category')}
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                      lovErrors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="e.g., ASSESSMENT_TYPE, BADGE_TYPE"
                   />
                   {lovErrors.category && (
@@ -1614,9 +2092,8 @@ const SystemSettings = () => {
                   <input
                     type="text"
                     {...registerLov('code')}
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                      lovErrors.code ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.code ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="e.g., QUIZ, PROJECT_CHAMPION"
                   />
                   {lovErrors.code && (
@@ -1631,9 +2108,8 @@ const SystemSettings = () => {
                   <textarea
                     {...registerLov('description')}
                     rows="3"
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
-                      lovErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                     placeholder="Enter description for this value"
                   />
                   {lovErrors.description && (

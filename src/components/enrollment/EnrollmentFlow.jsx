@@ -119,11 +119,12 @@ const EnrollmentFlow = ({ course, onClose }) => {
         amount: amountInPaise,
         currency: 'INR',
         receipt: `course_${courseId}_${Date.now()}`,
+        courseId: courseId,
         notes: {
           courseId: courseId,
           courseTitle: course.title,
-          userId: userData.id,
-          userName: `${userData.firstName} ${userData.lastName}`,
+          userId: userData.user_id,
+          userName: userData.full_name,
           userEmail: userData.email,
           paymentPlan: enrollmentData.paymentPlan,
           actualAmount: courseFee
@@ -139,11 +140,12 @@ const EnrollmentFlow = ({ course, onClose }) => {
         throw new Error(orderResponse.data.error || 'Failed to create payment order')
       }
 
-      const razorpayOrder = orderResponse.data.order
-      console.log('🎫 Razorpay order created:', razorpayOrder.id)
+      const razorpayOrder = orderResponse.data.data.order
+      console.log('🎫 Razorpay order created:', razorpayOrder)
+      // console.log('🎫 Razorpay order created:', orderResponse.data.data.key_id)
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: orderResponse.data.data.key_id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         name: 'SAP ABAP Academy',
@@ -162,7 +164,7 @@ const EnrollmentFlow = ({ course, onClose }) => {
         notes: {
           course: course.title,
           courseId: courseId,
-          userId: userData.id,
+          userId: userData.user_id,
           paymentPlan: enrollmentData.paymentPlan,
           actualAmount: courseFee
         },
@@ -213,7 +215,7 @@ const EnrollmentFlow = ({ course, onClose }) => {
         razorpay_payment_id: paymentResponse.razorpay_payment_id,
         razorpay_signature: paymentResponse.razorpay_signature,
         courseId: courseId,
-        userId: userData.id,
+        userId: userData.user_id,
         amount: parseFloat(course.fee) || 0,
         paymentPlan: enrollmentData.paymentPlan
       }

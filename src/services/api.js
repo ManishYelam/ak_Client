@@ -20,7 +20,13 @@ export const paymentsAPI = {
   createRazorpayOrder: (orderData) => api.post('/payments/create-order', orderData),
   verifyPayment: (paymentData) => api.post('/payments/verify-payment', paymentData),
   getHistory: (params = {}) => api.get('/payments/history', { params }),
-}
+  getUserPayments: (params = {}) => api.get('/payments/user-payments', { params }),
+  checkEnrollment: (courseId) => api.get(`/payments/check-enrollment/${courseId}`),
+  getUserEnrollments: (params = {}) => api.get('/payments/user-enrollments', { params }),
+  getPaymentDetails: (paymentId) => api.get(`/payments/payment-details/${paymentId}`),
+  getPaymentMethods: () => api.get('/payments/payment-methods'),
+  refundPayment: (paymentId, refundData) => api.post(`/payments/${paymentId}/refund`, refundData),
+};
 
 export const studentAPI = {
   getDashboard: () => api.get('/student/dashboard'),
@@ -56,6 +62,7 @@ export const applicationAPI = {
   getAllProperties: (data) => api.post(`/application/properties`, data),
   getPropertyById: (id) => api.get(`/application/property/${id}`),
   deleteProperty: (id) => api.delete(`/application/property/${id}`),
+  activeAppProperty: (property_name, app_prop_id) => api.put(`/application/property/${property_name}/${app_prop_id}`),
 };
 
 export const genericAPI = {
