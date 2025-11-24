@@ -445,6 +445,35 @@ const SystemSettings = () => {
     }
   }
 
+  // Delete Functions
+  const deleteEmailConfig = async (config) => {
+    if (window.confirm(`Are you sure you want to delete the email configuration for "${config.property_value}"? This action cannot be undone.`)) {
+      try {
+        await applicationAPI.deleteProperty(config.app_prop_id)
+        showMessage('success', 'Email configuration deleted successfully!')
+        loadEmailConfigs()
+      } catch (error) {
+        console.error('Error deleting email config:', error)
+        const errorMessage = error.response?.data?.message || 'Failed to delete email configuration'
+        showMessage('error', errorMessage)
+      }
+    }
+  }
+
+  const deleteRazorpayConfig = async (config) => {
+    if (window.confirm(`Are you sure you want to delete the Razorpay configuration for "${config.property_value}"? This action cannot be undone.`)) {
+      try {
+        await applicationAPI.deleteProperty(config.app_prop_id)
+        showMessage('success', 'Razorpay configuration deleted successfully!')
+        loadRazorpayConfigs()
+      } catch (error) {
+        console.error('Error deleting Razorpay config:', error)
+        const errorMessage = error.response?.data?.message || 'Failed to delete Razorpay configuration'
+        showMessage('error', errorMessage)
+      }
+    }
+  }
+
   const showMessage = (type, text) => {
     setMessage({ type, text })
     setTimeout(() => setMessage({ type: '', text: '' }), 5000)
@@ -510,7 +539,6 @@ const SystemSettings = () => {
       showMessage('error', errorMessage)
     }
   }
-
 
   const handleEmailSubmit = async (data) => {
     setSaveLoading(true)
@@ -606,6 +634,7 @@ const SystemSettings = () => {
       showMessage('error', errorMessage)
     }
   }
+
   const handleRazorpaySubmit = async (data) => {
     setSaveLoading(true)
     try {
@@ -848,10 +877,10 @@ const SystemSettings = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-900">System Settings</h1> */}
           <p className="text-gray-600 text-sm mt-1">Configure platform-wide settings and preferences</p>
         </div>
-        <div className="flex space-x-2 mt-4 lg:mt-0">
+        {/* <div className="flex space-x-2 mt-4 lg:mt-0">
           <button
             onClick={saveCurrentTab}
             disabled={saveLoading}
@@ -860,7 +889,7 @@ const SystemSettings = () => {
             <Save className="w-4 h-4" />
             <span>{saveLoading ? 'Saving...' : 'Save'}</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Message Display */}
@@ -1017,7 +1046,7 @@ const SystemSettings = () => {
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="w-28 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-32 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -1112,6 +1141,13 @@ const SystemSettings = () => {
                                 >
                                   <Activity className="w-3.5 h-3.5" />
                                 </button>
+                                <button
+                                  onClick={() => deleteEmailConfig(config)}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors"
+                                  title="Delete this configuration"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -1187,7 +1223,7 @@ const SystemSettings = () => {
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="w-28 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-32 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -1268,6 +1304,13 @@ const SystemSettings = () => {
                                   title="Test this configuration"
                                 >
                                   <Activity className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteRazorpayConfig(config)}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors"
+                                  title="Delete this configuration"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </td>

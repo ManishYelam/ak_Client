@@ -61,7 +61,7 @@ export const applicationAPI = {
   createOrUpdateBulkProperties: (data) => api.post("/application/properties/bulk", data),
   getAllProperties: (data) => api.post(`/application/properties`, data),
   getPropertyById: (id) => api.get(`/application/property/${id}`),
-  deleteProperty: (id) => api.delete(`/application/property/${id}`),
+  deleteProperty: (app_prop_id) => api.delete(`/application/property/${app_prop_id}`),
   activeAppProperty: (property_name, app_prop_id) => api.put(`/application/property/${property_name}/${app_prop_id}`),
 };
 
