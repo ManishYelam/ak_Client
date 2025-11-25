@@ -1,237 +1,259 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import Toast from "../components/Toast";
-import { showErrorToast, showSuccessToast } from "../utils/Toastify";
-import { calculateAgeFromDOB, calculateDOBFromAge } from "../utils/Age";
-import { userApplicant, updateUserApplicant, checkExistsEmail } from "../services/applicationService";
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import Toast from '../components/Toast'
+import { showErrorToast, showSuccessToast } from '../utils/Toastify'
+import { calculateAgeFromDOB, calculateDOBFromAge } from '../utils/Age'
+import {
+  userApplicant,
+  updateUserApplicant,
+  checkExistsEmail,
+} from '../services/applicationService'
 
 const ApplicantUserForm = () => {
-  const { userId } = useParams();
-  const navigate = useNavigate();
+  const { userId } = useParams()
+  const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
-    full_name: "",
-    date_of_birth: "",
-    age: "",
-    gender: "",
-    phone_number: "",
-    email: "",
-    occupation: "",
-    adhar_number: "",
-    address: "",
-    password: "",
-    confirm_password: "",
-    additional_notes: "",
-  });
+    full_name: '',
+    date_of_birth: '',
+    age: '',
+    gender: '',
+    phone_number: '',
+    email: '',
+    occupation: '',
+    adhar_number: '',
+    address: '',
+    password: '',
+    confirm_password: '',
+    additional_notes: '',
+  })
 
-  const [originalEmail, setOriginalEmail] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [linkExpired, setLinkExpired] = useState(false);
-  const [formDisabled, setFormDisabled] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [originalEmail, setOriginalEmail] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [linkExpired, setLinkExpired] = useState(false)
+  const [formDisabled, setFormDisabled] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [passwordStrength, setPasswordStrength] = useState(0)
 
   // Password strength calculator
-  const calculatePasswordStrength = (password) => {
-    let strength = 0;
-    if (password.length >= 8) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[a-z]/.test(password)) strength += 1;
-    if (/\d/.test(password)) strength += 1;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1;
-    return strength;
-  };
+  const calculatePasswordStrength = password => {
+    let strength = 0
+    if (password.length >= 8) strength += 1
+    if (/[A-Z]/.test(password)) strength += 1
+    if (/[a-z]/.test(password)) strength += 1
+    if (/\d/.test(password)) strength += 1
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1
+    return strength
+  }
 
-  const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const validatePassword = password => {
+    const minLength = 8
+    const hasUpperCase = /[A-Z]/.test(password)
+    const hasLowerCase = /[a-z]/.test(password)
+    const hasNumbers = /\d/.test(password)
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
 
-    return password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar;
-  };
+    return (
+      password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar
+    )
+  }
 
-  const validateAadhar = (aadhar) => {
-    if (!aadhar) return true;
-    const aadharRegex = /^\d{12}$/;
-    return aadharRegex.test(aadhar.replace(/\s|-/g, ''));
-  };
+  const validateAadhar = aadhar => {
+    if (!aadhar) return true
+    const aadharRegex = /^\d{12}$/
+    return aadharRegex.test(aadhar.replace(/\s|-/g, ''))
+  }
 
-  const formatPhoneNumber = (value) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers.slice(0, 10);
-  };
+  const formatPhoneNumber = value => {
+    const numbers = value.replace(/\D/g, '')
+    return numbers.slice(0, 10)
+  }
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) return
 
     const fetchUserData = async () => {
       try {
-        const response = await userApplicant(userId);
-        const data = response.data.user;
+        const response = await userApplicant(userId)
+        const data = response.data.user
 
         if (!data || Object.keys(data).length === 0 || data.password) {
-          setLinkExpired(true);
+          setLinkExpired(true)
         } else {
           setFormData({
-            full_name: data.full_name || "",
-            date_of_birth: data.date_of_birth || "",
-            age: data.age || "",
-            gender: data.gender || "",
-            phone_number: data.phone_number || "",
-            email: data.email || "",
-            occupation: data.occupation || "",
-            adhar_number: data.adhar_number || "",
-            address: data.address || "",
-            password: "",
-            confirm_password: "",
-            additional_notes: data.additional_notes || "",
-          });
-          setOriginalEmail(data.email || "");
+            full_name: data.full_name || '',
+            date_of_birth: data.date_of_birth || '',
+            age: data.age || '',
+            gender: data.gender || '',
+            phone_number: data.phone_number || '',
+            email: data.email || '',
+            occupation: data.occupation || '',
+            adhar_number: data.adhar_number || '',
+            address: data.address || '',
+            password: '',
+            confirm_password: '',
+            additional_notes: data.additional_notes || '',
+          })
+          setOriginalEmail(data.email || '')
         }
       } catch (error) {
-        console.error(error);
-        setLinkExpired(true);
+        console.error(error)
+        setLinkExpired(true)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUserData();
-  }, [userId]);
+    fetchUserData()
+  }, [userId])
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = e => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
 
     if (name === 'password') {
-      setPasswordStrength(calculatePasswordStrength(value));
+      setPasswordStrength(calculatePasswordStrength(value))
     }
-  };
+  }
 
-  const handlePhoneChange = (e) => {
-    const formattedPhone = formatPhoneNumber(e.target.value);
-    setFormData(prev => ({ ...prev, phone_number: formattedPhone }));
-  };
+  const handlePhoneChange = e => {
+    const formattedPhone = formatPhoneNumber(e.target.value)
+    setFormData(prev => ({ ...prev, phone_number: formattedPhone }))
+  }
 
-  const handleDOBChange = (e) => {
-    const date_of_birth = e.target.value;
-    const age = calculateAgeFromDOB(date_of_birth);
-    setFormData((prev) => ({ ...prev, date_of_birth, age }));
-  };
+  const handleDOBChange = e => {
+    const date_of_birth = e.target.value
+    const age = calculateAgeFromDOB(date_of_birth)
+    setFormData(prev => ({ ...prev, date_of_birth, age }))
+  }
 
-  const handleAgeChange = (e) => {
-    const age = e.target.value;
-    const date_of_birth = calculateDOBFromAge(age);
-    setFormData((prev) => ({ ...prev, age, date_of_birth }));
-  };
+  const handleAgeChange = e => {
+    const age = e.target.value
+    const date_of_birth = calculateDOBFromAge(age)
+    setFormData(prev => ({ ...prev, age, date_of_birth }))
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async e => {
+    e.preventDefault()
 
-    if (submitting) return;
+    if (submitting) return
 
     // Required fields validation
-    const requiredFields = ['full_name', 'email', 'phone_number', 'gender', 'occupation', 'address'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
+    const requiredFields = ['full_name', 'email', 'phone_number', 'gender', 'occupation', 'address']
+    const missingFields = requiredFields.filter(field => !formData[field])
 
     if (missingFields.length > 0) {
-      showErrorToast("Please fill all required fields!");
-      return;
+      showErrorToast('Please fill all required fields!')
+      return
     }
 
     // Password validation
     if (!formData.password || !formData.confirm_password) {
-      showErrorToast("Please enter password and confirm password!");
-      return;
+      showErrorToast('Please enter password and confirm password!')
+      return
     }
 
     if (formData.password !== formData.confirm_password) {
-      showErrorToast("Passwords do not match!");
-      return;
+      showErrorToast('Passwords do not match!')
+      return
     }
 
     if (!validatePassword(formData.password)) {
-      showErrorToast("Password must be at least 8 characters with uppercase, lowercase, number, and special character!");
-      return;
+      showErrorToast(
+        'Password must be at least 8 characters with uppercase, lowercase, number, and special character!'
+      )
+      return
     }
 
     // Aadhar validation
     if (!validateAadhar(formData.adhar_number)) {
-      showErrorToast("Please enter a valid 12-digit Aadhar number!");
-      return;
+      showErrorToast('Please enter a valid 12-digit Aadhar number!')
+      return
     }
 
     try {
-      setSubmitting(true);
-      setFormDisabled(true);
+      setSubmitting(true)
+      setFormDisabled(true)
 
       if (formData.email !== originalEmail) {
-        const res = await checkExistsEmail(formData.email);
+        const res = await checkExistsEmail(formData.email)
         if (res.data.exists) {
-          showErrorToast("This email is already registered. Please use another one.");
-          setSubmitting(false);
-          setFormDisabled(false);
-          return;
+          showErrorToast('This email is already registered. Please use another one.')
+          setSubmitting(false)
+          setFormDisabled(false)
+          return
         }
       }
 
       // ✅ Add reg_link_status = 'active' and reg_type = 'reg_link' before updating user
-      const updatedData = { ...formData, reg_link_status: 'active', reg_type: 'reg_link', };
+      const updatedData = { ...formData, reg_link_status: 'active', reg_type: 'reg_link' }
 
-      const response = await updateUserApplicant(userId, updatedData);
+      const response = await updateUserApplicant(userId, updatedData)
 
       if (response.data.message) {
-        showSuccessToast("Registration completed successfully! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
+        showSuccessToast('Registration completed successfully! Redirecting to login...')
+        setTimeout(() => navigate('/login'), 2000)
       } else {
-        showErrorToast("Failed to update user data.");
-        setSubmitting(false);
-        setFormDisabled(false);
+        showErrorToast('Failed to update user data.')
+        setSubmitting(false)
+        setFormDisabled(false)
       }
     } catch (error) {
-      console.error("Update error:", error);
+      console.error('Update error:', error)
 
       if (error.response?.status === 400) {
-        showErrorToast(error.response.data.message || "Invalid data provided.");
+        showErrorToast(error.response.data.message || 'Invalid data provided.')
       } else if (error.response?.status === 404) {
-        showErrorToast("User not found. The link may have expired.");
-        setLinkExpired(true);
+        showErrorToast('User not found. The link may have expired.')
+        setLinkExpired(true)
       } else if (error.response?.status === 409) {
-        showErrorToast("Email already exists. Please use a different email.");
+        showErrorToast('Email already exists. Please use a different email.')
       } else {
-        showErrorToast("An error occurred while updating user data. Please try again.");
+        showErrorToast('An error occurred while updating user data. Please try again.')
       }
 
-      setSubmitting(false);
-      setFormDisabled(false);
+      setSubmitting(false)
+      setFormDisabled(false)
     }
-  };
+  }
 
   const getPasswordStrengthColor = () => {
     switch (passwordStrength) {
-      case 0: return "bg-gray-200";
-      case 1: return "bg-red-500";
-      case 2: return "bg-orange-500";
-      case 3: return "bg-yellow-500";
-      case 4: return "bg-blue-500";
-      case 5: return "bg-green-500";
-      default: return "bg-gray-200";
+      case 0:
+        return 'bg-gray-200'
+      case 1:
+        return 'bg-red-500'
+      case 2:
+        return 'bg-orange-500'
+      case 3:
+        return 'bg-yellow-500'
+      case 4:
+        return 'bg-blue-500'
+      case 5:
+        return 'bg-green-500'
+      default:
+        return 'bg-gray-200'
     }
-  };
+  }
 
   const getPasswordStrengthText = () => {
     switch (passwordStrength) {
-      case 0: return "Very Weak";
-      case 1: return "Weak";
-      case 2: return "Fair";
-      case 3: return "Good";
-      case 4: return "Strong";
-      case 5: return "Very Strong";
-      default: return "";
+      case 0:
+        return 'Very Weak'
+      case 1:
+        return 'Weak'
+      case 2:
+        return 'Fair'
+      case 3:
+        return 'Good'
+      case 4:
+        return 'Strong'
+      case 5:
+        return 'Very Strong'
+      default:
+        return ''
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -241,7 +263,7 @@ const ApplicantUserForm = () => {
           <p className="text-emerald-800 text-lg font-medium">Loading application form...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (linkExpired) {
@@ -249,8 +271,18 @@ const ApplicantUserForm = () => {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-8 shadow-xl text-center max-w-md w-full">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-8 h-8 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Link Expired</h2>
@@ -258,14 +290,14 @@ const ApplicantUserForm = () => {
             This registration link is no longer valid. Please contact support for assistance.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate('/')}
             className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
           >
             Return to Home
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -275,14 +307,25 @@ const ApplicantUserForm = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mr-3">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
               </svg>
             </div>
             <h1 className="text-3xl font-bold text-gray-800">Applicant Registration</h1>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Complete your registration by filling out the form below. All fields marked with <span className="text-red-500">*</span> are required.
+            Complete your registration by filling out the form below. All fields marked with{' '}
+            <span className="text-red-500">*</span> are required.
           </p>
         </div>
 
@@ -330,20 +373,44 @@ const ApplicantUserForm = () => {
                   <h3 className="font-semibold text-emerald-100 mb-3">Requirements</h3>
                   <ul className="space-y-2 text-sm text-emerald-50">
                     <li className="flex items-start">
-                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Valid email address
                     </li>
                     <li className="flex items-start">
-                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Strong password required
                     </li>
                     <li className="flex items-start">
-                      <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Complete all required fields
                     </li>
@@ -560,10 +627,17 @@ const ApplicantUserForm = () => {
                         <div className="mt-2">
                           <div className="flex justify-between text-xs text-gray-600 mb-1">
                             <span>Password Strength:</span>
-                            <span className={`font-medium ${passwordStrength >= 4 ? 'text-green-600' :
-                              passwordStrength >= 3 ? 'text-blue-600' :
-                                passwordStrength >= 2 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>
+                            <span
+                              className={`font-medium ${
+                                passwordStrength >= 4
+                                  ? 'text-green-600'
+                                  : passwordStrength >= 3
+                                    ? 'text-blue-600'
+                                    : passwordStrength >= 2
+                                      ? 'text-yellow-600'
+                                      : 'text-red-600'
+                              }`}
+                            >
                               {getPasswordStrengthText()}
                             </span>
                           </div>
@@ -620,7 +694,7 @@ const ApplicantUserForm = () => {
                   <div className="flex space-x-4">
                     <button
                       type="button"
-                      onClick={() => navigate("/")}
+                      onClick={() => navigate('/')}
                       className="px-8 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                       disabled={submitting}
                     >
@@ -633,16 +707,41 @@ const ApplicantUserForm = () => {
                     >
                       {submitting ? (
                         <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Processing...
                         </>
                       ) : (
                         <>
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                           Complete Registration
                         </>
@@ -657,7 +756,7 @@ const ApplicantUserForm = () => {
       </div>
       <Toast />
     </div>
-  );
-};
+  )
+}
 
-export default ApplicantUserForm;
+export default ApplicantUserForm

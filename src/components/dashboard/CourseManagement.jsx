@@ -26,7 +26,7 @@ import {
   Clock,
   BookOpen as BookIcon,
   CheckCircle2,
-  XCircle
+  XCircle,
 } from 'lucide-react'
 import { coursesAPI } from '../../services/api'
 import CourseModal from './CourseModal'
@@ -53,14 +53,14 @@ const CourseManagement = () => {
     mode: 'all',
     featured: 'all',
     page: 1,
-    limit: 5
+    limit: 5,
   })
 
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 5,
     totalItems: 0,
-    totalPages: 0
+    totalPages: 0,
   })
 
   // Confirmation Modal State
@@ -70,7 +70,7 @@ const CourseManagement = () => {
     message: '',
     type: '',
     onConfirm: null,
-    data: null
+    data: null,
   })
 
   // Show toast notification
@@ -82,32 +82,68 @@ const CourseManagement = () => {
   }
 
   // Available filter options
-  const levels = useMemo(() => [
-    { value: 'beginner', label: 'Beginner', color: 'bg-blue-100 text-blue-800 border border-blue-200' },
-    { value: 'intermediate', label: 'Intermediate', color: 'bg-purple-100 text-purple-800 border border-purple-200' },
-    { value: 'advanced', label: 'Advanced', color: 'bg-red-100 text-red-800 border border-red-200' }
-  ], [])
+  const levels = useMemo(
+    () => [
+      {
+        value: 'beginner',
+        label: 'Beginner',
+        color: 'bg-blue-100 text-blue-800 border border-blue-200',
+      },
+      {
+        value: 'intermediate',
+        label: 'Intermediate',
+        color: 'bg-purple-100 text-purple-800 border border-purple-200',
+      },
+      {
+        value: 'advanced',
+        label: 'Advanced',
+        color: 'bg-red-100 text-red-800 border border-red-200',
+      },
+    ],
+    []
+  )
 
-  const modes = useMemo(() => [
-    { value: 'online_live', label: 'Live Online', icon: Clock, color: 'text-blue-600' },
-    { value: 'online_self_paced', label: 'Self Paced', icon: BookIcon, color: 'text-green-600' },
-    { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal, color: 'text-purple-600' }
-  ], [])
+  const modes = useMemo(
+    () => [
+      { value: 'online_live', label: 'Live Online', icon: Clock, color: 'text-blue-600' },
+      { value: 'online_self_paced', label: 'Self Paced', icon: BookIcon, color: 'text-green-600' },
+      { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal, color: 'text-purple-600' },
+    ],
+    []
+  )
 
-  const statusOptions = useMemo(() => [
-    { value: 'draft', label: 'Draft', color: 'bg-gray-100 text-gray-700 border border-gray-300' },
-    { value: 'published', label: 'Published', color: 'bg-green-100 text-green-700 border border-green-300' },
-    { value: 'archived', label: 'Archived', color: 'bg-orange-100 text-orange-700 border border-orange-300' }
-  ], [])
+  const statusOptions = useMemo(
+    () => [
+      { value: 'draft', label: 'Draft', color: 'bg-gray-100 text-gray-700 border border-gray-300' },
+      {
+        value: 'published',
+        label: 'Published',
+        color: 'bg-green-100 text-green-700 border border-green-300',
+      },
+      {
+        value: 'archived',
+        label: 'Archived',
+        color: 'bg-orange-100 text-orange-700 border border-orange-300',
+      },
+    ],
+    []
+  )
 
   // Calculate tab counts based on allCourses
   const tabs = useMemo(() => {
-    if (!allCourses.length) return [
-      { id: 'all', name: 'All Courses', count: 0, icon: BookOpen, color: 'text-gray-600' },
-      { id: 'published', name: 'Published', count: 0, icon: CheckCircle, color: 'text-green-600' },
-      { id: 'draft', name: 'Drafts', count: 0, icon: AlertCircle, color: 'text-yellow-600' },
-      { id: 'archived', name: 'Archived', count: 0, icon: Archive, color: 'text-orange-600' }
-    ]
+    if (!allCourses.length)
+      return [
+        { id: 'all', name: 'All Courses', count: 0, icon: BookOpen, color: 'text-gray-600' },
+        {
+          id: 'published',
+          name: 'Published',
+          count: 0,
+          icon: CheckCircle,
+          color: 'text-green-600',
+        },
+        { id: 'draft', name: 'Drafts', count: 0, icon: AlertCircle, color: 'text-yellow-600' },
+        { id: 'archived', name: 'Archived', count: 0, icon: Archive, color: 'text-orange-600' },
+      ]
 
     const allCount = allCourses.length
     const publishedCount = allCourses.filter(course => course.status === 'published').length
@@ -116,9 +152,27 @@ const CourseManagement = () => {
 
     return [
       { id: 'all', name: 'All Courses', count: allCount, icon: BookOpen, color: 'text-gray-600' },
-      { id: 'published', name: 'Published', count: publishedCount, icon: CheckCircle, color: 'text-green-600' },
-      { id: 'draft', name: 'Drafts', count: draftCount, icon: AlertCircle, color: 'text-yellow-600' },
-      { id: 'archived', name: 'Archived', count: archivedCount, icon: Archive, color: 'text-orange-600' }
+      {
+        id: 'published',
+        name: 'Published',
+        count: publishedCount,
+        icon: CheckCircle,
+        color: 'text-green-600',
+      },
+      {
+        id: 'draft',
+        name: 'Drafts',
+        count: draftCount,
+        icon: AlertCircle,
+        color: 'text-yellow-600',
+      },
+      {
+        id: 'archived',
+        name: 'Archived',
+        count: archivedCount,
+        icon: Archive,
+        color: 'text-orange-600',
+      },
     ]
   }, [allCourses])
 
@@ -132,7 +186,7 @@ const CourseManagement = () => {
         page: filters.page,
         limit: filters.limit,
         sortBy: 'created_at',
-        sortOrder: 'DESC'
+        sortOrder: 'DESC',
       }
 
       // Add search
@@ -143,16 +197,16 @@ const CourseManagement = () => {
 
       // Add filters based on your API fields
       const filterConditions = {}
-      
+
       // Level filter
       if (filters.level !== 'all') filterConditions.level = filters.level
-      
+
       // Mode filter
       if (filters.mode !== 'all') filterConditions.mode = filters.mode
-      
+
       // Featured filter
       if (filters.featured !== 'all') filterConditions.featured = filters.featured === 'true'
-      
+
       // Status filter - FIXED: Only apply if not 'all'
       if (filters.status !== 'all') {
         filterConditions.status = filters.status
@@ -177,14 +231,12 @@ const CourseManagement = () => {
             page: filters.page,
             limit: filters.limit,
             totalItems: coursesData.length,
-            totalPages: Math.ceil(coursesData.length / filters.limit)
+            totalPages: Math.ceil(coursesData.length / filters.limit),
           })
         }
-
       } else {
         throw new Error('Invalid response format')
       }
-
     } catch (err) {
       setError('Failed to load courses. Please try again.')
       console.error('Error fetching courses:', err)
@@ -199,7 +251,7 @@ const CourseManagement = () => {
       const payload = {
         limit: 10000, // Get all courses for counting
         sortBy: 'created_at',
-        sortOrder: 'DESC'
+        sortOrder: 'DESC',
       }
 
       const response = await coursesAPI.getAll(payload)
@@ -219,7 +271,7 @@ const CourseManagement = () => {
       const payload = {
         sortBy: 'created_at',
         sortOrder: 'DESC',
-        limit: 10000 // Large number to get all courses
+        limit: 10000, // Large number to get all courses
       }
 
       // Add current filters to export
@@ -256,10 +308,10 @@ const CourseManagement = () => {
   const exportToCSV = async () => {
     try {
       setExportLoading(true)
-      
+
       // Fetch all courses based on current filters
       const allCourses = await fetchAllCoursesForExport()
-      
+
       if (!allCourses || allCourses.length === 0) {
         showToast('No courses found to export.', 'error')
         return
@@ -281,7 +333,7 @@ const CourseManagement = () => {
         'Seats Available',
         'Enrolled Students',
         'Created At',
-        'Updated At'
+        'Updated At',
       ]
 
       // Convert courses data to CSV rows
@@ -300,24 +352,21 @@ const CourseManagement = () => {
         course.seats_available || '0',
         course.enrolled_students || '0',
         course.createdAt ? new Date(course.createdAt).toISOString() : '',
-        course.updatedAt ? new Date(course.updatedAt).toISOString() : ''
+        course.updatedAt ? new Date(course.updatedAt).toISOString() : '',
       ])
 
       // Combine headers and rows
-      const csvContent = [
-        headers.join(','),
-        ...csvRows.map(row => row.join(','))
-      ].join('\n')
+      const csvContent = [headers.join(','), ...csvRows.map(row => row.join(','))].join('\n')
 
       // Create and download CSV file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')
       const url = URL.createObjectURL(blob)
-      
+
       // Generate filename with timestamp and filters
       const timestamp = new Date().toISOString().split('T')[0]
       let filename = `courses_export_${timestamp}`
-      
+
       // Add filter info to filename if any filters are active
       if (hasActiveFilters) {
         const filterParts = []
@@ -326,12 +375,12 @@ const CourseManagement = () => {
         if (filters.status !== 'all') filterParts.push(filters.status)
         if (filters.mode !== 'all') filterParts.push(filters.mode)
         if (filters.featured !== 'all') filterParts.push(`featured_${filters.featured}`)
-        
+
         if (filterParts.length > 0) {
           filename += `_${filterParts.join('_')}`
         }
       }
-      
+
       filename += '.csv'
 
       link.setAttribute('href', url)
@@ -340,10 +389,9 @@ const CourseManagement = () => {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       // Show success toast
       showToast(`Successfully exported ${allCourses.length} courses to ${filename}`, 'success')
-      
     } catch (err) {
       console.error('Error exporting courses:', err)
       showToast('Failed to export courses. Please try again.', 'error')
@@ -381,7 +429,7 @@ const CourseManagement = () => {
       message,
       type,
       onConfirm,
-      data
+      data,
     })
   }
 
@@ -392,7 +440,7 @@ const CourseManagement = () => {
       message: '',
       type: '',
       onConfirm: null,
-      data: null
+      data: null,
     })
   }
 
@@ -422,57 +470,57 @@ const CourseManagement = () => {
   }
 
   // FIXED: Handle status change from tabs
-  const handleStatusChange = (status) => {
+  const handleStatusChange = status => {
     setActiveTab(status)
     setFilters(prev => ({
       ...prev,
       status: status === 'all' ? 'all' : status,
-      page: 1 // Reset to first page when changing filters
+      page: 1, // Reset to first page when changing filters
     }))
   }
 
   // Filter handlers
-  const handleSearchChange = (value) => {
+  const handleSearchChange = value => {
     setFilters(prev => ({
       ...prev,
       search: value,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleLevelChange = (level) => {
+  const handleLevelChange = level => {
     setFilters(prev => ({
       ...prev,
       level: level,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleModeChange = (mode) => {
+  const handleModeChange = mode => {
     setFilters(prev => ({
       ...prev,
       mode: mode,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleFeaturedChange = (featured) => {
+  const handleFeaturedChange = featured => {
     setFilters(prev => ({
       ...prev,
       featured: featured,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleLimitChange = (newLimit) => {
+  const handleLimitChange = newLimit => {
     setFilters(prev => ({
       ...prev,
       limit: parseInt(newLimit),
-      page: 1
+      page: 1,
     }))
   }
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = newPage => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setFilters(prev => ({ ...prev, page: newPage }))
     }
@@ -486,7 +534,7 @@ const CourseManagement = () => {
       mode: 'all',
       featured: 'all',
       page: 1,
-      limit: 5
+      limit: 5,
     })
     setActiveTab('all')
     showToast('All filters cleared', 'info')
@@ -494,27 +542,25 @@ const CourseManagement = () => {
 
   // Check if any filters are active
   const hasActiveFilters = useMemo(() => {
-    return filters.search !== '' ||
+    return (
+      filters.search !== '' ||
       filters.level !== 'all' ||
       filters.status !== 'all' ||
       filters.mode !== 'all' ||
       filters.featured !== 'all'
+    )
   }, [filters])
 
   // Course selection and bulk actions
-  const toggleCourseSelection = (courseId) => {
+  const toggleCourseSelection = courseId => {
     setSelectedCourses(prev =>
-      prev.includes(courseId)
-        ? prev.filter(id => id !== courseId)
-        : [...prev, courseId]
+      prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]
     )
   }
 
   const toggleSelectAll = () => {
     setSelectedCourses(
-      selectedCourses.length === courses.length
-        ? []
-        : courses.map(course => course.course_id)
+      selectedCourses.length === courses.length ? [] : courses.map(course => course.course_id)
     )
   }
 
@@ -537,9 +583,7 @@ const CourseManagement = () => {
           }
         )
       } else {
-        await Promise.all(selectedCourses.map(id =>
-          coursesAPI.update(id, { status: bulkAction })
-        ))
+        await Promise.all(selectedCourses.map(id => coursesAPI.update(id, { status: bulkAction })))
         setBulkAction('')
         setSelectedCourses([])
         fetchCourses()
@@ -565,7 +609,7 @@ const CourseManagement = () => {
     }
   }
 
-  const handleDeleteCourse = (courseId) => {
+  const handleDeleteCourse = courseId => {
     const course = courses.find(c => c.course_id === courseId)
     showConfirmation(
       'Delete Course',
@@ -586,43 +630,43 @@ const CourseManagement = () => {
   }
 
   // Utility functions
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     const statusObj = statusOptions.find(s => s.value === status)
     return statusObj ? statusObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
-  const getLevelColor = (level) => {
+  const getLevelColor = level => {
     const levelObj = levels.find(l => l.value === level)
     return levelObj ? levelObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
-  const getModeIcon = (mode) => {
+  const getModeIcon = mode => {
     const modeObj = modes.find(m => m.value === mode)
     return modeObj || { icon: Clock, color: 'text-gray-600' }
   }
 
-  const formatLevel = (level) => {
+  const formatLevel = level => {
     return level ? level.charAt(0).toUpperCase() + level.slice(1) : 'Not Set'
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     if (!dateString) return 'Unknown'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
-  const formatPrice = (price) => {
-    const value = Number(price);
-    if (isNaN(value)) return "₹0.00";
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
+  const formatPrice = price => {
+    const value = Number(price)
+    if (isNaN(value)) return '₹0.00'
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
       minimumFractionDigits: 2,
-    }).format(value);
-  };
+    }).format(value)
+  }
 
   const calculateDiscount = (fee, originalFee) => {
     if (!originalFee || parseFloat(originalFee) <= parseFloat(fee)) return 0
@@ -637,11 +681,16 @@ const CourseManagement = () => {
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
               <div className="h-3 bg-gray-200 rounded w-3"></div>
             </th>
-            {['Course', 'Level', 'Mode', 'Students', 'Price', 'Status', 'Created', 'Actions'].map((header) => (
-              <th key={header} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="h-3 bg-gray-200 rounded w-14"></div>
-              </th>
-            ))}
+            {['Course', 'Level', 'Mode', 'Students', 'Price', 'Status', 'Created', 'Actions'].map(
+              header => (
+                <th
+                  key={header}
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  <div className="h-3 bg-gray-200 rounded w-14"></div>
+                </th>
+              )
+            )}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -688,13 +737,15 @@ const CourseManagement = () => {
     <div className="space-y-3 p-3">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 ${
-          toast.type === 'success' 
-            ? 'bg-green-50 text-green-800 border-green-200' 
-            : toast.type === 'error'
-            ? 'bg-red-50 text-red-800 border-red-200'
-            : 'bg-blue-50 text-blue-800 border-blue-200'
-        }`}>
+        <div
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 ${
+            toast.type === 'success'
+              ? 'bg-green-50 text-green-800 border-green-200'
+              : toast.type === 'error'
+                ? 'bg-red-50 text-red-800 border-red-200'
+                : 'bg-blue-50 text-blue-800 border-blue-200'
+          }`}
+        >
           {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-600" />}
           {toast.type === 'error' && <XCircle className="w-5 h-5 text-red-600" />}
           {toast.type === 'info' && <AlertCircle className="w-5 h-5 text-blue-600" />}
@@ -720,7 +771,7 @@ const CourseManagement = () => {
             Import
           </button>
 
-          <button 
+          <button
             onClick={exportToCSV}
             disabled={exportLoading}
             className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -782,7 +833,7 @@ const CourseManagement = () => {
                 <div className="flex items-center gap-1.5 bg-primary-50 rounded-md">
                   <select
                     value={bulkAction}
-                    onChange={(e) => setBulkAction(e.target.value)}
+                    onChange={e => setBulkAction(e.target.value)}
                     className="text-xs border border-primary-300 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 bg-white"
                   >
                     <option value="">Bulk Actions</option>
@@ -807,10 +858,11 @@ const CourseManagement = () => {
               {/* Advanced Filters Toggle */}
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${showAdvancedFilters || hasActiveFilters
-                  ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
-                  }`}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
+                  showAdvancedFilters || hasActiveFilters
+                    ? 'bg-primary-100 text-primary-700 border border-primary-300'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
+                }`}
               >
                 <SlidersHorizontal className="w-3 h-3" />
                 Filters {hasActiveFilters && '•'}
@@ -823,7 +875,7 @@ const CourseManagement = () => {
                   type="text"
                   placeholder="Search courses..."
                   value={filters.search}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={e => handleSearchChange(e.target.value)}
                   className="pl-7 pr-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-40 text-xs"
                 />
               </div>
@@ -839,12 +891,14 @@ const CourseManagement = () => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Level</label>
                   <select
                     value={filters.level}
-                    onChange={(e) => handleLevelChange(e.target.value)}
+                    onChange={e => handleLevelChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="all">All Levels</option>
                     {levels.map(level => (
-                      <option key={level.value} value={level.value}>{level.label}</option>
+                      <option key={level.value} value={level.value}>
+                        {level.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -854,12 +908,14 @@ const CourseManagement = () => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Mode</label>
                   <select
                     value={filters.mode}
-                    onChange={(e) => handleModeChange(e.target.value)}
+                    onChange={e => handleModeChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="all">All Modes</option>
                     {modes.map(mode => (
-                      <option key={mode.value} value={mode.value}>{mode.label}</option>
+                      <option key={mode.value} value={mode.value}>
+                        {mode.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -869,7 +925,7 @@ const CourseManagement = () => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Featured</label>
                   <select
                     value={filters.featured}
-                    onChange={(e) => handleFeaturedChange(e.target.value)}
+                    onChange={e => handleFeaturedChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="all">All Courses</option>
@@ -883,7 +939,7 @@ const CourseManagement = () => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Per Page</label>
                   <select
                     value={filters.limit}
-                    onChange={(e) => handleLimitChange(e.target.value)}
+                    onChange={e => handleLimitChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="5">5 per page</option>
@@ -1030,7 +1086,7 @@ const CourseManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {courses.map((course) => {
+                  {courses.map(course => {
                     const modeData = getModeIcon(course.mode)
                     const ModeIcon = modeData.icon
                     const discount = calculateDiscount(course.fee, course.original_fee)
@@ -1054,7 +1110,10 @@ const CourseManagement = () => {
                               <div className="text-xs font-medium text-gray-900 line-clamp-1 flex items-center gap-0.5">
                                 {course.title}
                                 {course.featured && (
-                                  <Sparkles className="w-2.5 h-2.5 text-yellow-500" title="Featured" />
+                                  <Sparkles
+                                    className="w-2.5 h-2.5 text-yellow-500"
+                                    title="Featured"
+                                  />
                                 )}
                               </div>
                               <div className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
@@ -1067,7 +1126,9 @@ const CourseManagement = () => {
                           </div>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}>
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}
+                          >
                             {formatLevel(course.level)}
                           </span>
                         </td>
@@ -1089,7 +1150,9 @@ const CourseManagement = () => {
                           </div>
                           {discount > 0 && (
                             <div className="flex items-center gap-0.5 text-xs mt-0.5">
-                              <span className="text-gray-500 line-through">{formatPrice(course.original_fee)}</span>
+                              <span className="text-gray-500 line-through">
+                                {formatPrice(course.original_fee)}
+                              </span>
                               <span className="text-green-600 font-medium">{discount}% off</span>
                             </div>
                           )}
@@ -1097,7 +1160,7 @@ const CourseManagement = () => {
                         <td className="px-3 py-2 whitespace-nowrap">
                           <select
                             value={course.status || 'draft'}
-                            onChange={(e) => handleStatusUpdate(course.course_id, e.target.value)}
+                            onChange={e => handleStatusUpdate(course.course_id, e.target.value)}
                             className={`text-xs font-medium rounded-full border-0 focus:ring-1 focus:ring-primary-500 px-1.5 py-0.5 ${getStatusColor(course.status || 'draft')}`}
                           >
                             <option value="draft">Draft</option>
@@ -1144,9 +1207,8 @@ const CourseManagement = () => {
                 <h3 className="text-sm font-medium text-gray-900 mb-1">No courses found</h3>
                 <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">
                   {hasActiveFilters
-                    ? "No courses match your search criteria. Try adjusting your filters."
-                    : "Get started by creating your first course."
-                  }
+                    ? 'No courses match your search criteria. Try adjusting your filters.'
+                    : 'Get started by creating your first course.'}
                 </p>
                 <button
                   onClick={() => openCourseModal()}
@@ -1192,29 +1254,30 @@ const CourseManagement = () => {
 
                   {/* Page numbers */}
                   {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    let pageNum;
+                    let pageNum
                     if (pagination.totalPages <= 5) {
-                      pageNum = i + 1;
+                      pageNum = i + 1
                     } else if (filters.page <= 3) {
-                      pageNum = i + 1;
+                      pageNum = i + 1
                     } else if (filters.page >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
+                      pageNum = pagination.totalPages - 4 + i
                     } else {
-                      pageNum = filters.page - 2 + i;
+                      pageNum = filters.page - 2 + i
                     }
 
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-6 h-6 text-xs rounded border transition-colors ${filters.page === pageNum
-                          ? 'bg-primary-600 text-white border-primary-600'
-                          : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                          }`}
+                        className={`w-6 h-6 text-xs rounded border transition-colors ${
+                          filters.page === pageNum
+                            ? 'bg-primary-600 text-white border-primary-600'
+                            : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                        }`}
                       >
                         {pageNum}
                       </button>
-                    );
+                    )
                   })}
 
                   <button
@@ -1251,10 +1314,13 @@ const CourseManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-sm w-full shadow-xl">
             <div className="flex items-center gap-2 p-3 border-b border-gray-200">
-              <div className={`p-1.5 rounded-full ${confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
-                ? 'bg-red-100 text-red-600'
-                : 'bg-blue-100 text-blue-600'
-                }`}>
+              <div
+                className={`p-1.5 rounded-full ${
+                  confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-blue-100 text-blue-600'
+                }`}
+              >
                 <AlertCircle className="w-3.5 h-3.5" />
               </div>
               <div>
@@ -1276,10 +1342,11 @@ const CourseManagement = () => {
               </button>
               <button
                 onClick={handleConfirm}
-                className={`px-2 py-1 text-xs font-medium text-white rounded focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors ${confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
-                  ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                  }`}
+                className={`px-2 py-1 text-xs font-medium text-white rounded focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors ${
+                  confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                    ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                    : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                }`}
               >
                 Confirm
               </button>

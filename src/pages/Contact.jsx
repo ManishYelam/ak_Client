@@ -1,15 +1,6 @@
 // src/pages/Contact.jsx
 import React, { useCallback, useMemo, useState } from 'react'
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  Send,
-  Loader2,
-  CheckCircle2,
-  AlertCircle
-} from 'lucide-react'
+import { Mail, Phone, MapPin, Clock, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { contactAPI } from '../services/api'
 
 // Memoized contact info items with proper error boundary
@@ -36,7 +27,7 @@ const QuickLinks = React.memo(() => {
     'Course syllabus and curriculum',
     'Batch schedules and timings',
     'Payment options and EMI',
-    'Placement assistance details'
+    'Placement assistance details',
   ]
 
   return (
@@ -60,40 +51,41 @@ const QuickLinks = React.memo(() => {
 QuickLinks.displayName = 'QuickLinks'
 
 // Enhanced form field with validation
-const FormField = React.memo(({
-  label,
-  id,
-  name,
-  value,
-  onChange,
-  type = 'text',
-  required = false,
-  placeholder,
-  error,
-  children
-}) => (
-  <div>
-    <label htmlFor={id} className="block text-xs font-medium text-gray-700 mb-1">
-      {label} {required && '*'}
-    </label>
-    {children || (
-      <input
-        type={type}
-        id={id}
-        name={name}
-        value={value}
-        onChange={onChange}
-        required={required}
-        placeholder={placeholder}
-        className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${error ? 'border-red-300 bg-red-50' : 'border-gray-300'
+const FormField = React.memo(
+  ({
+    label,
+    id,
+    name,
+    value,
+    onChange,
+    type = 'text',
+    required = false,
+    placeholder,
+    error,
+    children,
+  }) => (
+    <div>
+      <label htmlFor={id} className="block text-xs font-medium text-gray-700 mb-1">
+        {label} {required && '*'}
+      </label>
+      {children || (
+        <input
+          type={type}
+          id={id}
+          name={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+          placeholder={placeholder}
+          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+            error ? 'border-red-300 bg-red-50' : 'border-gray-300'
           }`}
-      />
-    )}
-    {error && (
-      <p className="mt-1 text-xs text-red-600">{error}</p>
-    )}
-  </div>
-))
+        />
+      )}
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
+  )
+)
 
 FormField.displayName = 'FormField'
 
@@ -103,7 +95,7 @@ const Contact = () => {
     email: '',
     phone: '',
     subject: '',
-    message: ''
+    message: '',
   })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -145,139 +137,147 @@ const Contact = () => {
   }, [formData])
 
   // Optimized handler with debouncing potential
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
+  const handleChange = useCallback(
+    e => {
+      const { name, value } = e.target
+      setFormData(prev => ({
         ...prev,
-        [name]: ''
+        [name]: value,
       }))
-    }
-    // Clear submit error when user makes changes
-    if (submitError) {
-      setSubmitError('')
-    }
-  }, [errors, submitError])
-
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault()
-
-    if (!validateForm()) {
-      // Scroll to first error
-      const firstErrorField = Object.keys(errors)[0]
-      if (firstErrorField) {
-        const element = document.getElementById(firstErrorField)
-        if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          })
-          element.focus()
-        }
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: '',
+        }))
       }
-      return
-    }
-
-    setIsSubmitting(true)
-    setSubmitError('')
-
-    try {
-      // Prepare data for API
-      const submitData = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim() || null, // Send null if empty
-        subject: formData.subject,
-        message: formData.message.trim(),
-        timestamp: new Date().toISOString(),
-        source: 'website_contact_form'
+      // Clear submit error when user makes changes
+      if (submitError) {
+        setSubmitError('')
       }
+    },
+    [errors, submitError]
+  )
 
-      // Call the API service
-      const response = await contactAPI.submitContact(submitData)
+  const handleSubmit = useCallback(
+    async e => {
+      e.preventDefault()
 
-      // Show success state
-      setIsSubmitted(true)
-
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      })
-      setErrors({})
-
-    } catch (error) {
-      console.error('Contact form submission error:', error)
-
-      // Handle different error types
-      if (error.response) {
-        // Server responded with error status
-        const status = error.response.status
-        const data = error.response.data
-
-        if (status === 400) {
-          // Validation errors from server
-          if (data.errors) {
-            setErrors(data.errors)
-          } else {
-            setSubmitError(data.message || 'Please check your form data and try again.')
+      if (!validateForm()) {
+        // Scroll to first error
+        const firstErrorField = Object.keys(errors)[0]
+        if (firstErrorField) {
+          const element = document.getElementById(firstErrorField)
+          if (element) {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            })
+            element.focus()
           }
-        } else if (status === 429) {
-          setSubmitError('Too many requests. Please try again in a few minutes.')
-        } else if (status >= 500) {
-          setSubmitError('Server error. Please try again later or contact us directly.')
-        } else {
-          setSubmitError(data.message || 'Failed to send message. Please try again.')
         }
-      } else if (error.request) {
-        // Network error
-        setSubmitError('Network error. Please check your connection and try again.')
-      } else {
-        // Other errors
-        setSubmitError('An unexpected error occurred. Please try again.')
+        return
       }
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [formData, validateForm, errors])
+
+      setIsSubmitting(true)
+      setSubmitError('')
+
+      try {
+        // Prepare data for API
+        const submitData = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || null, // Send null if empty
+          subject: formData.subject,
+          message: formData.message.trim(),
+          timestamp: new Date().toISOString(),
+          source: 'website_contact_form',
+        }
+
+        // Call the API service
+        const response = await contactAPI.submitContact(submitData)
+
+        // Show success state
+        setIsSubmitted(true)
+
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        })
+        setErrors({})
+      } catch (error) {
+        console.error('Contact form submission error:', error)
+
+        // Handle different error types
+        if (error.response) {
+          // Server responded with error status
+          const status = error.response.status
+          const data = error.response.data
+
+          if (status === 400) {
+            // Validation errors from server
+            if (data.errors) {
+              setErrors(data.errors)
+            } else {
+              setSubmitError(data.message || 'Please check your form data and try again.')
+            }
+          } else if (status === 429) {
+            setSubmitError('Too many requests. Please try again in a few minutes.')
+          } else if (status >= 500) {
+            setSubmitError('Server error. Please try again later or contact us directly.')
+          } else {
+            setSubmitError(data.message || 'Failed to send message. Please try again.')
+          }
+        } else if (error.request) {
+          // Network error
+          setSubmitError('Network error. Please check your connection and try again.')
+        } else {
+          // Other errors
+          setSubmitError('An unexpected error occurred. Please try again.')
+        }
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [formData, validateForm, errors]
+  )
 
   // Memoized contact information
-  const contactInfo = useMemo(() => [
-    {
-      icon: Mail,
-      title: 'Email',
-      value: 'akshay@learnsapabap.com',
-      description: 'Send us an email anytime',
-      href: 'mailto:akshay@learnsapabap.com'
-    },
-    {
-      icon: Phone,
-      title: 'Phone',
-      value: '+91 9876543210',
-      description: 'Mon to Fri 9am to 6pm',
-      href: 'tel:+919876543210'
-    },
-    {
-      icon: MapPin,
-      title: 'Location',
-      value: 'Pune, India',
-      description: 'Online training available worldwide'
-    },
-    {
-      icon: Clock,
-      title: 'Office Hours',
-      value: 'Mon - Fri: 9:00 - 18:00',
-      description: 'Weekend batches available'
-    }
-  ], [])
+  const contactInfo = useMemo(
+    () => [
+      {
+        icon: Mail,
+        title: 'Email',
+        value: 'akshay@learnsapabap.com',
+        description: 'Send us an email anytime',
+        href: 'mailto:akshay@learnsapabap.com',
+      },
+      {
+        icon: Phone,
+        title: 'Phone',
+        value: '+91 9876543210',
+        description: 'Mon to Fri 9am to 6pm',
+        href: 'tel:+919876543210',
+      },
+      {
+        icon: MapPin,
+        title: 'Location',
+        value: 'Pune, India',
+        description: 'Online training available worldwide',
+      },
+      {
+        icon: Clock,
+        title: 'Office Hours',
+        value: 'Mon - Fri: 9:00 - 18:00',
+        description: 'Weekend batches available',
+      },
+    ],
+    []
+  )
 
   // Success state component
   if (isSubmitted) {
@@ -287,7 +287,8 @@ const Contact = () => {
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Message Sent Successfully!</h2>
           <p className="text-gray-600 mb-4">
-            Thank you for contacting us. We've received your message and will get back to you within 24 hours.
+            Thank you for contacting us. We've received your message and will get back to you within
+            24 hours.
           </p>
           <div className="space-y-3">
             <button
@@ -297,7 +298,7 @@ const Contact = () => {
               Send Another Message
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg font-semibold transition-all duration-200"
             >
               Back to Home
@@ -314,9 +315,7 @@ const Contact = () => {
       <section className="bg-gradient-to-r from-primary-700 to-primary-800 text-white py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold font-display mb-4">
-              Get In Touch
-            </h1>
+            <h1 className="text-3xl lg:text-4xl font-bold font-display mb-4">Get In Touch</h1>
             <p className="text-base text-primary-100 max-w-2xl mx-auto leading-relaxed">
               Have questions about our courses? We're here to help you start your SAP ABAP journey.
             </p>
@@ -421,8 +420,9 @@ const Contact = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.subject ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                        errors.subject ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                     >
                       <option value="">Select a subject</option>
                       <option value="course-info">Course Information</option>
@@ -450,8 +450,9 @@ const Contact = () => {
                     onChange={handleChange}
                     required
                     rows="5"
-                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-vertical ${errors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-vertical ${
+                      errors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Tell us about your requirements..."
                   />
                 </FormField>
@@ -477,10 +478,14 @@ const Contact = () => {
                 {/* Privacy Notice */}
                 <p className="text-xs text-gray-500 text-center">
                   By submitting this form, you agree to our{' '}
-                  <a href="/privacy-policy" className="text-primary-600 hover:text-primary-700 underline">
+                  <a
+                    href="/privacy-policy"
+                    className="text-primary-600 hover:text-primary-700 underline"
+                  >
                     Privacy Policy
                   </a>
-                  . We respect your privacy and will never share your information with third parties.
+                  . We respect your privacy and will never share your information with third
+                  parties.
                 </p>
               </form>
             </div>

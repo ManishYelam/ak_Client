@@ -1,10 +1,19 @@
 // src/pages/TermsOfService.jsx
 import React, { useMemo } from 'react'
-import { FileText, BookOpen, AlertCircle, CreditCard, GraduationCap, Users, ChevronRight, ArrowUp } from 'lucide-react'
+import {
+  FileText,
+  BookOpen,
+  AlertCircle,
+  CreditCard,
+  GraduationCap,
+  Users,
+  ChevronRight,
+  ArrowUp,
+} from 'lucide-react'
 
 // Reuse SmoothScrollLink and ScrollToTop components from PrivacyPolicy
 const SmoothScrollLink = ({ href, children, onClick }) => {
-  const handleClick = (e) => {
+  const handleClick = e => {
     e.preventDefault()
     const targetId = href.replace('#', '')
     const element = document.getElementById(targetId)
@@ -13,7 +22,7 @@ const SmoothScrollLink = ({ href, children, onClick }) => {
       const elementPosition = element.offsetTop - offset
       window.scrollTo({
         top: elementPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       })
       onClick?.()
     }
@@ -35,7 +44,7 @@ const ScrollToTop = () => {
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: 'smooth',
     })
   }
 
@@ -51,28 +60,30 @@ const ScrollToTop = () => {
 
 // Memoized section component
 const TermsSection = React.memo(({ id, icon: Icon, title, children }) => (
-  <div id={id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8 hover:shadow-md transition-shadow duration-300">
+  <div
+    id={id}
+    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8 hover:shadow-md transition-shadow duration-300"
+  >
     <div className="flex items-center mb-6">
       <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-4 shadow-md">
         <Icon className="w-6 h-6 text-white" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
     </div>
-    <div className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
-      {children}
-    </div>
+    <div className="text-gray-700 leading-relaxed text-base whitespace-pre-line">{children}</div>
   </div>
 ))
 
 TermsSection.displayName = 'TermsSection'
 
 const TermsOfService = () => {
-  const termsSections = useMemo(() => [
-    {
-      id: 'enrollment',
-      icon: BookOpen,
-      title: 'Course Enrollment & Access',
-      content: `By enrolling in our SAP ABAP courses, you agree to the following terms:
+  const termsSections = useMemo(
+    () => [
+      {
+        id: 'enrollment',
+        icon: BookOpen,
+        title: 'Course Enrollment & Access',
+        content: `By enrolling in our SAP ABAP courses, you agree to the following terms:
 
 🎯 **Account Requirements**:
 • Provide accurate and complete registration information
@@ -87,13 +98,13 @@ const TermsOfService = () => {
 🔄 **Account Management**:
 • One active enrollment per paid account
 • Immediate access upon successful payment
-• Lifetime access to course materials (subject to platform availability)`
-    },
-    {
-      id: 'payments',
-      icon: CreditCard,
-      title: 'Payments & Refunds',
-      content: `Our payment and refund policies ensure fair treatment for all students:
+• Lifetime access to course materials (subject to platform availability)`,
+      },
+      {
+        id: 'payments',
+        icon: CreditCard,
+        title: 'Payments & Refunds',
+        content: `Our payment and refund policies ensure fair treatment for all students:
 
 💳 **Payment Terms**:
 • Course fees must be paid in full before access is granted
@@ -107,13 +118,13 @@ const TermsOfService = () => {
 
 📈 **Price Changes**:
 • We reserve the right to change course fees with 30 days notice
-• Existing enrollments are not affected by price changes`
-    },
-    {
-      id: 'responsibilities',
-      icon: GraduationCap,
-      title: 'Student Responsibilities',
-      content: `As a valued student, you agree to:
+• Existing enrollments are not affected by price changes`,
+      },
+      {
+        id: 'responsibilities',
+        icon: GraduationCap,
+        title: 'Student Responsibilities',
+        content: `As a valued student, you agree to:
 
 👨‍🎓 **Academic Conduct**:
 • Act professionally and respectfully in all interactions
@@ -128,13 +139,13 @@ const TermsOfService = () => {
 📱 **Platform Usage**:
 • Participate actively in learning activities
 • Not attempt to disrupt platform functionality
-• Report any technical issues promptly`
-    },
-    {
-      id: 'intellectual-property',
-      icon: Users,
-      title: 'Intellectual Property',
-      content: `All educational content is protected intellectual property:
+• Report any technical issues promptly`,
+      },
+      {
+        id: 'intellectual-property',
+        icon: Users,
+        title: 'Intellectual Property',
+        content: `All educational content is protected intellectual property:
 
 📹 **Course Materials**:
 • Video lectures, tutorials, and demonstrations
@@ -149,13 +160,13 @@ const TermsOfService = () => {
 
 🔒 **Protection**:
 • Legal action will be taken against copyright violations
-• Platform access may be terminated for IP violations`
-    },
-    {
-      id: 'liability',
-      icon: AlertCircle,
-      title: 'Limitations of Liability',
-      content: `Important disclaimers and limitations:
+• Platform access may be terminated for IP violations`,
+      },
+      {
+        id: 'liability',
+        icon: AlertCircle,
+        title: 'Limitations of Liability',
+        content: `Important disclaimers and limitations:
 
 🎓 **Educational Outcomes**:
 • We provide quality education but don't guarantee employment
@@ -170,42 +181,47 @@ const TermsOfService = () => {
 📝 **Content Accuracy**:
 • Course content is regularly updated for accuracy
 • SAP ABAP concepts may evolve over time
-• We reserve the right to update or modify course content`
-    }
-  ], [])
+• We reserve the right to update or modify course content`,
+      },
+    ],
+    []
+  )
 
-  const quickFacts = useMemo(() => [
-    {
-      icon: '⏱️',
-      title: 'Course Access',
-      content: 'Lifetime access to enrolled courses'
-    },
-    {
-      icon: '🎯',
-      title: 'Support',
-      content: 'Dedicated support during course duration'
-    },
-    {
-      icon: '🔄',
-      title: 'Updates',
-      content: 'Free course content updates'
-    },
-    {
-      icon: '📜',
-      title: 'Certification',
-      content: 'Certificate upon successful completion'
-    },
-    {
-      icon: '💳',
-      title: 'Payment',
-      content: 'Secure payment processing'
-    },
-    {
-      icon: '📞',
-      title: 'Help',
-      content: '24/7 email support'
-    }
-  ], [])
+  const quickFacts = useMemo(
+    () => [
+      {
+        icon: '⏱️',
+        title: 'Course Access',
+        content: 'Lifetime access to enrolled courses',
+      },
+      {
+        icon: '🎯',
+        title: 'Support',
+        content: 'Dedicated support during course duration',
+      },
+      {
+        icon: '🔄',
+        title: 'Updates',
+        content: 'Free course content updates',
+      },
+      {
+        icon: '📜',
+        title: 'Certification',
+        content: 'Certificate upon successful completion',
+      },
+      {
+        icon: '💳',
+        title: 'Payment',
+        content: 'Secure payment processing',
+      },
+      {
+        icon: '📞',
+        title: 'Help',
+        content: '24/7 email support',
+      },
+    ],
+    []
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50">
@@ -216,11 +232,10 @@ const TermsOfService = () => {
             <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <FileText className="w-10 h-10" />
             </div>
-            <h1 className="text-4xl lg:text-5xl font-bold font-display mb-6">
-              Terms of Service
-            </h1>
+            <h1 className="text-4xl lg:text-5xl font-bold font-display mb-6">Terms of Service</h1>
             <p className="text-lg text-primary-100 max-w-2xl mx-auto leading-relaxed">
-              Please read these terms carefully before enrolling in our SAP ABAP courses. Your education journey starts with understanding our commitment to you.
+              Please read these terms carefully before enrolling in our SAP ABAP courses. Your
+              education journey starts with understanding our commitment to you.
             </p>
           </div>
         </div>
@@ -245,12 +260,8 @@ const TermsOfService = () => {
                     {section.title}
                   </SmoothScrollLink>
                 ))}
-                <SmoothScrollLink href="#termination">
-                  Termination Policy
-                </SmoothScrollLink>
-                <SmoothScrollLink href="#contact">
-                  Contact Information
-                </SmoothScrollLink>
+                <SmoothScrollLink href="#termination">Termination Policy</SmoothScrollLink>
+                <SmoothScrollLink href="#contact">Contact Information</SmoothScrollLink>
               </nav>
 
               {/* Effective Date */}
@@ -265,7 +276,10 @@ const TermsOfService = () => {
               <h3 className="font-bold text-gray-900 text-lg mb-4">Key Features</h3>
               <div className="grid grid-cols-2 gap-3">
                 {quickFacts.map((fact, index) => (
-                  <div key={index} className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors">
+                  <div
+                    key={index}
+                    className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
+                  >
                     <div className="text-lg mb-1">{fact.icon}</div>
                     <h4 className="font-semibold text-gray-900 text-xs mb-1">{fact.title}</h4>
                     <p className="text-xs text-gray-600">{fact.content}</p>
@@ -284,8 +298,9 @@ const TermsOfService = () => {
                 <div>
                   <h3 className="font-bold text-lg mb-2">Important Legal Notice</h3>
                   <p className="text-orange-100 leading-relaxed">
-                    By accessing our website and enrolling in our courses, you agree to be bound by these Terms of Service. 
-                    If you do not agree with any part of these terms, you may not use our services.
+                    By accessing our website and enrolling in our courses, you agree to be bound by
+                    these Terms of Service. If you do not agree with any part of these terms, you
+                    may not use our services.
                   </p>
                 </div>
               </div>
@@ -321,13 +336,18 @@ const TermsOfService = () => {
               </div>
               <div className="text-gray-700 space-y-4">
                 <p>
-                  We reserve the right to terminate or suspend access to our services immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
+                  We reserve the right to terminate or suspend access to our services immediately,
+                  without prior notice or liability, for any reason whatsoever, including without
+                  limitation if you breach the Terms.
                 </p>
                 <p className="font-semibold">
-                  Upon termination, your right to use the service will cease immediately. If you wish to terminate your account, you may simply discontinue using the service.
+                  Upon termination, your right to use the service will cease immediately. If you
+                  wish to terminate your account, you may simply discontinue using the service.
                 </p>
                 <div className="bg-white rounded-lg p-4 border border-red-200">
-                  <h4 className="font-semibold text-red-700 mb-2">Grounds for Immediate Termination:</h4>
+                  <h4 className="font-semibold text-red-700 mb-2">
+                    Grounds for Immediate Termination:
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Sharing course materials with unauthorized users</li>
                     <li>• Attempting to disrupt platform services</li>
@@ -339,7 +359,10 @@ const TermsOfService = () => {
             </div>
 
             {/* Contact for Questions */}
-            <div id="contact" className="mt-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white">
+            <div
+              id="contact"
+              className="mt-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white"
+            >
               <h3 className="text-2xl font-bold mb-4">Questions About Our Terms?</h3>
               <p className="text-primary-100 mb-6 text-lg">
                 Our team is here to clarify any aspect of our Terms of Service.
@@ -356,7 +379,8 @@ const TermsOfService = () => {
                 <div>
                   <h4 className="font-semibold mb-3">Support Hours</h4>
                   <p className="text-primary-100">
-                    Monday - Friday: 9:00 AM - 6:00 PM IST<br/>
+                    Monday - Friday: 9:00 AM - 6:00 PM IST
+                    <br />
                     Weekend: Emergency support only
                   </p>
                 </div>

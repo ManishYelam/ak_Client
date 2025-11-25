@@ -1,17 +1,17 @@
 // src/pages/CourseDetail.jsx
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { 
-  Clock, 
-  Users, 
-  Star, 
-  CheckCircle, 
-  Play, 
+import {
+  Clock,
+  Users,
+  Star,
+  CheckCircle,
+  Play,
   ArrowLeft,
   BookOpen,
   BarChart,
   Target,
-  Calendar
+  Calendar,
 } from 'lucide-react'
 import { coursesAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -64,7 +64,9 @@ const CourseDetail = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'The course you are looking for does not exist.'}</p>
+          <p className="text-gray-600 mb-6">
+            {error || 'The course you are looking for does not exist.'}
+          </p>
           <Link to="/courses" className="btn-primary">
             Back to Courses
           </Link>
@@ -85,19 +87,15 @@ const CourseDetail = () => {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Courses
           </button>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <span className="inline-block bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
                 {course.category}
               </span>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                {course.title}
-              </h1>
-              <p className="text-xl text-gray-600 mb-6">
-                {course.description}
-              </p>
-              
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{course.title}</h1>
+              <p className="text-xl text-gray-600 mb-6">{course.description}</p>
+
               <div className="flex flex-wrap items-center gap-6 mb-6">
                 <div className="flex items-center space-x-1">
                   <Star className="w-5 h-5 text-yellow-400 fill-current" />
@@ -120,7 +118,9 @@ const CourseDetail = () => {
                     {course.instructor?.name?.charAt(0) || 'A'}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{course.instructor?.name || 'Akshay'}</p>
+                    <p className="font-semibold text-gray-900">
+                      {course.instructor?.name || 'Akshay'}
+                    </p>
                     <p className="text-sm text-gray-500">SAP ABAP Expert</p>
                   </div>
                 </div>
@@ -131,18 +131,18 @@ const CourseDetail = () => {
               <div className="aspect-video bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl mb-6 flex items-center justify-center">
                 <Play className="w-12 h-12 text-white" />
               </div>
-              
+
               <div className="text-3xl font-bold text-gray-900 mb-2">
                 {course.price === 0 ? 'Free' : `₹${course.price}`}
               </div>
-              
+
               <button
                 onClick={handleEnroll}
                 className="w-full btn-primary py-4 text-lg font-semibold mb-4"
               >
                 Enroll Now
               </button>
-              
+
               <div className="space-y-3 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -174,7 +174,7 @@ const CourseDetail = () => {
             <div className="bg-white rounded-2xl shadow-medium border border-gray-200 overflow-hidden mb-8">
               <div className="border-b border-gray-200">
                 <nav className="flex -mb-px">
-                  {['overview', 'curriculum', 'instructor'].map((tab) => (
+                  {['overview', 'curriculum', 'instructor'].map(tab => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -199,7 +199,7 @@ const CourseDetail = () => {
                         {course.fullDescription || course.description}
                       </p>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex items-center space-x-3">
                         <BookOpen className="w-6 h-6 text-primary-500" />
@@ -247,7 +247,10 @@ const CourseDetail = () => {
                           <div className="p-4">
                             <div className="space-y-3">
                               {module.lessons?.map((lesson, lessonIndex) => (
-                                <div key={lessonIndex} className="flex items-center justify-between py-2">
+                                <div
+                                  key={lessonIndex}
+                                  className="flex items-center justify-between py-2"
+                                >
                                   <div className="flex items-center space-x-3">
                                     <Play className="w-4 h-4 text-gray-400" />
                                     <span className="text-gray-700">{lesson.title}</span>
@@ -270,11 +273,13 @@ const CourseDetail = () => {
                         {course.instructor?.name?.charAt(0) || 'A'}
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">{course.instructor?.name || 'Akshay'}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          {course.instructor?.name || 'Akshay'}
+                        </h3>
                         <p className="text-gray-600">SAP ABAP Expert & Corporate Trainer</p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                       <div className="bg-gray-50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-primary-600">10+</div>
@@ -289,14 +294,14 @@ const CourseDetail = () => {
                         <div className="text-gray-600">Corporate Clients</div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-3">About the Instructor</h4>
                       <p className="text-gray-600 leading-relaxed">
-                        With over a decade of experience in SAP ABAP development and consulting, 
-                        Akshay has trained thousands of professionals and helped them build successful 
-                        careers in the SAP ecosystem. His practical approach to teaching focuses on 
-                        real-world scenarios and industry best practices.
+                        With over a decade of experience in SAP ABAP development and consulting,
+                        Akshay has trained thousands of professionals and helped them build
+                        successful careers in the SAP ecosystem. His practical approach to teaching
+                        focuses on real-world scenarios and industry best practices.
                       </p>
                     </div>
                   </div>

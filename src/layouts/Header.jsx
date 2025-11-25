@@ -1,12 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { 
-  Menu, 
-  X, 
-  User, 
-  ChevronDown,
-  BookOpen
-} from 'lucide-react'
+import { Menu, X, User, ChevronDown, BookOpen } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const Header = () => {
@@ -48,7 +42,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
+            {navigation.map(item => (
               <Link
                 key={item.name}
                 to={item.href}
@@ -75,7 +69,7 @@ const Header = () => {
                   <span className="text-sm font-medium">{user?.name}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
-                
+
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-large border border-gray-200 py-2">
                     <Link
@@ -92,7 +86,7 @@ const Header = () => {
                     >
                       Profile
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     >
@@ -109,10 +103,7 @@ const Header = () => {
                 >
                   Sign In
                 </Link>
-                <Link
-                  to="/register"
-                  className="btn-primary text-sm"
-                >
+                <Link to="/register" className="btn-primary text-sm">
                   Get Started
                 </Link>
               </div>
@@ -134,7 +125,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="flex flex-col space-y-4">
-              {navigation.map((item) => (
+              {navigation.map(item => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -148,7 +139,7 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
-              
+
               <div className="pt-4 border-t border-gray-200">
                 {isAuthenticated ? (
                   <div className="space-y-2">
@@ -159,7 +150,7 @@ const Header = () => {
                     >
                       Dashboard
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="block w-full text-left px-3 py-2 text-base font-medium text-red-600"
                     >

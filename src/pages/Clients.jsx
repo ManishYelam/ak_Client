@@ -1,55 +1,84 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import DashboardLayout from "../layouts/DashboardLayout";
-import { FaPlus, FaCheck, FaTimes, FaArrowLeft, FaDownload, FaSearch, FaFilePdf, FaEdit, FaEye, FaPrint, FaTrash, FaEllipsisV } from "react-icons/fa";
-import { FiTrash2, FiEdit, FiRefreshCcw, FiEye, FiPrinter, FiMoreVertical, FiUserPlus } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import { getAllUser } from "../services/applicationService"; // Import your service
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import DashboardLayout from '../layouts/DashboardLayout'
+import {
+  FaPlus,
+  FaCheck,
+  FaTimes,
+  FaArrowLeft,
+  FaDownload,
+  FaSearch,
+  FaFilePdf,
+  FaEdit,
+  FaEye,
+  FaPrint,
+  FaTrash,
+  FaEllipsisV,
+} from 'react-icons/fa'
+import {
+  FiTrash2,
+  FiEdit,
+  FiRefreshCcw,
+  FiEye,
+  FiPrinter,
+  FiMoreVertical,
+  FiUserPlus,
+} from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
+import { getAllUser } from '../services/applicationService' // Import your service
 
 // Debounce utility for search
 const debounce = (func, wait) => {
-  let timeout;
+  let timeout
   return function executedFunction(...args) {
     const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
 
 // Custom hook for debounce
 const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+  const [debouncedValue, setDebouncedValue] = useState(value)
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+      setDebouncedValue(value)
+    }, delay)
 
     return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
+      clearTimeout(handler)
+    }
+  }, [value, delay])
 
-  return debouncedValue;
-};
+  return debouncedValue
+}
 
 // Token validation utility
-const isTokenExpired = (token) => {
-  if (!token) return true;
+const isTokenExpired = token => {
+  if (!token) return true
   try {
-    const decodedToken = JSON.parse(atob(token.split(".")[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
-    return decodedToken.exp < currentTime;
+    const decodedToken = JSON.parse(atob(token.split('.')[1]))
+    const currentTime = Math.floor(Date.now() / 1000)
+    return decodedToken.exp < currentTime
   } catch (error) {
-    return true;
+    return true
   }
-};
+}
 
 // Custom Confirmation Modal Component
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Delete", cancelText = "Cancel" }) => {
-  if (!isOpen) return null;
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
+}) => {
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -72,58 +101,58 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-const Clients = ({ 
-  onDeleteClient, 
-  onEditClient, 
-  onView, 
-  onPrint, 
-  onMore, 
+const Clients = ({
+  onDeleteClient,
+  onEditClient,
+  onView,
+  onPrint,
+  onMore,
   onAddClient,
-  userRole = "admin"
+  userRole = 'admin',
 }) => {
-  const [clients, setClients] = useState([]);
-  const [filters, setFilters] = useState({ 
-    globalSearch: "", 
-    status: "", 
-    verified: "",
-    regType: "",
-    searchField: "",
-    searchValue: ""
-  });
-  const [selectedclient_ids, setSelectedclient_ids] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [bulkAction, setBulkAction] = useState("");
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [selectedRowId, setSelectedRowId] = useState(null);
+  const [clients, setClients] = useState([])
+  const [filters, setFilters] = useState({
+    globalSearch: '',
+    status: '',
+    verified: '',
+    regType: '',
+    searchField: '',
+    searchValue: '',
+  })
+  const [selectedclient_ids, setSelectedclient_ids] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [pagination, setPagination] = useState({ page: 1, limit: 10 })
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [exportLoading, setExportLoading] = useState(false)
+  const [bulkAction, setBulkAction] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [selectedRowId, setSelectedRowId] = useState(null)
 
   // Delete confirmation modal state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [clientsToDelete, setCliientsToDelete] = useState([]);
-  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [clientsToDelete, setCliientsToDelete] = useState([])
+  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState('')
 
-  const navigate = useNavigate();
-  const debouncedSearchRef = React.useRef();
+  const navigate = useNavigate()
+  const debouncedSearchRef = React.useRef()
 
   // Use debounce for global search
-  const debouncedGlobalSearch = useDebounce(filters.globalSearch, 500);
+  const debouncedGlobalSearch = useDebounce(filters.globalSearch, 500)
 
   useEffect(() => {
-    debouncedSearchRef.current = debounce((value) => {
-      setFilters(prev => ({ ...prev, globalSearch: value }));
-      setPagination(prev => ({ ...prev, page: 1 }));
-    }, 300);
-  }, []);
+    debouncedSearchRef.current = debounce(value => {
+      setFilters(prev => ({ ...prev, globalSearch: value }))
+      setPagination(prev => ({ ...prev, page: 1 }))
+    }, 300)
+  }, [])
 
   const fetchClients = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
       // Prepare request data for getAllUser API
       const requestData = {
@@ -135,19 +164,19 @@ const Clients = ({
         ...(filters.status && { status: filters.status.toLowerCase() }),
         ...(filters.verified && { isVerified: filters.verified }),
         ...(filters.regType && { reg_type: filters.regType }),
-        role: 'client' // Only fetch clients, not admins
-      };
+        role: 'client', // Only fetch clients, not admins
+      }
 
       // Add field-specific search if applicable
       if (filters.searchField && filters.searchValue) {
-        requestData.search = filters.searchValue;
-        requestData.searchFields = [filters.searchField];
+        requestData.search = filters.searchValue
+        requestData.searchFields = [filters.searchField]
       }
 
-      console.log('API Request:', requestData); // For debugging
+      console.log('API Request:', requestData) // For debugging
 
-      const response = await getAllUser(requestData);
-      
+      const response = await getAllUser(requestData)
+
       // Transform API response to match table format
       const transformedData = response.data.data.map(user => ({
         id: user.id,
@@ -171,282 +200,340 @@ const Clients = ({
         age: user.age,
         adharNumber: user.adhar_number,
         isVerified: user.isVerified,
-        lastLoginAt: user.last_login_at
-      }));
+        lastLoginAt: user.last_login_at,
+      }))
 
-      setClients(transformedData);
-      setTotalRecords(response.totalRecords || response.total || transformedData.length);
-
+      setClients(transformedData)
+      setTotalRecords(response.totalRecords || response.total || transformedData.length)
     } catch (err) {
-      setError(`Failed to fetch clients: ${err.message}`);
-      console.error('API Error:', err);
-      
+      setError(`Failed to fetch clients: ${err.message}`)
+      console.error('API Error:', err)
+
       // Fallback to mock data if API fails (optional)
       const fallbackData = [
-        { 
-          id: 1, 
-          name: "John Doe", 
-          email: "john@example.com", 
-          phone: "+1 (555) 123-4567", 
-          address: "123 Main Street, New York, NY 10001", 
-          company: "ABC Corp", 
-          createdAt: "2025-01-15T10:30:00Z", 
-          status: "Active", 
+        {
+          id: 1,
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '+1 (555) 123-4567',
+          address: '123 Main Street, New York, NY 10001',
+          company: 'ABC Corp',
+          createdAt: '2025-01-15T10:30:00Z',
+          status: 'Active',
           verified: true,
-          regType: "Manual",
-          clientSince: "2024-01-15",
-          lastActive: "2025-01-10",
+          regType: 'Manual',
+          clientSince: '2024-01-15',
+          lastActive: '2025-01-10',
           totalCases: 5,
-          activeCases: 2
-        }
-      ];
-      setClients(fallbackData);
-      setTotalRecords(fallbackData.length);
+          activeCases: 2,
+        },
+      ]
+      setClients(fallbackData)
+      setTotalRecords(fallbackData.length)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [debouncedGlobalSearch, filters, pagination]);
+  }, [debouncedGlobalSearch, filters, pagination])
 
-  useEffect(() => { 
-    fetchClients(); 
-  }, [fetchClients]);
+  useEffect(() => {
+    fetchClients()
+  }, [fetchClients])
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "globalSearch") {
-      debouncedSearchRef.current(value);
-    } else if (name === "searchField") {
-      setFilters(prev => ({ 
-        ...prev, 
+  const handleFilterChange = e => {
+    const { name, value } = e.target
+    if (name === 'globalSearch') {
+      debouncedSearchRef.current(value)
+    } else if (name === 'searchField') {
+      setFilters(prev => ({
+        ...prev,
         searchField: value,
-        searchValue: "" // Reset search value when field changes
-      }));
+        searchValue: '', // Reset search value when field changes
+      }))
     } else {
-      setFilters(prev => ({ ...prev, [name]: value }));
-      setPagination(prev => ({ ...prev, page: 1 }));
+      setFilters(prev => ({ ...prev, [name]: value }))
+      setPagination(prev => ({ ...prev, page: 1 }))
     }
-  };
+  }
 
   const filteredClients = useMemo(() => {
     return clients.filter(client => {
-      const matchesGlobalSearch = !filters.globalSearch || 
-        Object.values(client).some(val => 
+      const matchesGlobalSearch =
+        !filters.globalSearch ||
+        Object.values(client).some(val =>
           val?.toString().toLowerCase().includes(filters.globalSearch.toLowerCase())
-        );
-      const matchesStatus = !filters.status || client.status === filters.status;
-      const matchesVerified = filters.verified === "" || 
-        (filters.verified === "true" && client.verified) || 
-        (filters.verified === "false" && !client.verified);
-      const matchesRegType = !filters.regType || client.regType === filters.regType;
-      const matchesFieldSearch = !filters.searchField || !filters.searchValue ||
-        client[filters.searchField]?.toString().toLowerCase().includes(filters.searchValue.toLowerCase());
+        )
+      const matchesStatus = !filters.status || client.status === filters.status
+      const matchesVerified =
+        filters.verified === '' ||
+        (filters.verified === 'true' && client.verified) ||
+        (filters.verified === 'false' && !client.verified)
+      const matchesRegType = !filters.regType || client.regType === filters.regType
+      const matchesFieldSearch =
+        !filters.searchField ||
+        !filters.searchValue ||
+        client[filters.searchField]
+          ?.toString()
+          .toLowerCase()
+          .includes(filters.searchValue.toLowerCase())
 
-      return matchesGlobalSearch && matchesStatus && matchesVerified && matchesRegType && matchesFieldSearch;
-    });
-  }, [clients, filters]);
+      return (
+        matchesGlobalSearch &&
+        matchesStatus &&
+        matchesVerified &&
+        matchesRegType &&
+        matchesFieldSearch
+      )
+    })
+  }, [clients, filters])
 
-  const toggleSelectAll = (e) => {
+  const toggleSelectAll = e => {
     if (e.target.checked) {
-      setSelectedclient_ids(filteredClients.map(c => c.id));
+      setSelectedclient_ids(filteredClients.map(c => c.id))
     } else {
-      setSelectedclient_ids([]);
+      setSelectedclient_ids([])
     }
-  };
+  }
 
   const toggleSelectOne = (id, e) => {
-    if (e) e.stopPropagation();
+    if (e) e.stopPropagation()
     setSelectedclient_ids(prev =>
       prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
-    );
-  };
+    )
+  }
 
   // ✅ Ultra-fast Delete Confirmation
-  const showDeleteConfirmation = useCallback((clientIds) => {
+  const showDeleteConfirmation = useCallback(clientIds => {
     if (!clientIds || clientIds.length === 0) {
-      setError("No clients selected for deletion");
-      return;
+      setError('No clients selected for deletion')
+      return
     }
 
-    setCliientsToDelete(clientIds);
+    setCliientsToDelete(clientIds)
     setDeleteConfirmMessage(
       clientIds.length === 1
         ? `Are you sure you want to delete client #${clientIds[0]}? This action cannot be undone.`
         : `Are you sure you want to delete ${clientIds.length} selected clients? This action cannot be undone.`
-    );
-    setShowDeleteConfirm(true);
-  }, []);
+    )
+    setShowDeleteConfirm(true)
+  }, [])
 
   // ✅ Ultra-optimized DELETE CLIENT
   const handleDeleteClient = useCallback(async () => {
-    setDeleteLoading(true);
-    setError(null);
+    setDeleteLoading(true)
+    setError(null)
 
     try {
-      const user = localStorage.getItem("user");
-      if (!user) throw new Error("User not logged in");
+      const user = localStorage.getItem('user')
+      if (!user) throw new Error('User not logged in')
 
-      const parsedUser = JSON.parse(user);
-      const token = parsedUser?.token;
+      const parsedUser = JSON.parse(user)
+      const token = parsedUser?.token
 
       if (!token || isTokenExpired(token)) {
-        throw new Error("Token expired. Please login again.");
+        throw new Error('Token expired. Please login again.')
       }
 
       // Direct parallel deletion
-      await Promise.all(clientsToDelete.map(id => onDeleteClient?.(id)));
+      await Promise.all(clientsToDelete.map(id => onDeleteClient?.(id)))
 
       // Direct state updates
-      setShowDeleteConfirm(false);
-      setCliientsToDelete([]);
-      await fetchClients();
-      setSelectedclient_ids([]);
-      setSelectedRowId(null);
+      setShowDeleteConfirm(false)
+      setCliientsToDelete([])
+      await fetchClients()
+      setSelectedclient_ids([])
+      setSelectedRowId(null)
 
-      setError(clientsToDelete.length === 1
-        ? `Client #${clientsToDelete[0]} deleted successfully`
-        : `${clientsToDelete.length} clients deleted successfully`
-      );
-
+      setError(
+        clientsToDelete.length === 1
+          ? `Client #${clientsToDelete[0]} deleted successfully`
+          : `${clientsToDelete.length} clients deleted successfully`
+      )
     } catch (err) {
-      setError(`Failed to delete clients: ${err.message}`);
-      setShowDeleteConfirm(false);
-      setCliientsToDelete([]);
+      setError(`Failed to delete clients: ${err.message}`)
+      setShowDeleteConfirm(false)
+      setCliientsToDelete([])
     } finally {
-      setDeleteLoading(false);
+      setDeleteLoading(false)
     }
-  }, [clientsToDelete, fetchClients, onDeleteClient]);
+  }, [clientsToDelete, fetchClients, onDeleteClient])
 
   // ✅ Ultra-fast Single Client Delete
-  const handleDeleteSingleClient = useCallback((client, e) => {
-    e.stopPropagation();
-    showDeleteConfirmation([client.id]);
-  }, [showDeleteConfirmation]);
+  const handleDeleteSingleClient = useCallback(
+    (client, e) => {
+      e.stopPropagation()
+      showDeleteConfirmation([client.id])
+    },
+    [showDeleteConfirmation]
+  )
 
   // ✅ Fast Cancel Delete
   const handleCancelDelete = useCallback(() => {
-    setShowDeleteConfirm(false);
-    setCliientsToDelete([]);
-    setDeleteConfirmMessage("");
-  }, []);
+    setShowDeleteConfirm(false)
+    setCliientsToDelete([])
+    setDeleteConfirmMessage('')
+  }, [])
 
   const handleBulkAction = () => {
     if (bulkAction && selectedclient_ids.length > 0) {
       switch (bulkAction) {
-        case "delete":
-          showDeleteConfirmation(selectedclient_ids);
-          break;
-        case "export":
-          handleExport();
-          break;
+        case 'delete':
+          showDeleteConfirmation(selectedclient_ids)
+          break
+        case 'export':
+          handleExport()
+          break
         default:
-          break;
+          break
       }
-      setBulkAction("");
+      setBulkAction('')
     }
-  };
+  }
 
   const handleExport = async () => {
-    setExportLoading(true);
+    setExportLoading(true)
     try {
-      const csvHeaders = ['ID', 'Name', 'Email', 'Phone', 'Company', 'Registration Type', 'Status', 'Verified', 'Client Since', 'Total Cases', 'Active Cases'].join(',');
-      const csvRows = filteredClients.map(client => [
-        client.id,
-        `"${client.name}"`,
-        client.email,
-        client.phone,
-        `"${client.company}"`,
-        client.regType,
-        client.status,
-        client.verified ? 'Yes' : 'No',
-        client.clientSince ? new Date(client.clientSince).toLocaleDateString() : '-',
-        client.totalCases || 0,
-        client.activeCases || 0
-      ].join(','));
-      const csvContent = [csvHeaders, ...csvRows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `clients-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const csvHeaders = [
+        'ID',
+        'Name',
+        'Email',
+        'Phone',
+        'Company',
+        'Registration Type',
+        'Status',
+        'Verified',
+        'Client Since',
+        'Total Cases',
+        'Active Cases',
+      ].join(',')
+      const csvRows = filteredClients.map(client =>
+        [
+          client.id,
+          `"${client.name}"`,
+          client.email,
+          client.phone,
+          `"${client.company}"`,
+          client.regType,
+          client.status,
+          client.verified ? 'Yes' : 'No',
+          client.clientSince ? new Date(client.clientSince).toLocaleDateString() : '-',
+          client.totalCases || 0,
+          client.activeCases || 0,
+        ].join(',')
+      )
+      const csvContent = [csvHeaders, ...csvRows].join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', `clients-${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     } catch (err) {
-      setError(`Export failed: ${err.message}`);
+      setError(`Export failed: ${err.message}`)
     } finally {
-      setExportLoading(false);
+      setExportLoading(false)
     }
-  };
+  }
 
   const handleResetFilters = () => {
-    setFilters({ globalSearch: "", status: "", verified: "", regType: "", searchField: "", searchValue: "" });
-    setPagination({ page: 1, limit: 10 });
-    setSelectedclient_ids([]);
-    setSelectedRowId(null);
-  };
+    setFilters({
+      globalSearch: '',
+      status: '',
+      verified: '',
+      regType: '',
+      searchField: '',
+      searchValue: '',
+    })
+    setPagination({ page: 1, limit: 10 })
+    setSelectedclient_ids([])
+    setSelectedRowId(null)
+  }
 
   // ✅ Ultra-fast Row Click Handler
-  const handleRowClick = useCallback((clientId, e) => {
-    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input')) {
-      return;
-    }
-    setSelectedRowId(clientId === selectedRowId ? null : clientId);
-  }, [selectedRowId]);
+  const handleRowClick = useCallback(
+    (clientId, e) => {
+      if (
+        e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'INPUT' ||
+        e.target.closest('button') ||
+        e.target.closest('input')
+      ) {
+        return
+      }
+      setSelectedRowId(clientId === selectedRowId ? null : clientId)
+    },
+    [selectedRowId]
+  )
 
   // ✅ Ultra-fast Row Background Color
-  const getRowBackgroundColor = useCallback((clientId) => 
-    clientId === selectedRowId ? 'bg-blue-200 border-l-4 border-blue-500' : 'bg-white hover:bg-pink-100',
-  [selectedRowId]);
+  const getRowBackgroundColor = useCallback(
+    clientId =>
+      clientId === selectedRowId
+        ? 'bg-blue-200 border-l-4 border-blue-500'
+        : 'bg-white hover:bg-pink-100',
+    [selectedRowId]
+  )
 
   // ✅ Ultra-optimized Pagination Calculations
-  const paginationInfo = useMemo(() => ({
-    totalPages: Math.ceil(totalRecords / pagination.limit),
-    startIndex: (pagination.page - 1) * pagination.limit + 1,
-    endIndex: Math.min(pagination.page * pagination.limit, totalRecords)
-  }), [pagination, totalRecords]);
+  const paginationInfo = useMemo(
+    () => ({
+      totalPages: Math.ceil(totalRecords / pagination.limit),
+      startIndex: (pagination.page - 1) * pagination.limit + 1,
+      endIndex: Math.min(pagination.page * pagination.limit, totalRecords),
+    }),
+    [pagination, totalRecords]
+  )
 
   const getPageNumbers = useCallback(() => {
-    const delta = 2;
-    const range = [];
-    const { totalPages } = paginationInfo;
+    const delta = 2
+    const range = []
+    const { totalPages } = paginationInfo
 
-    for (let i = Math.max(1, pagination.page - delta); i <= Math.min(totalPages, pagination.page + delta); i++) {
-      range.push(i);
+    for (
+      let i = Math.max(1, pagination.page - delta);
+      i <= Math.min(totalPages, pagination.page + delta);
+      i++
+    ) {
+      range.push(i)
     }
 
-    if (range[0] > 2) range.unshift("...");
-    if (range[0] !== 1) range.unshift(1);
-    if (range[range.length - 1] < totalPages - 1) range.push("...");
-    if (range[range.length - 1] !== totalPages) range.push(totalPages);
+    if (range[0] > 2) range.unshift('...')
+    if (range[0] !== 1) range.unshift(1)
+    if (range[range.length - 1] < totalPages - 1) range.push('...')
+    if (range[range.length - 1] !== totalPages) range.push(totalPages)
 
-    return range;
-  }, [paginationInfo, pagination.page]);
+    return range
+  }, [paginationInfo, pagination.page])
 
   // ✅ ULTRA-FAST Action Button Handler
-  const handleActionButtonClick = useCallback((action, client, e) => {
-    e.stopPropagation();
-    
-    // Direct if-else chain - Fastest execution
-    if (action === 'view') onView?.(client);
-    else if (action === 'edit') onEditClient?.(client);
-    else if (action === 'print') onPrint?.(client);
-    else if (action === 'delete') handleDeleteSingleClient(client, e);
-    else if (action === 'more') onMore?.(client);
-  }, [onView, onEditClient, onPrint, onMore, handleDeleteSingleClient]);
+  const handleActionButtonClick = useCallback(
+    (action, client, e) => {
+      e.stopPropagation()
 
-  const canEditDelete = userRole === "admin";
-  const canAddClients = userRole === "admin" || userRole === "advocate";
+      // Direct if-else chain - Fastest execution
+      if (action === 'view') onView?.(client)
+      else if (action === 'edit') onEditClient?.(client)
+      else if (action === 'print') onPrint?.(client)
+      else if (action === 'delete') handleDeleteSingleClient(client, e)
+      else if (action === 'more') onMore?.(client)
+    },
+    [onView, onEditClient, onPrint, onMore, handleDeleteSingleClient]
+  )
+
+  const canEditDelete = userRole === 'admin'
+  const canAddClients = userRole === 'admin' || userRole === 'advocate'
 
   // Search field options matching API field names
   const searchFieldOptions = [
-    { value: "full_name", label: "Name" },
-    { value: "email", label: "Email" },
-    { value: "occupation", label: "Company" },
-    { value: "phone_number", label: "Phone" },
-    { value: "reg_type", label: "Registration Type" },
-    { value: "adhar_number", label: "Aadhar Number" }
-  ];
+    { value: 'full_name', label: 'Name' },
+    { value: 'email', label: 'Email' },
+    { value: 'occupation', label: 'Company' },
+    { value: 'phone_number', label: 'Phone' },
+    { value: 'reg_type', label: 'Registration Type' },
+    { value: 'adhar_number', label: 'Aadhar Number' },
+  ]
 
   return (
     <DashboardLayout>
@@ -458,7 +545,7 @@ const Clients = ({
           onConfirm={handleDeleteClient}
           title="Confirm Deletion"
           message={deleteConfirmMessage}
-          confirmText={deleteLoading ? "Deleting..." : "Delete"}
+          confirmText={deleteLoading ? 'Deleting...' : 'Delete'}
           cancelText="Cancel"
         />
 
@@ -479,7 +566,7 @@ const Clients = ({
               </p>
             </div>
           </div>
-          
+
           {canAddClients && (
             <button
               onClick={onAddClient}
@@ -499,19 +586,19 @@ const Clients = ({
           </div>
           <div className="bg-white p-2 rounded shadow-sm border text-center">
             <div className="text-lg font-bold text-green-600">
-              {clients.filter(c => c.status === "Active").length}
+              {clients.filter(c => c.status === 'Active').length}
             </div>
             <div className="text-gray-600 text-xs">Active</div>
           </div>
           <div className="bg-white p-2 rounded shadow-sm border text-center">
             <div className="text-lg font-bold text-blue-600">
-              {clients.filter(c => c.regType === "Manual").length}
+              {clients.filter(c => c.regType === 'Manual').length}
             </div>
             <div className="text-gray-600 text-xs">Manual</div>
           </div>
           <div className="bg-white p-2 rounded shadow-sm border text-center">
             <div className="text-lg font-bold text-purple-600">
-              {clients.filter(c => c.regType === "Reg_Link").length}
+              {clients.filter(c => c.regType === 'Reg_Link').length}
             </div>
             <div className="text-gray-600 text-xs">Reg Link</div>
           </div>
@@ -519,7 +606,10 @@ const Clients = ({
 
         {/* Error Display */}
         {error && (
-          <div className={`px-3 py-2 rounded mb-3 ${error.includes('successfully') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`} role="alert">
+          <div
+            className={`px-3 py-2 rounded mb-3 ${error.includes('successfully') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -528,7 +618,9 @@ const Clients = ({
         {(loading || deleteLoading) && (
           <div className="flex items-center justify-center py-4" aria-live="polite">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-            <span className="ml-2">{deleteLoading ? "Deleting clients..." : "Loading clients..."}</span>
+            <span className="ml-2">
+              {deleteLoading ? 'Deleting clients...' : 'Loading clients...'}
+            </span>
           </div>
         )}
 
@@ -539,7 +631,10 @@ const Clients = ({
             <div className="flex flex-wrap items-center gap-2 flex-1">
               {/* Global Search */}
               <div className="relative">
-                <FaSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={12} />
+                <FaSearch
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={12}
+                />
                 <input
                   type="text"
                   name="globalSearch"
@@ -614,7 +709,7 @@ const Clients = ({
                 <div className="flex items-center gap-1">
                   <select
                     value={bulkAction}
-                    onChange={(e) => setBulkAction(e.target.value)}
+                    onChange={e => setBulkAction(e.target.value)}
                     className="px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-green-500 focus:border-green-500 w-28"
                   >
                     <option value="">Bulk Actions</option>
@@ -628,9 +723,7 @@ const Clients = ({
                   >
                     Apply
                   </button>
-                  <span className="text-xs text-gray-600 ml-1">
-                    ({selectedclient_ids.length})
-                  </span>
+                  <span className="text-xs text-gray-600 ml-1">({selectedclient_ids.length})</span>
                 </div>
               )}
             </div>
@@ -687,7 +780,10 @@ const Clients = ({
                     <th className="px-2 py-2 text-left w-8">
                       <input
                         type="checkbox"
-                        checked={selectedclient_ids.length === filteredClients.length && filteredClients.length > 0}
+                        checked={
+                          selectedclient_ids.length === filteredClients.length &&
+                          filteredClients.length > 0
+                        }
                         onChange={toggleSelectAll}
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500 scale-90"
                       />
@@ -718,25 +814,25 @@ const Clients = ({
                       <div className="text-gray-400 text-2xl mb-1">👥</div>
                       <h3 className="text-sm font-medium text-gray-900 mb-1">No clients found</h3>
                       <p className="text-gray-500 text-xs">
-                        {Object.values(filters).some(f => f) 
-                          ? "Adjust filters to see results" 
-                          : "Add your first client"}
+                        {Object.values(filters).some(f => f)
+                          ? 'Adjust filters to see results'
+                          : 'Add your first client'}
                       </p>
                     </td>
                   </tr>
                 ) : (
-                  filteredClients.map((client) => (
-                    <tr 
-                      key={client.id} 
+                  filteredClients.map(client => (
+                    <tr
+                      key={client.id}
                       className={`cursor-pointer transition-all duration-200 ${getRowBackgroundColor(client.id)}`}
-                      onClick={(e) => handleRowClick(client.id, e)}
+                      onClick={e => handleRowClick(client.id, e)}
                     >
                       {canEditDelete && (
                         <td className="px-2 py-2">
                           <input
                             type="checkbox"
                             checked={selectedclient_ids.includes(client.id)}
-                            onChange={(e) => toggleSelectOne(client.id, e)}
+                            onChange={e => toggleSelectOne(client.id, e)}
                             className="rounded border-gray-300 text-green-600 focus:ring-green-500 scale-90"
                           />
                         </td>
@@ -745,11 +841,16 @@ const Clients = ({
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-green-800 font-semibold text-xs">
-                              {client.name.split(' ').map(n => n[0]).join('')}
+                              {client.name
+                                .split(' ')
+                                .map(n => n[0])
+                                .join('')}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-gray-900 text-xs truncate">{client.name}</div>
+                            <div className="font-semibold text-gray-900 text-xs truncate">
+                              {client.name}
+                            </div>
                             <div className="text-gray-500 text-xs truncate">{client.company}</div>
                           </div>
                         </div>
@@ -762,33 +863,41 @@ const Clients = ({
                       </td>
                       <td className="px-2 py-2 text-center">
                         <div>
-                          <div className="text-sm font-bold text-gray-900">{client.totalCases || 0}</div>
+                          <div className="text-sm font-bold text-gray-900">
+                            {client.totalCases || 0}
+                          </div>
                           <div className="text-xs">
-                            <span className={`px-1.5 py-0.5 rounded-full ${
-                              (client.activeCases || 0) > 0 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span
+                              className={`px-1.5 py-0.5 rounded-full ${
+                                (client.activeCases || 0) > 0
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
                               {client.activeCases || 0}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          client.regType === 'Manual' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-purple-100 text-purple-800'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            client.regType === 'Manual'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-purple-100 text-purple-800'
+                          }`}
+                        >
                           {client.regType}
                         </span>
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          client.status === 'Active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            client.status === 'Active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {client.status}
                         </span>
                       </td>
@@ -802,7 +911,7 @@ const Clients = ({
                       <td className="px-2 py-2">
                         <div className="flex justify-center gap-1">
                           <button
-                            onClick={(e) => handleActionButtonClick('view', client, e)}
+                            onClick={e => handleActionButtonClick('view', client, e)}
                             className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
                             title="View"
                           >
@@ -810,7 +919,7 @@ const Clients = ({
                           </button>
                           {canEditDelete && (
                             <button
-                              onClick={(e) => handleActionButtonClick('edit', client, e)}
+                              onClick={e => handleActionButtonClick('edit', client, e)}
                               className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors duration-200"
                               title="Edit"
                             >
@@ -818,7 +927,7 @@ const Clients = ({
                             </button>
                           )}
                           <button
-                            onClick={(e) => handleActionButtonClick('print', client, e)}
+                            onClick={e => handleActionButtonClick('print', client, e)}
                             className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors duration-200"
                             title="Print"
                           >
@@ -826,7 +935,7 @@ const Clients = ({
                           </button>
                           {canEditDelete && (
                             <button
-                              onClick={(e) => handleActionButtonClick('delete', client, e)}
+                              onClick={e => handleActionButtonClick('delete', client, e)}
                               className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                               title="Delete"
                               disabled={deleteLoading}
@@ -835,7 +944,7 @@ const Clients = ({
                             </button>
                           )}
                           <button
-                            onClick={(e) => handleActionButtonClick('more', client, e)}
+                            onClick={e => handleActionButtonClick('more', client, e)}
                             className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors duration-200"
                             title="More"
                           >
@@ -855,11 +964,9 @@ const Clients = ({
         {filteredClients.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-3 gap-2 text-xs">
             <div>
-              Showing{" "}
-              <span className="font-medium">{paginationInfo.startIndex}</span>{" "}
-              to{" "}
-              <span className="font-medium">{paginationInfo.endIndex}</span>{" "}
-              of <span className="font-medium">{totalRecords}</span> clients
+              Showing <span className="font-medium">{paginationInfo.startIndex}</span> to{' '}
+              <span className="font-medium">{paginationInfo.endIndex}</span> of{' '}
+              <span className="font-medium">{totalRecords}</span> clients
             </div>
 
             <div className="flex items-center gap-1 flex-wrap">
@@ -867,8 +974,8 @@ const Clients = ({
                 <span>Show</span>
                 <select
                   value={pagination.limit}
-                  onChange={(e) =>
-                    setPagination((prev) => ({
+                  onChange={e =>
+                    setPagination(prev => ({
                       ...prev,
                       limit: parseInt(e.target.value),
                       page: 1,
@@ -877,7 +984,7 @@ const Clients = ({
                   className="px-2 py-1 border rounded text-xs focus:outline-none focus:border-green-500"
                   aria-label="Items per page"
                 >
-                  {[5, 10, 20, 50].map((num) => (
+                  {[5, 10, 20, 50].map(num => (
                     <option key={num} value={num}>
                       {num}
                     </option>
@@ -904,7 +1011,7 @@ const Clients = ({
               </button>
 
               {getPageNumbers().map((p, i) =>
-                p === "..." ? (
+                p === '...' ? (
                   <span key={i} className="px-2 py-1 text-gray-500">
                     ...
                   </span>
@@ -912,10 +1019,11 @@ const Clients = ({
                   <button
                     key={i}
                     onClick={() => setPagination({ ...pagination, page: p })}
-                    className={`px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${pagination.page === p
-                      ? "bg-green-800 text-white"
-                      : "bg-white border border-gray-300 hover:bg-green-100"
-                      }`}
+                    className={`px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                      pagination.page === p
+                        ? 'bg-green-800 text-white'
+                        : 'bg-white border border-gray-300 hover:bg-green-100'
+                    }`}
                     aria-label={`Go to page ${p}`}
                     aria-current={pagination.page === p ? 'page' : undefined}
                   >
@@ -952,19 +1060,28 @@ const Clients = ({
             <li>Select multiple clients for bulk actions</li>
             <li>Filter by Registration Type: Manual or Reg Link</li>
             {canAddClients && <li>Add new clients with the Add Client button</li>}
-            <li>Click anywhere on a row to <span className="font-medium text-blue-700">highlight and select</span> it.</li>
-            <li>Use the <span className="font-medium text-green-700">Export button</span> to download clients as CSV.</li>
+            <li>
+              Click anywhere on a row to{' '}
+              <span className="font-medium text-blue-700">highlight and select</span> it.
+            </li>
+            <li>
+              Use the <span className="font-medium text-green-700">Export button</span> to download
+              clients as CSV.
+            </li>
             {canEditDelete && (
               <>
                 <li>Select multiple clients using checkboxes for bulk actions.</li>
-                <li>Use the <span className="font-medium text-red-700">Delete button</span> to remove individual clients or bulk delete selected clients.</li>
+                <li>
+                  Use the <span className="font-medium text-red-700">Delete button</span> to remove
+                  individual clients or bulk delete selected clients.
+                </li>
               </>
             )}
           </ul>
         </div>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default Clients;
+export default Clients

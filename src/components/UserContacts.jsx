@@ -1,114 +1,114 @@
 // components/UserContacts.jsx
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FaEnvelope, 
-  FaClock, 
-  FaCheck, 
-  FaEye, 
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  FaEnvelope,
+  FaClock,
+  FaCheck,
+  FaEye,
   FaUser,
   FaCalendar,
   FaArrowLeft,
   FaExclamationCircle,
   FaChevronLeft,
-  FaChevronRight
-} from 'react-icons/fa';
-import { getAllContacts, getContactById } from '../services/contactService';
-import { showErrorToast } from '../utils/Toastify';
+  FaChevronRight,
+} from 'react-icons/fa'
+import { getAllContacts, getContactById } from '../services/contactService'
+import { showErrorToast } from '../utils/Toastify'
 
 const UserContacts = () => {
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [view, setView] = useState('list');
+  const [contacts, setContacts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [selectedContact, setSelectedContact] = useState(null)
+  const [view, setView] = useState('list')
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    totalRecords: 0
-  });
+    totalRecords: 0,
+  })
 
   useEffect(() => {
-    fetchContacts();
-  }, []);
+    fetchContacts()
+  }, [])
 
   const fetchContacts = async (page = 1) => {
     try {
-      setLoading(true);
-      setError('');
-      const response = await getAllContacts({ page });
-      
-      const contactsData = response?.data?.data || [];
-      const paginationData = response?.data || {};
-      
-      setContacts(contactsData);
+      setLoading(true)
+      setError('')
+      const response = await getAllContacts({ page })
+
+      const contactsData = response?.data?.data || []
+      const paginationData = response?.data || {}
+
+      setContacts(contactsData)
       setPagination({
         currentPage: paginationData.currentPage || page,
         totalPages: paginationData.totalPages || 1,
-        totalRecords: paginationData.totalRecords || contactsData.length
-      });
+        totalRecords: paginationData.totalRecords || contactsData.length,
+      })
     } catch (error) {
-      console.error('Error fetching contacts:', error);
-      setError('Failed to load your contact submissions');
-      setContacts([]);
+      console.error('Error fetching contacts:', error)
+      setError('Failed to load your contact submissions')
+      setContacts([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleViewContact = async (id) => {
+  const handleViewContact = async id => {
     try {
-      const response = await getContactById(id);
-      
-      let contactData = response?.data?.data || response?.data || response;
-      
-      setSelectedContact(contactData);
-      setView('detail');
+      const response = await getContactById(id)
+
+      let contactData = response?.data?.data || response?.data || response
+
+      setSelectedContact(contactData)
+      setView('detail')
     } catch (error) {
-      console.error('Error fetching contact details:', error);
-      showErrorToast('Failed to load contact details');
+      console.error('Error fetching contact details:', error)
+      showErrorToast('Failed to load contact details')
     }
-  };
+  }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     const colors = {
-      'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'Reviewed': 'bg-blue-100 text-blue-800 border-blue-200',
-      'Resolved': 'bg-green-100 text-green-800 border-green-200'
-    };
-    return colors[status] || colors.Pending;
-  };
+      Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      Reviewed: 'bg-blue-100 text-blue-800 border-blue-200',
+      Resolved: 'bg-green-100 text-green-800 border-green-200',
+    }
+    return colors[status] || colors.Pending
+  }
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = status => {
     const icons = {
-      'Pending': FaClock,
-      'Reviewed': FaEye,
-      'Resolved': FaCheck
-    };
-    const Icon = icons[status] || FaClock;
-    return <Icon size={12} />;
-  };
+      Pending: FaClock,
+      Reviewed: FaEye,
+      Resolved: FaCheck,
+    }
+    const Icon = icons[status] || FaClock
+    return <Icon size={12} />
+  }
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
-      });
+        minute: '2-digit',
+      })
     } catch {
-      return 'Unknown date';
+      return 'Unknown date'
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -139,11 +139,11 @@ const UserContacts = () => {
 
       {/* Detail View */}
       {view === 'detail' && selectedContact && (
-        <ContactDetailView 
+        <ContactDetailView
           contact={selectedContact}
           onBack={() => {
-            setView('list');
-            setSelectedContact(null);
+            setView('list')
+            setSelectedContact(null)
           }}
         />
       )}
@@ -156,7 +156,8 @@ const UserContacts = () => {
               <FaEnvelope className="mx-auto text-gray-400 text-5xl mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No contact submissions yet</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                You haven't submitted any contact forms yet. Use the contact form to get in touch with us.
+                You haven't submitted any contact forms yet. Use the contact form to get in touch
+                with us.
               </p>
               <Link
                 to="/contact"
@@ -167,9 +168,9 @@ const UserContacts = () => {
             </div>
           ) : (
             <>
-              {contacts.map((contact) => (
-                <div 
-                  key={contact.id} 
+              {contacts.map(contact => (
+                <div
+                  key={contact.id}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
                 >
                   <div className="p-6">
@@ -180,11 +181,15 @@ const UserContacts = () => {
                           <FaUser className="text-gray-400" />
                           {contact.name}
                         </h3>
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}
+                        >
                           {getStatusIcon(contact.status)}
                           {contact.status}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${contact.priority === 'High' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${contact.priority === 'High' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}
+                        >
                           {contact.priority} Priority
                         </span>
                       </div>
@@ -193,14 +198,14 @@ const UserContacts = () => {
                         {formatDate(contact.createdAt)}
                       </div>
                     </div>
-                    
+
                     {/* Message Preview */}
                     <div className="mb-4">
                       <p className="text-gray-700 leading-relaxed line-clamp-3">
                         {contact.message}
                       </p>
                     </div>
-                    
+
                     {/* Metadata */}
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-4 text-xs text-gray-500">
@@ -216,7 +221,7 @@ const UserContacts = () => {
                           </span>
                         )}
                       </div>
-                      
+
                       <button
                         onClick={() => handleViewContact(contact.id)}
                         className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
@@ -240,13 +245,13 @@ const UserContacts = () => {
                     <FaChevronLeft size={14} />
                     Previous
                   </button>
-                  
+
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">
                       Page {pagination.currentPage} of {pagination.totalPages}
                     </span>
                   </div>
-                  
+
                   <button
                     onClick={() => fetchContacts(pagination.currentPage + 1)}
                     disabled={pagination.currentPage === pagination.totalPages}
@@ -262,8 +267,8 @@ const UserContacts = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 // Contact Detail View for Users
 const ContactDetailView = ({ contact, onBack }) => {
@@ -292,11 +297,15 @@ const ContactDetailView = ({ contact, onBack }) => {
                 {contact.responded_at && ' and has been responded to.'}
               </p>
             </div>
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              contact.status === 'Resolved' ? 'bg-green-100 text-green-800' :
-              contact.status === 'Reviewed' ? 'bg-blue-100 text-blue-800' :
-              'bg-yellow-100 text-yellow-800'
-            }`}>
+            <div
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                contact.status === 'Resolved'
+                  ? 'bg-green-100 text-green-800'
+                  : contact.status === 'Reviewed'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-yellow-100 text-yellow-800'
+              }`}
+            >
               {contact.status}
             </div>
           </div>
@@ -331,9 +340,7 @@ const ContactDetailView = ({ contact, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <label className="block text-sm font-medium text-gray-600">Submitted On</label>
-              <p className="mt-1 text-gray-900">
-                {new Date(contact.createdAt).toLocaleString()}
-              </p>
+              <p className="mt-1 text-gray-900">{new Date(contact.createdAt).toLocaleString()}</p>
             </div>
             {contact.responded_at && (
               <div>
@@ -355,7 +362,7 @@ const ContactDetailView = ({ contact, onBack }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UserContacts;
+export default UserContacts

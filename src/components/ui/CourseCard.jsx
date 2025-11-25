@@ -1,20 +1,20 @@
 // src/components/ui/CourseCard.jsx
 import React, { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { 
-  Clock, 
-  Users, 
-  Star, 
-  BookOpen, 
-  Zap, 
-  TrendingUp, 
+import {
+  Clock,
+  Users,
+  Star,
+  BookOpen,
+  Zap,
+  TrendingUp,
   Award,
   CheckCircle,
   PlayCircle,
   BarChart3,
   Heart,
   Share2,
-  Eye
+  Eye,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -31,7 +31,7 @@ const sampleImages = {
   hana: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=200&fit=crop',
   workflow: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&fit=crop',
   fiori: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=200&fit=crop',
-  default: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&h=200&fit=crop'
+  default: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&h=200&fit=crop',
 }
 
 // Level configurations with colors and icons
@@ -39,58 +39,58 @@ const levelConfig = {
   beginner: {
     color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     icon: BookOpen,
-    label: 'Beginner'
+    label: 'Beginner',
   },
   intermediate: {
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     icon: TrendingUp,
-    label: 'Intermediate'
+    label: 'Intermediate',
   },
   advanced: {
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     icon: Zap,
-    label: 'Advanced'
-  }
+    label: 'Advanced',
+  },
 }
 
 // Mode configurations
 const modeConfig = {
   online_live: {
     label: 'Live Online',
-    color: 'text-orange-600'
+    color: 'text-orange-600',
   },
   online_self_paced: {
     label: 'Self Paced',
-    color: 'text-green-600'
+    color: 'text-green-600',
   },
   hybrid: {
     label: 'Hybrid',
-    color: 'text-blue-600'
-  }
+    color: 'text-blue-600',
+  },
 }
 
-const getCourseImage = (course) => {
+const getCourseImage = course => {
   if (course.thumbnail_image && course.thumbnail_image.startsWith('http')) {
-    return course.thumbnail_image;
-  }
-  
-  if (course.thumbnail_image && course.thumbnail_image.startsWith('/')) {
-    return course.thumbnail_image;
+    return course.thumbnail_image
   }
 
-  const title = course.title?.toLowerCase() || '';
-  const level = course.level || 'default';
-  
+  if (course.thumbnail_image && course.thumbnail_image.startsWith('/')) {
+    return course.thumbnail_image
+  }
+
+  const title = course.title?.toLowerCase() || ''
+  const level = course.level || 'default'
+
   if (title.includes('hana')) {
-    return sampleImages.hana;
+    return sampleImages.hana
   } else if (title.includes('workflow') || title.includes('brf')) {
-    return sampleImages.workflow;
+    return sampleImages.workflow
   } else if (title.includes('fiori') || title.includes('web dynpro')) {
-    return sampleImages.fiori;
+    return sampleImages.fiori
   } else if (title.includes('abap')) {
-    return sampleImages.abap;
+    return sampleImages.abap
   } else {
-    return sampleImages[level] || sampleImages.default;
+    return sampleImages[level] || sampleImages.default
   }
 }
 
@@ -101,7 +101,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showEnrollment, setShowEnrollment] = useState(false)
-  
+
   const discountPercentage = useMemo(() => {
     if (course.original_fee && course.original_fee > course.fee) {
       return Math.round(((course.original_fee - course.fee) / course.original_fee) * 100)
@@ -118,31 +118,31 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
     setImageLoaded(true)
   }
 
-  const handleImageError = (e) => {
+  const handleImageError = e => {
     const level = course.level || 'default'
     e.target.src = sampleImages[level] || sampleImages.default
     setImageLoaded(true)
   }
 
-  const toggleWishlist = (e) => {
+  const toggleWishlist = e => {
     e.preventDefault()
     e.stopPropagation()
     setIsWishlisted(!isWishlisted)
   }
 
-  const handleShare = (e) => {
+  const handleShare = e => {
     e.preventDefault()
     e.stopPropagation()
     if (navigator.share) {
       navigator.share({
         title: course.title,
         text: course.short_description,
-        url: `/courses/${course.slug}`
+        url: `/courses/${course.slug}`,
       })
     }
   }
 
-  const handleEnrollClick = (e) => {
+  const handleEnrollClick = e => {
     e.preventDefault()
     e.stopPropagation()
 
@@ -167,11 +167,11 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
     setShowEnrollment(true)
   }
 
-  const formatPrice = (price) => {
+  const formatPrice = price => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(price)
   }
 
@@ -188,7 +188,9 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
   if (viewMode === 'grid') {
     return (
       <>
-        <div className={`group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 overflow-hidden h-full flex flex-col transform hover:-translate-y-0.5 ${className}`}>
+        <div
+          className={`group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 overflow-hidden h-full flex flex-col transform hover:-translate-y-0.5 ${className}`}
+        >
           {/* Image Section - More Compact */}
           <div className="relative overflow-hidden">
             <div className="w-full h-36 bg-gradient-to-br from-gray-100 to-gray-200 relative">
@@ -206,9 +208,9 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
               />
-              
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/10" />
-              
+
               {/* Top Badges - Smaller */}
               <div className="absolute top-2 left-2 flex flex-col gap-1.5">
                 {course.featured && (
@@ -228,7 +230,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   </div>
                 )}
               </div>
-              
+
               {/* Right Side Badges - Smaller */}
               <div className="absolute top-2 right-2 flex flex-col gap-1.5">
                 {discountPercentage > 0 && (
@@ -243,8 +245,8 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 <button
                   onClick={toggleWishlist}
                   className={`p-1.5 rounded-full backdrop-blur-sm transition-all duration-200 ${
-                    isWishlisted 
-                      ? 'bg-red-500 text-white shadow-sm' 
+                    isWishlisted
+                      ? 'bg-red-500 text-white shadow-sm'
                       : 'bg-white/90 text-gray-600 hover:bg-white hover:text-red-500'
                   }`}
                 >
@@ -264,14 +266,16 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   <Eye className="w-3 h-3" />
                   <span>{course.view_count || 0}</span>
                 </div>
-                <div className={`px-2 py-0.5 rounded-full text-[10px] font-semibold backdrop-blur-sm border ${levelInfo.color}`}>
+                <div
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold backdrop-blur-sm border ${levelInfo.color}`}
+                >
                   <LevelIcon className="w-2.5 h-2.5 inline mr-0.5" />
                   {levelInfo.label}
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Content Section - More Compact */}
           <div className="p-4 flex-1 flex flex-col">
             {/* Course Mode - Smaller */}
@@ -287,17 +291,17 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 </span>
               )}
             </div>
-            
+
             {/* Course Title - Smaller but still prominent */}
             <h3 className="text-sm font-bold text-gray-900 mb-1.5 line-clamp-2 group-hover:text-primary-600 transition-colors duration-200 leading-tight">
               {course.title}
             </h3>
-            
+
             {/* Course Description - Smaller */}
             <p className="text-gray-600 text-xs mb-3 line-clamp-2 flex-1 leading-relaxed">
               {course.short_description || course.description}
             </p>
-            
+
             {/* Meta Information - Smaller */}
             <div className="flex items-center justify-between mb-3 text-xs text-gray-500">
               <div className="flex items-center gap-3">
@@ -313,7 +317,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 )}
               </div>
             </div>
-            
+
             {/* Price Section - More Compact */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-1.5">
@@ -322,9 +326,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                     {formatPrice(course.original_fee)}
                   </span>
                 )}
-                <span className="text-base font-bold text-gray-900">
-                  {formatPrice(course.fee)}
-                </span>
+                <span className="text-base font-bold text-gray-900">{formatPrice(course.fee)}</span>
               </div>
               {discountPercentage > 0 && (
                 <span className="text-xs font-semibold text-green-600">
@@ -332,7 +334,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 </span>
               )}
             </div>
-            
+
             {/* Action Buttons - More Compact */}
             {showActions && (
               <div className="flex gap-1.5 mt-auto">
@@ -343,7 +345,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   <PlayCircle className="w-3 h-3" />
                   Details
                 </Link>
-                <button 
+                <button
                   onClick={handleEnrollClick}
                   className={`btn-secondary flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 ${
                     enrollmentStatus === 'sold-out' ? 'opacity-50 cursor-not-allowed' : ''
@@ -386,10 +388,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
         {/* Enrollment Flow */}
         {showEnrollment && isAuthenticated && (
           <React.Suspense fallback={<div>Loading...</div>}>
-            <EnrollmentFlow
-              course={course}
-              onClose={() => setShowEnrollment(false)}
-            />
+            <EnrollmentFlow course={course} onClose={() => setShowEnrollment(false)} />
           </React.Suspense>
         )}
       </>
@@ -419,7 +418,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 }`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              
+
               {/* Badges - Smaller */}
               <div className="absolute top-2 left-2 flex flex-col gap-1.5">
                 {course.featured && (
@@ -435,30 +434,30 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
               </div>
             </div>
           </div>
-          
+
           {/* Content - More Compact */}
           <div className="flex-1">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${levelInfo.color}`}>
+                  <div
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${levelInfo.color}`}
+                  >
                     <LevelIcon className="w-2.5 h-2.5 inline mr-0.5" />
                     {levelInfo.label}
                   </div>
-                  <span className={`text-xs font-medium ${modeInfo.color}`}>
-                    {modeInfo.label}
-                  </span>
+                  <span className={`text-xs font-medium ${modeInfo.color}`}>{modeInfo.label}</span>
                 </div>
-                
+
                 <h3 className="text-base font-bold text-gray-900 mb-1.5 group-hover:text-primary-600 transition-colors duration-200 leading-tight">
                   {course.title}
                 </h3>
-                
+
                 <p className="text-gray-600 text-sm line-clamp-2 mb-3 leading-relaxed">
                   {course.short_description || course.description}
                 </p>
               </div>
-              
+
               <div className="mt-1 lg:mt-0 lg:text-right lg:pl-4 lg:min-w-[140px]">
                 <div className="flex items-center gap-1.5 mb-1 justify-end">
                   {course.original_fee && course.original_fee > course.fee && (
@@ -466,9 +465,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                       {formatPrice(course.original_fee)}
                     </span>
                   )}
-                  <span className="text-lg font-bold text-gray-900">
-                    {formatPrice(course.fee)}
-                  </span>
+                  <span className="text-lg font-bold text-gray-900">{formatPrice(course.fee)}</span>
                 </div>
                 {discountPercentage > 0 && (
                   <div className="text-xs font-semibold text-green-600 mb-1.5">
@@ -481,7 +478,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 </div>
               </div>
             </div>
-            
+
             {/* Meta Information - Smaller */}
             <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-4">
               {course.metadata?.modules && (
@@ -493,7 +490,11 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
               {course.seats_available && (
                 <div className="flex items-center gap-1">
                   <Users className="w-3 h-3" />
-                  <span className={enrollmentStatus === 'limited' ? 'text-orange-600 font-semibold' : ''}>
+                  <span
+                    className={
+                      enrollmentStatus === 'limited' ? 'text-orange-600 font-semibold' : ''
+                    }
+                  >
                     {course.seats_available} seats {enrollmentStatus === 'limited' && 'left'}
                   </span>
                 </div>
@@ -503,7 +504,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 <span>{course.view_count || 0} views</span>
               </div>
             </div>
-            
+
             {/* Actions - More Compact */}
             {showActions && (
               <div className="flex gap-2 items-center">
@@ -514,7 +515,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   <PlayCircle className="w-3 h-3" />
                   Details
                 </Link>
-                <button 
+                <button
                   onClick={handleEnrollClick}
                   className={`btn-secondary max-w-[140px] flex items-center justify-center gap-1.5 text-xs py-1.5 px-3 ${
                     enrollmentStatus === 'sold-out' ? 'opacity-50 cursor-not-allowed' : ''
@@ -538,14 +539,14 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                     </>
                   )}
                 </button>
-                
+
                 {/* Additional Actions - Smaller */}
                 <div className="flex gap-1.5 ml-auto">
                   <button
                     onClick={toggleWishlist}
                     className={`p-1.5 rounded-lg border transition-all duration-200 ${
-                      isWishlisted 
-                        ? 'bg-red-50 border-red-200 text-red-600' 
+                      isWishlisted
+                        ? 'bg-red-50 border-red-200 text-red-600'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600'
                     }`}
                   >
@@ -578,10 +579,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
       {/* Enrollment Flow */}
       {showEnrollment && isAuthenticated && (
         <React.Suspense fallback={<div>Loading...</div>}>
-          <EnrollmentFlow
-            course={course}
-            onClose={() => setShowEnrollment(false)}
-          />
+          <EnrollmentFlow course={course} onClose={() => setShowEnrollment(false)} />
         </React.Suspense>
       )}
     </>

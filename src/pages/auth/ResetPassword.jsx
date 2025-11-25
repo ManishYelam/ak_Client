@@ -1,190 +1,191 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 // import { resetPassword } from "../../services/authService";
-import { 
-  FaLock, 
-  FaEye, 
-  FaEyeSlash, 
-  FaCheck, 
+import {
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaCheck,
   FaTimes,
   FaShieldAlt,
   FaArrowLeft,
   FaLink,
-  FaKey
-} from "react-icons/fa";
+  FaKey,
+} from 'react-icons/fa'
 
 const ResetPassword = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
 
   const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: ""
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    password: '',
+    confirmPassword: '',
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
-    feedback: []
-  });
-  const [resetMethod, setResetMethod] = useState(""); // 'token' or 'otp'
+    feedback: [],
+  })
+  const [resetMethod, setResetMethod] = useState('') // 'token' or 'otp'
 
   useEffect(() => {
-    const email = localStorage.getItem('resetEmail');
-    const otpVerified = localStorage.getItem('otpVerified');
-    
+    const email = localStorage.getItem('resetEmail')
+    const otpVerified = localStorage.getItem('otpVerified')
+
     if (token) {
-      setResetMethod('token');
+      setResetMethod('token')
     } else if (otpVerified && email) {
-      setResetMethod('otp');
+      setResetMethod('otp')
     } else {
-      navigate("/reset-password");
-      return;
+      navigate('/reset-password')
+      return
     }
-  }, [token, navigate]);
+  }, [token, navigate])
 
   // Password strength checker
-  const checkPasswordStrength = (password) => {
-    const feedback = [];
-    let score = 0;
+  const checkPasswordStrength = password => {
+    const feedback = []
+    let score = 0
 
     if (password.length >= 8) {
-      score += 1;
+      score += 1
     } else {
-      feedback.push("At least 8 characters");
+      feedback.push('At least 8 characters')
     }
 
     if (/[A-Z]/.test(password)) {
-      score += 1;
+      score += 1
     } else {
-      feedback.push("One uppercase letter");
+      feedback.push('One uppercase letter')
     }
 
     if (/[a-z]/.test(password)) {
-      score += 1;
+      score += 1
     } else {
-      feedback.push("One lowercase letter");
+      feedback.push('One lowercase letter')
     }
 
     if (/[0-9]/.test(password)) {
-      score += 1;
+      score += 1
     } else {
-      feedback.push("One number");
+      feedback.push('One number')
     }
 
     if (/[^A-Za-z0-9]/.test(password)) {
-      score += 1;
+      score += 1
     } else {
-      feedback.push("One special character");
+      feedback.push('One special character')
     }
 
-    return { score, feedback };
-  };
+    return { score, feedback }
+  }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = e => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
-    }));
+      [name]: value,
+    }))
 
     // Check password strength in real-time
     if (name === 'password') {
-      setPasswordStrength(checkPasswordStrength(value));
+      setPasswordStrength(checkPasswordStrength(value))
     }
 
-    if (error) setError("");
-  };
+    if (error) setError('')
+  }
 
   const validateForm = () => {
     if (!formData.password) {
-      return "Password is required";
+      return 'Password is required'
     }
 
     if (passwordStrength.score < 3) {
-      return "Please choose a stronger password";
+      return 'Please choose a stronger password'
     }
 
     if (formData.password !== formData.confirmPassword) {
-      return "Passwords do not match";
+      return 'Passwords do not match'
     }
 
-    return null;
-  };
+    return null
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
-    const validationError = validateForm();
+    const validationError = validateForm()
     if (validationError) {
-      setError(validationError);
-      setLoading(false);
-      return;
+      setError(validationError)
+      setLoading(false)
+      return
     }
 
-    const email = localStorage.getItem('resetEmail');
+    const email = localStorage.getItem('resetEmail')
 
     try {
       let resetData = {
         email,
-        password: formData.password
-      };
+        password: formData.password,
+      }
 
       // Add method-specific data
       if (resetMethod === 'token') {
-        resetData.token = token;
+        resetData.token = token
       } else if (resetMethod === 'otp') {
         // OTP is already verified, no need to send it again
       }
 
       // await resetPassword(resetData);
-      
-      setSuccess(true);
-      
+
+      setSuccess(true)
+
       // Clear stored data
-      localStorage.removeItem('resetEmail');
-      localStorage.removeItem('otpVerified');
-      
+      localStorage.removeItem('resetEmail')
+      localStorage.removeItem('otpVerified')
+
       // Redirect to login after success
       setTimeout(() => {
-        navigate("/login", { 
-          state: { 
-            message: "Password reset successfully! Please login with your new password.",
-            type: "success"
-          }
-        });
-      }, 2000);
+        navigate('/login', {
+          state: {
+            message: 'Password reset successfully! Please login with your new password.',
+            type: 'success',
+          },
+        })
+      }, 2000)
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          "Failed to reset password. Please try the process again.";
-      setError(errorMessage);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Failed to reset password. Please try the process again.'
+      setError(errorMessage)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const getPasswordStrengthColor = (score) => {
-    if (score === 0) return "bg-gray-200";
-    if (score <= 2) return "bg-red-500";
-    if (score <= 3) return "bg-yellow-500";
-    if (score <= 4) return "bg-blue-500";
-    return "bg-green-500";
-  };
+  const getPasswordStrengthColor = score => {
+    if (score === 0) return 'bg-gray-200'
+    if (score <= 2) return 'bg-red-500'
+    if (score <= 3) return 'bg-yellow-500'
+    if (score <= 4) return 'bg-blue-500'
+    return 'bg-green-500'
+  }
 
-  const getPasswordStrengthText = (score) => {
-    if (score === 0) return "Very Weak";
-    if (score <= 2) return "Weak";
-    if (score <= 3) return "Good";
-    if (score <= 4) return "Strong";
-    return "Very Strong";
-  };
+  const getPasswordStrengthText = score => {
+    if (score === 0) return 'Very Weak'
+    if (score <= 2) return 'Weak'
+    if (score <= 3) return 'Good'
+    if (score <= 4) return 'Strong'
+    return 'Very Strong'
+  }
 
   if (success) {
     return (
@@ -196,11 +197,9 @@ const ResetPassword = () => {
                 <FaCheck className="text-green-600 text-4xl" />
               </div>
             </div>
-            
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Password Reset Successfully!
-            </h2>
-            
+
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Password Reset Successfully!</h2>
+
             <p className="text-gray-600 mb-6">
               Your password has been updated successfully. Redirecting to login...
             </p>
@@ -211,7 +210,7 @@ const ResetPassword = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -224,20 +223,18 @@ const ResetPassword = () => {
               <FaShieldAlt className="text-white text-2xl" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Create New Password
-          </h1>
-          <p className="text-gray-600">
-            Choose a strong, secure password for your account
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Create New Password</h1>
+          <p className="text-gray-600">Choose a strong, secure password for your account</p>
 
           {/* Method Indicator */}
           <div className="mt-4 flex justify-center">
-            <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${
-              resetMethod === 'token' 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-green-100 text-green-800'
-            }`}>
+            <div
+              className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${
+                resetMethod === 'token'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-green-100 text-green-800'
+              }`}
+            >
               {resetMethod === 'token' ? (
                 <>
                   <FaLink size={12} />
@@ -263,13 +260,11 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* New Password Field */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              New Password
-            </label>
+            <label className="text-sm font-medium text-gray-700">New Password</label>
             <div className="relative">
               <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 placeholder="Enter new password"
                 value={formData.password}
@@ -293,16 +288,22 @@ const ResetPassword = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-600">Password strength:</span>
-                  <span className={`font-medium ${
-                    passwordStrength.score <= 2 ? 'text-red-600' :
-                    passwordStrength.score <= 3 ? 'text-yellow-600' :
-                    passwordStrength.score <= 4 ? 'text-blue-600' : 'text-green-600'
-                  }`}>
+                  <span
+                    className={`font-medium ${
+                      passwordStrength.score <= 2
+                        ? 'text-red-600'
+                        : passwordStrength.score <= 3
+                          ? 'text-yellow-600'
+                          : passwordStrength.score <= 4
+                            ? 'text-blue-600'
+                            : 'text-green-600'
+                    }`}
+                  >
                     {getPasswordStrengthText(passwordStrength.score)}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength.score)}`}
                     style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                   ></div>
@@ -313,13 +314,11 @@ const ResetPassword = () => {
 
           {/* Confirm Password Field */}
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Confirm New Password
-            </label>
+            <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
             <div className="relative">
               <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 placeholder="Confirm new password"
                 value={formData.confirmPassword}
@@ -341,28 +340,27 @@ const ResetPassword = () => {
 
           {/* Password Match Indicator */}
           {formData.confirmPassword && (
-            <div className={`flex items-center space-x-2 text-sm ${
-              formData.password === formData.confirmPassword ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <div
+              className={`flex items-center space-x-2 text-sm ${
+                formData.password === formData.confirmPassword ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {formData.password === formData.confirmPassword ? (
                 <FaCheck className="flex-shrink-0" />
               ) : (
                 <FaTimes className="flex-shrink-0" />
               )}
               <span>
-                {formData.password === formData.confirmPassword 
-                  ? "Passwords match" 
-                  : "Passwords do not match"
-                }
+                {formData.password === formData.confirmPassword
+                  ? 'Passwords match'
+                  : 'Passwords do not match'}
               </span>
             </div>
           )}
 
           {/* Security Tips */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 text-sm mb-2">
-              💡 Password Tips
-            </h4>
+            <h4 className="font-semibold text-blue-800 text-sm mb-2">💡 Password Tips</h4>
             <ul className="text-xs text-blue-700 space-y-1">
               <li>• Use at least 8 characters with mixed case</li>
               <li>• Include numbers and special characters</li>
@@ -376,7 +374,7 @@ const ResetPassword = () => {
             type="submit"
             disabled={loading}
             className={`w-full py-3 bg-green-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ${
-              loading ? "opacity-70 cursor-not-allowed" : "hover:bg-green-700"
+              loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-700'
             }`}
           >
             {loading ? (
@@ -385,7 +383,7 @@ const ResetPassword = () => {
                 <span>Updating password...</span>
               </div>
             ) : (
-              "Reset Password"
+              'Reset Password'
             )}
           </button>
         </form>
@@ -394,7 +392,7 @@ const ResetPassword = () => {
         <div className="text-center mt-6 pt-6 border-t border-gray-200 space-y-3">
           {resetMethod === 'otp' ? (
             <button
-              onClick={() => navigate("/verify-otp")}
+              onClick={() => navigate('/verify-otp')}
               className="inline-flex items-center space-x-2 text-green-600 hover:text-green-800 font-semibold transition-colors"
             >
               <FaArrowLeft size={14} />
@@ -402,7 +400,7 @@ const ResetPassword = () => {
             </button>
           ) : (
             <button
-              onClick={() => navigate("/forgot-password")}
+              onClick={() => navigate('/forgot-password')}
               className="inline-flex items-center space-x-2 text-green-600 hover:text-green-800 font-semibold transition-colors"
             >
               <FaArrowLeft size={14} />
@@ -412,7 +410,7 @@ const ResetPassword = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ResetPassword;
+export default ResetPassword

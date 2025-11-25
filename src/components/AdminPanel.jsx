@@ -1,10 +1,10 @@
-import { useState } from "react";
-import DashboardLayout from "../layouts/DashboardLayout";
-import Card from "../components/Card";
-import ViewAllCases from "./ViewAllCases";
-import AddNewCase from "./AddNewCase";
-import MyProfile from "./MyProfile";
-import AdminFeedbackManagement from "./AdminFeedbackManagement";
+import { useState } from 'react'
+import DashboardLayout from '../layouts/DashboardLayout'
+import Card from '../components/Card'
+import ViewAllCases from './ViewAllCases'
+import AddNewCase from './AddNewCase'
+import MyProfile from './MyProfile'
+import AdminFeedbackManagement from './AdminFeedbackManagement'
 import {
   FaFolderOpen,
   FaPlus,
@@ -12,18 +12,18 @@ import {
   FaComments,
   FaChartBar,
   FaUsers,
-  FaCog
-} from "react-icons/fa";
+  FaCog,
+} from 'react-icons/fa'
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState("cases");
+  const [activeTab, setActiveTab] = useState('cases')
 
   const tabs = [
-    { id: "cases", label: "View All Cases", icon: FaFolderOpen },
-    { id: "add-case", label: "Add New Case", icon: FaPlus },
-    { id: "feedback", label: "Feedback Management", icon: FaComments },
-    { id: "profile", label: "My Profile", icon: FaUser },
-  ];
+    { id: 'cases', label: 'View All Cases', icon: FaFolderOpen },
+    { id: 'add-case', label: 'Add New Case', icon: FaPlus },
+    { id: 'feedback', label: 'Feedback Management', icon: FaComments },
+    { id: 'profile', label: 'My Profile', icon: FaUser },
+  ]
 
   return (
     <DashboardLayout>
@@ -40,21 +40,21 @@ const AdminPanel = () => {
             <Card className="p-4">
               <nav className="space-y-1">
                 {tabs.map(tab => {
-                  const Icon = tab.icon;
+                  const Icon = tab.icon
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                         activeTab === tab.id
-                          ? "bg-green-100 text-green-700 border border-green-200"
-                          : "text-gray-700 hover:bg-gray-100"
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       <Icon size={16} />
                       <span className="font-medium">{tab.label}</span>
                     </button>
-                  );
+                  )
                 })}
               </nav>
 
@@ -79,7 +79,7 @@ const AdminPanel = () => {
           {/* Main Content */}
           <div className="flex-1">
             {/* View All Cases */}
-            {activeTab === "cases" && (
+            {activeTab === 'cases' && (
               <Card>
                 <div className="p-6">
                   <ViewAllCases />
@@ -88,7 +88,7 @@ const AdminPanel = () => {
             )}
 
             {/* Add New Case */}
-            {activeTab === "add-case" && (
+            {activeTab === 'add-case' && (
               <Card>
                 <div className="p-6">
                   <AddNewCase />
@@ -97,7 +97,7 @@ const AdminPanel = () => {
             )}
 
             {/* Feedback Management */}
-            {activeTab === "feedback" && (
+            {activeTab === 'feedback' && (
               <Card>
                 <div className="p-6">
                   <AdminFeedbackManagement />
@@ -106,7 +106,7 @@ const AdminPanel = () => {
             )}
 
             {/* My Profile */}
-            {activeTab === "profile" && (
+            {activeTab === 'profile' && (
               <Card>
                 <div className="p-6">
                   <MyProfile />
@@ -117,7 +117,7 @@ const AdminPanel = () => {
         </div>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default AdminPanel;
+export default AdminPanel

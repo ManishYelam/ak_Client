@@ -1,77 +1,77 @@
-import { useState, useRef, useEffect } from "react";
-import { FiMoreVertical, FiTrash2, FiCopy, FiArchive, FiShare2, FiDownload } from "react-icons/fi";
+import { useState, useRef, useEffect } from 'react'
+import { FiMoreVertical, FiTrash2, FiCopy, FiArchive, FiShare2, FiDownload } from 'react-icons/fi'
 
 const MoreActionsDropdown = ({ caseItem, onDelete, onClone, onArchive, onShare, onExport }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  const handleAction = (action) => {
+  const handleAction = action => {
     switch (action) {
       case 'delete':
         if (window.confirm(`Are you sure you want to delete case ${caseItem.id}?`)) {
-          onDelete([caseItem.id]);
+          onDelete([caseItem.id])
         }
-        break;
+        break
       case 'clone':
-        onClone(caseItem);
-        break;
+        onClone(caseItem)
+        break
       case 'archive':
-        onArchive(caseItem.id);
-        break;
+        onArchive(caseItem.id)
+        break
       case 'share':
-        onShare(caseItem);
-        break;
+        onShare(caseItem)
+        break
       case 'export':
-        onExport(caseItem);
-        break;
+        onExport(caseItem)
+        break
       default:
-        break;
+        break
     }
-    setIsOpen(false);
-  };
+    setIsOpen(false)
+  }
 
   const menuItems = [
     {
       icon: FiCopy,
-      label: "Clone Case",
-      action: "clone",
-      color: "text-gray-700 hover:bg-gray-100"
+      label: 'Clone Case',
+      action: 'clone',
+      color: 'text-gray-700 hover:bg-gray-100',
     },
     {
       icon: FiArchive,
-      label: "Archive",
-      action: "archive", 
-      color: "text-gray-700 hover:bg-gray-100"
+      label: 'Archive',
+      action: 'archive',
+      color: 'text-gray-700 hover:bg-gray-100',
     },
     {
       icon: FiShare2,
-      label: "Share",
-      action: "share",
-      color: "text-gray-700 hover:bg-gray-100"
+      label: 'Share',
+      action: 'share',
+      color: 'text-gray-700 hover:bg-gray-100',
     },
     {
       icon: FiDownload,
-      label: "Export",
-      action: "export",
-      color: "text-gray-700 hover:bg-gray-100"
+      label: 'Export',
+      action: 'export',
+      color: 'text-gray-700 hover:bg-gray-100',
     },
     {
       icon: FiTrash2,
-      label: "Delete",
-      action: "delete",
-      color: "text-red-600 hover:bg-red-50"
-    }
-  ];
+      label: 'Delete',
+      action: 'delete',
+      color: 'text-red-600 hover:bg-red-50',
+    },
+  ]
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -82,11 +82,11 @@ const MoreActionsDropdown = ({ caseItem, onDelete, onClone, onArchive, onShare, 
       >
         <FiMoreVertical size={14} />
       </button>
-      
+
       {isOpen && (
         <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 py-1">
           {menuItems.map((item, index) => {
-            const Icon = item.icon;
+            const Icon = item.icon
             return (
               <button
                 key={index}
@@ -96,12 +96,12 @@ const MoreActionsDropdown = ({ caseItem, onDelete, onClone, onArchive, onShare, 
                 <Icon size={14} />
                 <span>{item.label}</span>
               </button>
-            );
+            )
           })}
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MoreActionsDropdown;
+export default MoreActionsDropdown

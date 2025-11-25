@@ -10,8 +10,8 @@ const Progress = () => {
       { name: 'Data Dictionary', level: 75 },
       { name: 'Modularization', level: 60 },
       { name: 'Reports', level: 45 },
-      { name: 'Dialog Programming', level: 30 }
-    ]
+      { name: 'Dialog Programming', level: 30 },
+    ],
   }
 
   return (
@@ -24,10 +24,10 @@ const Progress = () => {
         <div className="flex items-center space-x-6">
           <div className="relative">
             <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center">
-              <div 
+              <div
                 className="w-28 h-28 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl"
-                style={{ 
-                  background: `conic-gradient(#4f46e5 ${progressData.overallProgress * 3.6}deg, #e5e7eb 0deg)` 
+                style={{
+                  background: `conic-gradient(#4f46e5 ${progressData.overallProgress * 3.6}deg, #e5e7eb 0deg)`,
                 }}
               >
                 {progressData.overallProgress}%
@@ -41,7 +41,9 @@ const Progress = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 bg-gray-200 rounded"></div>
-              <span className="text-gray-700">Remaining: {100 - progressData.overallProgress}%</span>
+              <span className="text-gray-700">
+                Remaining: {100 - progressData.overallProgress}%
+              </span>
             </div>
           </div>
         </div>
@@ -58,7 +60,7 @@ const Progress = () => {
                 <span className="text-gray-600">{skill.level}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-primary-600 h-2 rounded-full transition-all duration-1000"
                   style={{ width: `${skill.level}%` }}
                 />
@@ -74,7 +76,7 @@ const Progress = () => {
         <div className="flex items-end justify-between h-32">
           {progressData.weeklyStudy.map((hours, index) => (
             <div key={index} className="flex flex-col items-center">
-              <div 
+              <div
                 className="w-8 bg-primary-600 rounded-t-lg transition-all duration-500 hover:bg-primary-700"
                 style={{ height: `${hours * 4}px` }}
               />

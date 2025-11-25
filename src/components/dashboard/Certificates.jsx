@@ -9,46 +9,46 @@ const Certificates = () => {
       id: 'CERT-001',
       course: {
         id: 1,
-        title: "SAP ABAP Basics",
-        instructor: "Akshay Kumar",
-        duration: "6 weeks",
-        completedDate: "2024-02-10"
+        title: 'SAP ABAP Basics',
+        instructor: 'Akshay Kumar',
+        duration: '6 weeks',
+        completedDate: '2024-02-10',
       },
-      issueDate: "2024-02-11",
+      issueDate: '2024-02-11',
       expiryDate: null,
-      grade: "A+",
+      grade: 'A+',
       score: 98,
-      certificateUrl: "/certificates/cert-001.pdf",
-      verificationCode: "ABAP-BASICS-2024-001",
-      status: "issued",
-      thumbnail: "/images/certificate-placeholder.jpg"
+      certificateUrl: '/certificates/cert-001.pdf',
+      verificationCode: 'ABAP-BASICS-2024-001',
+      status: 'issued',
+      thumbnail: '/images/certificate-placeholder.jpg',
     },
     {
       id: 'CERT-002',
       course: {
         id: 5,
-        title: "SAP ABAP Debugging Techniques",
-        instructor: "Akshay Kumar",
-        duration: "4 weeks",
-        completedDate: "2024-02-08"
+        title: 'SAP ABAP Debugging Techniques',
+        instructor: 'Akshay Kumar',
+        duration: '4 weeks',
+        completedDate: '2024-02-08',
       },
-      issueDate: "2024-02-09",
-      expiryDate: "2025-02-09",
-      grade: "A",
+      issueDate: '2024-02-09',
+      expiryDate: '2025-02-09',
+      grade: 'A',
       score: 95,
-      certificateUrl: "/certificates/cert-002.pdf",
-      verificationCode: "DEBUG-2024-001",
-      status: "issued",
-      thumbnail: "/images/certificate-placeholder.jpg"
+      certificateUrl: '/certificates/cert-002.pdf',
+      verificationCode: 'DEBUG-2024-001',
+      status: 'issued',
+      thumbnail: '/images/certificate-placeholder.jpg',
     },
     {
       id: 'CERT-003',
       course: {
         id: 2,
-        title: "Advanced ABAP Programming",
-        instructor: "Akshay Kumar",
-        duration: "8 weeks",
-        completedDate: null
+        title: 'Advanced ABAP Programming',
+        instructor: 'Akshay Kumar',
+        duration: '8 weeks',
+        completedDate: null,
       },
       issueDate: null,
       expiryDate: null,
@@ -56,18 +56,18 @@ const Certificates = () => {
       score: null,
       certificateUrl: null,
       verificationCode: null,
-      status: "in-progress",
+      status: 'in-progress',
       progress: 45,
-      thumbnail: "/images/certificate-placeholder.jpg"
+      thumbnail: '/images/certificate-placeholder.jpg',
     },
     {
       id: 'CERT-004',
       course: {
         id: 3,
-        title: "SAP Fiori Development",
-        instructor: "Akshay Kumar",
-        duration: "10 weeks",
-        completedDate: null
+        title: 'SAP Fiori Development',
+        instructor: 'Akshay Kumar',
+        duration: '10 weeks',
+        completedDate: null,
       },
       issueDate: null,
       expiryDate: null,
@@ -75,33 +75,45 @@ const Certificates = () => {
       score: null,
       certificateUrl: null,
       verificationCode: null,
-      status: "in-progress",
+      status: 'in-progress',
       progress: 20,
-      thumbnail: "/images/certificate-placeholder.jpg"
-    }
+      thumbnail: '/images/certificate-placeholder.jpg',
+    },
   ]
 
   const filters = [
     { id: 'all', name: 'All Certificates', count: certificates.length },
     { id: 'issued', name: 'Issued', count: certificates.filter(c => c.status === 'issued').length },
-    { id: 'in-progress', name: 'In Progress', count: certificates.filter(c => c.status === 'in-progress').length },
-    { id: 'expired', name: 'Expired', count: certificates.filter(c => c.status === 'expired').length }
+    {
+      id: 'in-progress',
+      name: 'In Progress',
+      count: certificates.filter(c => c.status === 'in-progress').length,
+    },
+    {
+      id: 'expired',
+      name: 'Expired',
+      count: certificates.filter(c => c.status === 'expired').length,
+    },
   ]
 
-  const filteredCertificates = certificates.filter(certificate => 
-    activeFilter === 'all' || certificate.status === activeFilter
+  const filteredCertificates = certificates.filter(
+    certificate => activeFilter === 'all' || certificate.status === activeFilter
   )
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'issued': return 'bg-green-100 text-green-800'
-      case 'in-progress': return 'bg-blue-100 text-blue-800'
-      case 'expired': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'issued':
+        return 'bg-green-100 text-green-800'
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800'
+      case 'expired':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getGradeColor = (grade) => {
+  const getGradeColor = grade => {
     if (!grade) return 'bg-gray-100 text-gray-800'
     if (grade === 'A+') return 'bg-green-100 text-green-800'
     if (grade === 'A') return 'bg-blue-100 text-blue-800'
@@ -143,7 +155,11 @@ const Certificates = () => {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <p className="text-sm font-medium text-gray-600">Avg Score</p>
           <p className="text-2xl font-bold text-gray-900">
-            {Math.round(certificates.filter(c => c.score).reduce((acc, cert) => acc + cert.score, 0) / certificates.filter(c => c.score).length)}%
+            {Math.round(
+              certificates.filter(c => c.score).reduce((acc, cert) => acc + cert.score, 0) /
+                certificates.filter(c => c.score).length
+            )}
+            %
           </p>
           <p className="text-sm text-purple-600">Performance</p>
         </div>
@@ -176,16 +192,20 @@ const Certificates = () => {
       {/* Certificates Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredCertificates.map(certificate => (
-          <div key={certificate.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+          <div
+            key={certificate.id}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+          >
             <div className="flex flex-col md:flex-row">
               {/* Certificate Thumbnail */}
               <div className="md:w-2/5">
-                <img 
-                  src={certificate.thumbnail} 
+                <img
+                  src={certificate.thumbnail}
                   alt={certificate.course.title}
                   className="w-full h-48 md:h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNEOEU5RTYiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI3MCIgeT0iODAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNDAiIGZpbGw9IiNEOEU5RTYiLz4KPHJlY3QgeD0iNzAiIHk9IjE0MCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSIyIiBmaWxsPSIjRDhFOUU2Ii8+CjxyZWN0IHg9IjcwIiB5PSIxNjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iOCIkZmlsbD0iI0Q4RTlFNiIvPgo8cmVjdCB4PSI3MCIgeT0iMTgwIiB3aWR0aD0iODAiIGhlaWdodD0iOCIkgZmlsbD0iI0Q4RTlFNiIvPgo8L3N2Zz4K'
+                  onError={e => {
+                    e.target.src =
+                      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiNEOEU5RTYiIHN0cm9rZS13aWR0aD0iMiIvPgo8cmVjdCB4PSI3MCIgeT0iODAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNDAiIGZpbGw9IiNEOEU5RTYiLz4KPHJlY3QgeD0iNzAiIHk9IjE0MCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSIyIiBmaWxsPSIjRDhFOUU2Ii8+CjxyZWN0IHg9IjcwIiB5PSIxNjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iOCIkZmlsbD0iI0Q4RTlFNiIvPgo8cmVjdCB4PSI3MCIgeT0iMTgwIiB3aWR0aD0iODAiIGhlaWdodD0iOCIkgZmlsbD0iI0Q4RTlFNiIvPgo8L3N2Zz4K'
                   }}
                 />
               </div>
@@ -194,12 +214,19 @@ const Certificates = () => {
               <div className="flex-1 p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg mb-1">{certificate.course.title}</h3>
+                    <h3 className="font-semibold text-gray-900 text-lg mb-1">
+                      {certificate.course.title}
+                    </h3>
                     <p className="text-sm text-gray-600">by {certificate.course.instructor}</p>
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(certificate.status)}`}>
-                    {certificate.status === 'issued' ? 'Issued' : 
-                     certificate.status === 'in-progress' ? 'In Progress' : 'Expired'}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${getStatusColor(certificate.status)}`}
+                  >
+                    {certificate.status === 'issued'
+                      ? 'Issued'
+                      : certificate.status === 'in-progress'
+                        ? 'In Progress'
+                        : 'Expired'}
                   </span>
                 </div>
 
@@ -216,7 +243,9 @@ const Certificates = () => {
                       </div>
                       <div>
                         <span className="font-medium">Grade:</span>
-                        <span className={`px-2 py-1 rounded-full text-xs ${getGradeColor(certificate.grade)}`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${getGradeColor(certificate.grade)}`}
+                        >
                           {certificate.grade} ({certificate.score}%)
                         </span>
                       </div>
@@ -245,7 +274,10 @@ const Certificates = () => {
                     </div>
 
                     <div className="mt-3 text-xs text-gray-500">
-                      Verification Code: <code className="bg-gray-100 px-2 py-1 rounded">{certificate.verificationCode}</code>
+                      Verification Code:{' '}
+                      <code className="bg-gray-100 px-2 py-1 rounded">
+                        {certificate.verificationCode}
+                      </code>
                     </div>
                   </>
                 ) : (
@@ -256,7 +288,7 @@ const Certificates = () => {
                         <span className="font-medium text-gray-900">{certificate.progress}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="h-2 rounded-full bg-blue-500 transition-all duration-500"
                           style={{ width: `${certificate.progress}%` }}
                         />
@@ -264,7 +296,8 @@ const Certificates = () => {
                     </div>
 
                     <p className="text-sm text-gray-600">
-                      Complete the course to earn your certificate. Continue learning to unlock this achievement!
+                      Complete the course to earn your certificate. Continue learning to unlock this
+                      achievement!
                     </p>
 
                     <button className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium transition-colors">
@@ -281,18 +314,27 @@ const Certificates = () => {
       {/* Empty State */}
       {filteredCertificates.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-16 h-16 text-gray-300 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No certificates found</h3>
           <p className="text-gray-600 mb-4">
-            {activeFilter === 'issued' 
-              ? 'Complete courses to earn certificates' 
-              : 'No certificates match your current filter'
-            }
+            {activeFilter === 'issued'
+              ? 'Complete courses to earn certificates'
+              : 'No certificates match your current filter'}
           </p>
           {activeFilter !== 'all' && (
-            <button 
+            <button
               onClick={() => setActiveFilter('all')}
               className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium"
             >

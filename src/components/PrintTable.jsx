@@ -1,6 +1,6 @@
 const printTable = () => {
-  const printWindow = window.open("", "_blank", "width=800,height=600");
-  printWindow.document.write("<html><head><title>Legal Case Documents</title>");
+  const printWindow = window.open('', '_blank', 'width=800,height=600')
+  printWindow.document.write('<html><head><title>Legal Case Documents</title>')
   printWindow.document.write(`
     <style>
       body {
@@ -46,12 +46,12 @@ const printTable = () => {
         }
       }
     </style>
-  `);
-  printWindow.document.write("</head><body>");
-  printWindow.document.write("<h1>Legal Case Information</h1>");
-  printWindow.document.write("<h2>Case List</h2>");
+  `)
+  printWindow.document.write('</head><body>')
+  printWindow.document.write('<h1>Legal Case Information</h1>')
+  printWindow.document.write('<h2>Case List</h2>')
 
-  filteredCases.forEach((c) => {
+  filteredCases.forEach(c => {
     printWindow.document.write(`
       <div class="case-header">Case: ${c.caseNumber} - ${c.title}</div>
       <div class="case-section">
@@ -65,12 +65,12 @@ const printTable = () => {
         <div class="case-detail"><span>Outcome:</span> ${c.caseOutcome}</div>
         <div class="case-detail"><span>Court Address:</span> ${c.courtAddress}</div>
       </div>
-    `);
-  });
+    `)
+  })
 
-  printWindow.document.write("<div class='footer'>Printed by [Your Name or Organization]</div>");
-  printWindow.document.write("</body></html>");
+  printWindow.document.write("<div class='footer'>Printed by [Your Name or Organization]</div>")
+  printWindow.document.write('</body></html>')
 
-  printWindow.document.close();
-  printWindow.print();
-};
+  printWindow.document.close()
+  printWindow.print()
+}

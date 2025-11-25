@@ -15,17 +15,14 @@ import {
   AlertCircle,
   X,
   Send,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { authAPI } from '../../services/api'
 
 // Enhanced validation schema
 const loginSchema = yup.object({
-  email: yup
-    .string()
-    .email('Please enter a valid email address')
-    .required('Email is required'),
+  email: yup.string().email('Please enter a valid email address').required('Email is required'),
   password: yup
     .string()
     .min(6, 'Password must be at least 6 characters')
@@ -60,13 +57,13 @@ const Login = () => {
     setError,
     setValue,
     watch,
-    reset: resetLoginForm
+    reset: resetLoginForm,
   } = useForm({
     resolver: yupResolver(loginSchema),
     defaultValues: {
       email: '',
-      password: ''
-    }
+      password: '',
+    },
   })
 
   const {
@@ -77,51 +74,51 @@ const Login = () => {
     setValue: setForgotPasswordValue,
     reset: resetForgotPasswordForm,
     getValues,
-    watch: watchForgotPassword
+    watch: watchForgotPassword,
   } = useForm({
     resolver: yupResolver(forgotPasswordSchema),
     defaultValues: {
-      email: ''
-    }
+      email: '',
+    },
   })
 
   // Load remembered email if exists
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail")
+    const rememberedEmail = localStorage.getItem('rememberedEmail')
     if (rememberedEmail) {
       setValue('email', rememberedEmail)
       setRememberMe(true)
     }
   }, [setValue])
 
-  const onSubmit = async (data) => {
-    setIsLoading(true);
+  const onSubmit = async data => {
+    setIsLoading(true)
 
     try {
       // Remember email if checkbox is checked
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", data.email)
+        localStorage.setItem('rememberedEmail', data.email)
       } else {
-        localStorage.removeItem("rememberedEmail")
+        localStorage.removeItem('rememberedEmail')
       }
 
       const response = await authAPI.login(data)
 
       if (response.data) {
-        const { user, token } = response.data;
-        login(true, user, token);
+        const { user, token } = response.data
+        login(true, user, token)
 
         // Redirect to hierarchical app structure
         navigate('/dashboard', {
           replace: true,
           state: {
-            message: `Welcome back, ${user?.full_name || user?.email}!`
-          }
-        });
+            message: `Welcome back, ${user?.full_name || user?.email}!`,
+          },
+        })
       } else {
         setError('root', {
           type: 'manual',
-          message: response.message || 'Login failed. Please check your credentials.'
+          message: response.message || 'Login failed. Please check your credentials.',
         })
       }
     } catch (error) {
@@ -129,22 +126,23 @@ const Login = () => {
 
       // Handle different error types
       if (error.response) {
-        const errorMessage = error.response.data?.message ||
+        const errorMessage =
+          error.response.data?.message ||
           error.response.data?.error ||
           'Login failed. Please check your credentials.'
         setError('root', {
           type: 'manual',
-          message: errorMessage
+          message: errorMessage,
         })
       } else if (error.request) {
         setError('root', {
           type: 'manual',
-          message: 'Network error. Please check your connection and try again.'
+          message: 'Network error. Please check your connection and try again.',
         })
       } else {
         setError('root', {
           type: 'manual',
-          message: 'An unexpected error occurred. Please try again.'
+          message: 'An unexpected error occurred. Please try again.',
         })
       }
     } finally {
@@ -152,55 +150,55 @@ const Login = () => {
     }
   }
 
-  const onSubmitForgotPassword = async (data) => {
-    setForgotPasswordLoading(true);
-    setForgotPasswordSuccess(false);
+  const onSubmitForgotPassword = async data => {
+    setForgotPasswordLoading(true)
+    setForgotPasswordSuccess(false)
 
     try {
-      console.log('Sending forgot password request for:', data.email);
-      
+      console.log('Sending forgot password request for:', data.email)
+
       // Call forget password API - FIXED: Ensure proper API call
-      const response = await authAPI.forgetPassword(data.email);
-      console.log('Forgot password API response:', response);
-      
+      const response = await authAPI.forgetPassword(data.email)
+      console.log('Forgot password API response:', response)
+
       // Handle successful response
-      setForgotPasswordSuccess(true);
-      resetForgotPasswordForm();
-      
-      console.log('Reset link sent successfully');
-      
+      setForgotPasswordSuccess(true)
+      resetForgotPasswordForm()
+
+      console.log('Reset link sent successfully')
+
       // Auto close modal after success
       setTimeout(() => {
-        setShowForgotPasswordModal(false);
-        setForgotPasswordSuccess(false);
-      }, 5000);
-      
+        setShowForgotPasswordModal(false)
+        setForgotPasswordSuccess(false)
+      }, 5000)
     } catch (error) {
-      console.error('Forgot password error:', error);
-      
-      let errorMessage = 'Failed to send reset link. Please try again.';
-      
+      console.error('Forgot password error:', error)
+
+      let errorMessage = 'Failed to send reset link. Please try again.'
+
       if (error.response) {
-        errorMessage = error.response.data?.message ||
+        errorMessage =
+          error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          `Server error: ${error.response.status}`;
-          
+          `Server error: ${error.response.status}`
+
         if (error.response.status === 404) {
-          errorMessage = 'No account found with this email address.';
+          errorMessage = 'No account found with this email address.'
         } else if (error.response.status === 429) {
-          errorMessage = 'Too many attempts. Please try again later.';
+          errorMessage = 'Too many attempts. Please try again later.'
         }
       } else if (error.request) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+        errorMessage = 'Network error. Please check your connection and try again.'
       }
-      
+
       setForgotPasswordError('email', {
         type: 'manual',
-        message: errorMessage
-      });
+        message: errorMessage,
+      })
     } finally {
-      setForgotPasswordLoading(false);
+      setForgotPasswordLoading(false)
     }
   }
 
@@ -209,31 +207,31 @@ const Login = () => {
   }
 
   const openForgotPasswordModal = () => {
-    setShowForgotPasswordModal(true);
-    setForgotPasswordSuccess(false);
-    resetForgotPasswordForm();
-    
+    setShowForgotPasswordModal(true)
+    setForgotPasswordSuccess(false)
+    resetForgotPasswordForm()
+
     // Pre-fill with login email if available - FIXED
-    const loginEmail = watch('email');
+    const loginEmail = watch('email')
     if (loginEmail) {
       // Use setTimeout to ensure the modal is fully rendered
       setTimeout(() => {
-        setForgotPasswordValue('email', loginEmail);
-      }, 0);
+        setForgotPasswordValue('email', loginEmail)
+      }, 0)
     }
   }
 
   const closeForgotPasswordModal = () => {
-    setShowForgotPasswordModal(false);
-    setForgotPasswordSuccess(false);
-    setForgotPasswordLoading(false);
-    resetForgotPasswordForm();
+    setShowForgotPasswordModal(false)
+    setForgotPasswordSuccess(false)
+    setForgotPasswordLoading(false)
+    resetForgotPasswordForm()
   }
 
   const handleResendResetLink = () => {
-    const email = getValues('email');
+    const email = getValues('email')
     if (email) {
-      onSubmitForgotPassword({ email });
+      onSubmitForgotPassword({ email })
     }
   }
 
@@ -244,7 +242,6 @@ const Login = () => {
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-blue-50 p-3">
         <div className="flex flex-col md:flex-row w-full max-w-md md:max-w-2xl shadow-md rounded-lg overflow-hidden bg-white">
-
           {/* Left Side - Brand & Illustration */}
           <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 p-4 flex-col items-center justify-center relative overflow-hidden">
             {/* Background Pattern */}
@@ -261,12 +258,8 @@ const Login = () => {
                 </div>
               </div>
 
-              <h1 className="text-xl font-bold mb-2 font-display">
-                Learn SAP ABAP
-              </h1>
-              <p className="text-xs mb-3 opacity-90">
-                Master SAP Development
-              </p>
+              <h1 className="text-xl font-bold mb-2 font-display">Learn SAP ABAP</h1>
+              <p className="text-xs mb-3 opacity-90">Master SAP Development</p>
 
               <div className="w-48 h-32 bg-white bg-opacity-10 rounded-lg flex items-center justify-center backdrop-blur-sm mb-3">
                 <User className="w-12 h-12 text-white opacity-80" />
@@ -309,12 +302,8 @@ const Login = () => {
 
             {/* Desktop Header */}
             <div className="hidden md:block text-center mb-4">
-              <h2 className="text-lg font-bold text-gray-900">
-                Welcome Back
-              </h2>
-              <p className="text-gray-600 text-xs mt-1">
-                Sign in to continue learning
-              </p>
+              <h2 className="text-lg font-bold text-gray-900">Welcome Back</h2>
+              <p className="text-gray-600 text-xs mt-1">Sign in to continue learning</p>
             </div>
 
             <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
@@ -342,14 +331,17 @@ const Login = () => {
                     {...register('email')}
                     type="email"
                     id="email"
-                    className={`w-full pl-7 pr-2 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full pl-7 pr-2 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Enter your email"
                     disabled={isLoading}
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.email.message}</p>
+                  <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -364,8 +356,9 @@ const Login = () => {
                     {...register('password')}
                     type={showPassword ? 'text' : 'password'}
                     id="password"
-                    className={`w-full pl-7 pr-8 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full pl-7 pr-8 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Enter your password"
                     disabled={isLoading}
                   />
@@ -375,15 +368,13 @@ const Login = () => {
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                     disabled={isLoading}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-3 h-3" />
-                    ) : (
-                      <Eye className="w-3 h-3" />
-                    )}
+                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.password.message}</p>
+                  <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -393,7 +384,7 @@ const Login = () => {
                   <input
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
+                    onChange={e => setRememberMe(e.target.checked)}
                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 w-3 h-3"
                     disabled={isLoading}
                   />
@@ -414,10 +405,11 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading || !watchedEmail || !watchedPassword}
-                className={`w-full py-2 px-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded font-semibold text-xs shadow-sm hover:shadow transform transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:ring-offset-1 ${isLoading || !watchedEmail || !watchedPassword
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5"
-                  }`}
+                className={`w-full py-2 px-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded font-semibold text-xs shadow-sm hover:shadow transform transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:ring-offset-1 ${
+                  isLoading || !watchedEmail || !watchedPassword
+                    ? 'opacity-70 cursor-not-allowed'
+                    : 'hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5'
+                }`}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-1">
@@ -475,9 +467,7 @@ const Login = () => {
               <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Mail className="w-6 h-6 text-primary-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Reset Your Password
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Reset Your Password</h3>
               <p className="text-sm text-gray-600">
                 Enter your email address and we'll send you a link to reset your password.
               </p>
@@ -508,9 +498,15 @@ const Login = () => {
 
             {/* Forgot Password Form */}
             {!forgotPasswordSuccess && (
-              <form onSubmit={handleSubmitForgotPassword(onSubmitForgotPassword)} className="space-y-4">
+              <form
+                onSubmit={handleSubmitForgotPassword(onSubmitForgotPassword)}
+                className="space-y-4"
+              >
                 <div>
-                  <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="forgot-email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Email Address
                   </label>
                   <div className="relative">
@@ -529,9 +525,7 @@ const Login = () => {
                   {forgotPasswordErrors.email && (
                     <div className="mt-1 flex items-start space-x-1 animate-fade-in">
                       <AlertCircle className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-red-600">
-                        {forgotPasswordErrors.email.message}
-                      </p>
+                      <p className="text-xs text-red-600">{forgotPasswordErrors.email.message}</p>
                     </div>
                   )}
                 </div>

@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import CaseDocumentUploader from "../components/CaseDocumentUploader";
-import CaseFormBasic from "../components/CaseFormBasic";
-import CaseFormDetails from "../components/CaseFormDetails";
-import CaseReview from "../components/CaseReview";
-import Payment from "../components/Payment";
-import Toast from "../components/Toast";
-import { showErrorToast, showSuccessToast, showWarningToast } from "../utils/Toastify";
-import { saveApplicationData, updateApplicationData, userApplicant } from "../services/applicationService";
-import { getCaseById } from "../services/casesService";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import CaseDocumentUploader from '../components/CaseDocumentUploader'
+import CaseFormBasic from '../components/CaseFormBasic'
+import CaseFormDetails from '../components/CaseFormDetails'
+import CaseReview from '../components/CaseReview'
+import Payment from '../components/Payment'
+import Toast from '../components/Toast'
+import { showErrorToast, showSuccessToast, showWarningToast } from '../utils/Toastify'
+import {
+  saveApplicationData,
+  updateApplicationData,
+  userApplicant,
+} from '../services/applicationService'
+import { getCaseById } from '../services/casesService'
 import {
   FaFileUpload,
   FaCheckCircle,
@@ -21,100 +25,100 @@ import {
   FaSearch,
   FaEdit,
   FaEye,
-  FaSave
-} from "react-icons/fa";
+  FaSave,
+} from 'react-icons/fa'
 
 // Static data moved outside component to prevent recreation
 const EXHIBITS = [
   {
-    value: "Exhibit A",
-    label: "Exhibit A - Account Opening Documents",
-    description: "Bank passbook copies and account opening slip"
+    value: 'Exhibit A',
+    label: 'Exhibit A - Account Opening Documents',
+    description: 'Bank passbook copies and account opening slip',
   },
   {
-    value: "Exhibit B",
-    label: "Exhibit B - Deposit Details",
-    description: "FD, Savings, and RD amount details with statements"
+    value: 'Exhibit B',
+    label: 'Exhibit B - Deposit Details',
+    description: 'FD, Savings, and RD amount details with statements',
   },
   {
-    value: "Exhibit C",
-    label: "Exhibit C - Deposit Proof",
-    description: "Copies of deposit transactions to the bank"
+    value: 'Exhibit C',
+    label: 'Exhibit C - Deposit Proof',
+    description: 'Copies of deposit transactions to the bank',
   },
   {
-    value: "Exhibit D",
-    label: "Exhibit D - Police Statement",
-    description: "Statement copy submitted to Shrirampur Police Station"
-  }
-];
+    value: 'Exhibit D',
+    label: 'Exhibit D - Police Statement',
+    description: 'Statement copy submitted to Shrirampur Police Station',
+  },
+]
 
 const REQUIRED_DOCUMENTS = {
-  "Exhibit A": [
-    "Dnyanradha Multistate Society Bank Passbook Copy",
-    "Other Bank Passbook Copy for Payment",
-    "Copy of the Slip of Account Started (Date mentioned)",
+  'Exhibit A': [
+    'Dnyanradha Multistate Society Bank Passbook Copy',
+    'Other Bank Passbook Copy for Payment',
+    'Copy of the Slip of Account Started (Date mentioned)',
   ],
-  "Exhibit B": [
-    "Fixed Deposit (FD Amount Details)",
-    "Saving Bank Account Total Amount Details",
-    "Recurring Deposits (RD) Total Amount Sheet",
+  'Exhibit B': [
+    'Fixed Deposit (FD Amount Details)',
+    'Saving Bank Account Total Amount Details',
+    'Recurring Deposits (RD) Total Amount Sheet',
   ],
-  "Exhibit C": ["Copy of Deposits made by Applicant to the said bank"],
-  "Exhibit D": ["Statement Copy submitted to Shrirampur Police Station"],
-};
+  'Exhibit C': ['Copy of Deposits made by Applicant to the said bank'],
+  'Exhibit D': ['Statement Copy submitted to Shrirampur Police Station'],
+}
 
 // Different steps for different modes
 const CREATE_STEPS = [
-  { number: 1, title: "Basic Info", icon: FaUser },
-  { number: 2, title: "Case Details", icon: FaFileAlt },
-  { number: 3, title: "Review Case", icon: FaClipboardCheck },
-  { number: 4, title: "Documents", icon: FaFileUpload },
-  { number: 5, title: "Payment", icon: FaMoneyBillWave }
-];
+  { number: 1, title: 'Basic Info', icon: FaUser },
+  { number: 2, title: 'Case Details', icon: FaFileAlt },
+  { number: 3, title: 'Review Case', icon: FaClipboardCheck },
+  { number: 4, title: 'Documents', icon: FaFileUpload },
+  { number: 5, title: 'Payment', icon: FaMoneyBillWave },
+]
 
 const EDIT_STEPS = [
-  { number: 1, title: "Basic Info", icon: FaUser },
-  { number: 2, title: "Case Details", icon: FaFileAlt },
-  { number: 3, title: "Review Case", icon: FaClipboardCheck },
-  { number: 4, title: "Documents", icon: FaFileUpload }
-];
+  { number: 1, title: 'Basic Info', icon: FaUser },
+  { number: 2, title: 'Case Details', icon: FaFileAlt },
+  { number: 3, title: 'Review Case', icon: FaClipboardCheck },
+  { number: 4, title: 'Documents', icon: FaFileUpload },
+]
 
 const VIEW_STEPS = [
-  { number: 1, title: "Basic Info", icon: FaUser },
-  { number: 2, title: "Case Details", icon: FaFileAlt },
-  { number: 3, title: "Review Case", icon: FaClipboardCheck }
-];
+  { number: 1, title: 'Basic Info', icon: FaUser },
+  { number: 2, title: 'Case Details', icon: FaFileAlt },
+  { number: 3, title: 'Review Case', icon: FaClipboardCheck },
+]
 
 const INITIAL_FORM_DATA = {
-  status: "Not Started",
-  full_name: "",
-  date_of_birth: "",
-  age: "",
-  phone_number: "",
-  email: "",
-  gender: "",
-  occupation: "",
-  adhar_number: "",
-  address: "",
-  additional_notes: "",
-  saving_account_start_date: "",
-  deposit_type: "",
-  deposit_duration_years: "",
-  fixed_deposit_total_amount: "",
-  interest_rate_fd: "",
-  saving_account_total_amount: "",
-  interest_rate_saving: "",
-  recurring_deposit_total_amount: "",
-  interest_rate_recurring: "",
-  dnyanrudha_investment_total_amount: "",
-  dynadhara_rate: "",
+  status: 'Not Started',
+  full_name: '',
+  date_of_birth: '',
+  age: '',
+  phone_number: '',
+  email: '',
+  gender: '',
+  occupation: '',
+  adhar_number: '',
+  address: '',
+  additional_notes: '',
+  saving_account_start_date: '',
+  deposit_type: '',
+  deposit_duration_years: '',
+  fixed_deposit_total_amount: '',
+  interest_rate_fd: '',
+  saving_account_total_amount: '',
+  interest_rate_saving: '',
+  recurring_deposit_total_amount: '',
+  interest_rate_recurring: '',
+  dnyanrudha_investment_total_amount: '',
+  dynadhara_rate: '',
   documents: {
-    "Exhibit A": [],
-    "Exhibit B": [],
-    "Exhibit C": [],
-    "Exhibit D": [],
+    'Exhibit A': [],
+    'Exhibit B': [],
+    'Exhibit C': [],
+    'Exhibit D': [],
   },
-};
+}
 
 // Memoized components to prevent unnecessary re-renders
 const StepProgress = React.memo(({ steps, currentStep, mode }) => {
@@ -122,26 +126,30 @@ const StepProgress = React.memo(({ steps, currentStep, mode }) => {
   const desktopProgress = (
     <div className="hidden md:flex justify-between items-center relative">
       {steps.map((step, index) => {
-        const StepIcon = step.icon;
-        const isActive = step.number === currentStep;
-        const isCompleted = step.number < currentStep;
+        const StepIcon = step.icon
+        const isActive = step.number === currentStep
+        const isCompleted = step.number < currentStep
 
         return (
           <div key={step.number} className="flex flex-col items-center flex-1 relative">
             {/* Connection Line */}
             {index < steps.length - 1 && (
-              <div className={`absolute top-4 left-1/2 w-full h-0.5 z-0 ${isCompleted ? 'bg-green-500' : 'bg-gray-300'
-                }`}></div>
+              <div
+                className={`absolute top-4 left-1/2 w-full h-0.5 z-0 ${
+                  isCompleted ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              ></div>
             )}
 
             {/* Step Circle */}
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center relative z-10 transition-all duration-300 ${isActive
-                ? "bg-green-600 text-white shadow-lg scale-110"
-                : isCompleted
-                  ? "bg-green-500 text-white shadow-md"
-                  : "bg-gray-200 text-gray-500"
-                }`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center relative z-10 transition-all duration-300 ${
+                isActive
+                  ? 'bg-green-600 text-white shadow-lg scale-110'
+                  : isCompleted
+                    ? 'bg-green-500 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-500'
+              }`}
             >
               {isCompleted ? (
                 <FaCheckCircle className="text-sm" />
@@ -152,21 +160,26 @@ const StepProgress = React.memo(({ steps, currentStep, mode }) => {
 
             {/* Step Label */}
             <div className="mt-2 text-center">
-              <div className={`text-xs font-medium ${isActive ? "text-green-700" :
-                isCompleted ? "text-green-600" : "text-gray-500"
-                }`}>
+              <div
+                className={`text-xs font-medium ${
+                  isActive ? 'text-green-700' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                }`}
+              >
                 Step {step.number}
               </div>
-              <div className={`text-[10px] ${isActive ? "text-green-800 font-semibold" : "text-gray-600"
-                }`}>
+              <div
+                className={`text-[10px] ${
+                  isActive ? 'text-green-800 font-semibold' : 'text-gray-600'
+                }`}
+              >
                 {step.title}
               </div>
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 
   // Mobile Step Progress
   const mobileProgress = (
@@ -186,7 +199,7 @@ const StepProgress = React.memo(({ steps, currentStep, mode }) => {
         ></div>
       </div>
     </div>
-  );
+  )
 
   return (
     <div className="mt-8 mb-10">
@@ -207,13 +220,12 @@ const StepProgress = React.memo(({ steps, currentStep, mode }) => {
             Edit Mode
           </div>
         )}
-
       </div>
       {desktopProgress}
       {mobileProgress}
     </div>
-  );
-});
+  )
+})
 
 const ExhibitSelector = React.memo(({ selectedExhibit, onExhibitChange, documents, mode }) => {
   return (
@@ -224,28 +236,23 @@ const ExhibitSelector = React.memo(({ selectedExhibit, onExhibitChange, document
       </label>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {EXHIBITS.map((exhibit) => (
+        {EXHIBITS.map(exhibit => (
           <div
             key={exhibit.value}
-            className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${selectedExhibit === exhibit.value
-              ? "border-green-500 bg-green-50 shadow-md"
-              : "border-gray-300 bg-white hover:border-green-300 hover:bg-green-25"
-              } ${mode === 'view' ? 'cursor-default' : ''}`}
+            className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+              selectedExhibit === exhibit.value
+                ? 'border-green-500 bg-green-50 shadow-md'
+                : 'border-gray-300 bg-white hover:border-green-300 hover:bg-green-25'
+            } ${mode === 'view' ? 'cursor-default' : ''}`}
             onClick={() => mode !== 'view' && onExhibitChange(exhibit.value)}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-semibold text-green-900 text-sm mb-1">
-                  {exhibit.value}
-                </h3>
-                <p className="text-gray-600 text-xs mb-2">
-                  {exhibit.description}
-                </p>
+                <h3 className="font-semibold text-green-900 text-sm mb-1">{exhibit.value}</h3>
+                <p className="text-gray-600 text-xs mb-2">{exhibit.description}</p>
                 <div className="flex items-center text-xs text-gray-500">
                   <FaFileUpload className="mr-1" size={10} />
-                  <span>
-                    {documents[exhibit.value]?.length || 0} files uploaded
-                  </span>
+                  <span>{documents[exhibit.value]?.length || 0} files uploaded</span>
                 </div>
               </div>
 
@@ -275,14 +282,14 @@ const ExhibitSelector = React.memo(({ selectedExhibit, onExhibitChange, document
         </div>
       )}
     </div>
-  );
-});
+  )
+})
 
 const DocumentsSummary = React.memo(({ documents }) => {
-  const hasDocuments = useMemo(() =>
-    Object.values(documents).some(files => files.length > 0),
+  const hasDocuments = useMemo(
+    () => Object.values(documents).some(files => files.length > 0),
     [documents]
-  );
+  )
 
   if (!hasDocuments) {
     return (
@@ -296,7 +303,7 @@ const DocumentsSummary = React.memo(({ documents }) => {
           No documents uploaded yet
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -306,16 +313,14 @@ const DocumentsSummary = React.memo(({ documents }) => {
         Uploaded Documents Summary
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {EXHIBITS.map((exhibit) => {
-          const files = documents[exhibit.value] || [];
-          if (files.length === 0) return null;
+        {EXHIBITS.map(exhibit => {
+          const files = documents[exhibit.value] || []
+          if (files.length === 0) return null
 
           return (
             <div key={exhibit.value} className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex justify-between items-start mb-2">
-                <span className="font-medium text-green-800 text-xs">
-                  {exhibit.value}
-                </span>
+                <span className="font-medium text-green-800 text-xs">{exhibit.value}</span>
                 <span className="bg-green-500 text-white text-[10px] px-2 py-1 rounded-full">
                   {files.length} file{files.length !== 1 ? 's' : ''}
                 </span>
@@ -328,15 +333,15 @@ const DocumentsSummary = React.memo(({ documents }) => {
                 ))}
               </ul>
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
-});
+  )
+})
 
 const ValidationErrors = React.memo(({ errors }) => {
-  if (Object.keys(errors).length === 0) return null;
+  if (Object.keys(errors).length === 0) return null
 
   return (
     <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -345,52 +350,52 @@ const ValidationErrors = React.memo(({ errors }) => {
         Please fix the following errors:
       </h3>
       <ul className="text-red-700 text-sm space-y-1">
-        {Object.entries(errors).map(([field, error]) => (
-          error && <li key={field}>• {error}</li>
-        ))}
+        {Object.entries(errors).map(([field, error]) => error && <li key={field}>• {error}</li>)}
       </ul>
     </div>
-  );
-});
+  )
+})
 
-const DocumentStep = React.memo(({
-  selectedExhibit,
-  onExhibitChange,
-  documents,
-  onDocumentsChange,
-  onNext,
-  onBack,
-  onSave,
-  mode,
-  isLoading,
-  isSubmitting,
-  isLastStep
-}) => (
-  <div>
-    <ExhibitSelector
-      selectedExhibit={selectedExhibit}
-      onExhibitChange={onExhibitChange}
-      documents={documents}
-      mode={mode}
-    />
+const DocumentStep = React.memo(
+  ({
+    selectedExhibit,
+    onExhibitChange,
+    documents,
+    onDocumentsChange,
+    onNext,
+    onBack,
+    onSave,
+    mode,
+    isLoading,
+    isSubmitting,
+    isLastStep,
+  }) => (
+    <div>
+      <ExhibitSelector
+        selectedExhibit={selectedExhibit}
+        onExhibitChange={onExhibitChange}
+        documents={documents}
+        mode={mode}
+      />
 
-    <CaseDocumentUploader
-      documents={documents[selectedExhibit] || []}
-      onDocumentsChange={(updatedFiles) => onDocumentsChange(selectedExhibit, updatedFiles)}
-      onNext={onNext}
-      onBack={onBack}
-      onSave={onSave}
-      requiredDocs={REQUIRED_DOCUMENTS[selectedExhibit]}
-      exhibit={selectedExhibit}
-      mode={mode}
-      isLoading={isLoading}
-      isSubmitting={isSubmitting}
-      isLastStep={isLastStep}
-    />
+      <CaseDocumentUploader
+        documents={documents[selectedExhibit] || []}
+        onDocumentsChange={updatedFiles => onDocumentsChange(selectedExhibit, updatedFiles)}
+        onNext={onNext}
+        onBack={onBack}
+        onSave={onSave}
+        requiredDocs={REQUIRED_DOCUMENTS[selectedExhibit]}
+        exhibit={selectedExhibit}
+        mode={mode}
+        isLoading={isLoading}
+        isSubmitting={isSubmitting}
+        isLastStep={isLastStep}
+      />
 
-    <DocumentsSummary documents={documents} />
-  </div>
-));
+      <DocumentsSummary documents={documents} />
+    </div>
+  )
+)
 
 // Component map for faster lookup (replaces switch statement)
 const CREATE_STEP_COMPONENTS = {
@@ -398,21 +403,21 @@ const CREATE_STEP_COMPONENTS = {
   2: CaseFormDetails,
   3: CaseReview,
   4: DocumentStep,
-  5: Payment
-};
+  5: Payment,
+}
 
 const EDIT_STEP_COMPONENTS = {
   1: CaseFormBasic,
   2: CaseFormDetails,
   3: CaseReview,
-  4: DocumentStep
-};
+  4: DocumentStep,
+}
 
 const VIEW_STEP_COMPONENTS = {
   1: CaseFormBasic,
   2: CaseFormDetails,
-  3: CaseReview
-};
+  3: CaseReview,
+}
 
 const Application = ({
   mode = 'create',
@@ -420,403 +425,438 @@ const Application = ({
   caseId = null,
   onBack = null,
   onSave = null,
-  onAdd = null
+  onAdd = null,
 }) => {
-  const [formData, setFormData] = useState(initialData || INITIAL_FORM_DATA);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedExhibit, setSelectedExhibit] = useState("Exhibit A");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
+  const [formData, setFormData] = useState(initialData || INITIAL_FORM_DATA)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [selectedExhibit, setSelectedExhibit] = useState('Exhibit A')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [validationErrors, setValidationErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
 
   // Determine steps based on mode
-  const STEPS = mode === 'create' ? CREATE_STEPS :
-    mode === 'edit' ? EDIT_STEPS :
-      VIEW_STEPS;
+  const STEPS = mode === 'create' ? CREATE_STEPS : mode === 'edit' ? EDIT_STEPS : VIEW_STEPS
 
-  const STEP_COMPONENTS = mode === 'create' ? CREATE_STEP_COMPONENTS :
-    mode === 'edit' ? EDIT_STEP_COMPONENTS :
-      VIEW_STEP_COMPONENTS;
+  const STEP_COMPONENTS =
+    mode === 'create'
+      ? CREATE_STEP_COMPONENTS
+      : mode === 'edit'
+        ? EDIT_STEP_COMPONENTS
+        : VIEW_STEP_COMPONENTS
 
-  const totalSteps = STEPS.length;
+  const totalSteps = STEPS.length
 
   // Refs for frequently accessed values
-  const formDataRef = useRef(formData);
-  const currentStepRef = useRef(currentStep);
+  const formDataRef = useRef(formData)
+  const currentStepRef = useRef(currentStep)
 
   // Fetch case and applicant data for edit/view modes
   const fetchCaseAndApplicantData = useCallback(async () => {
-    console.log("🔄 Starting data fetch for mode:", mode, "caseId:", caseId);
+    console.log('🔄 Starting data fetch for mode:', mode, 'caseId:', caseId)
 
-    if (!["edit", "view"].includes(mode) || !caseId) {
-      console.log("⏩ Skipping fetch - mode:", mode, "caseId:", caseId, "initialData:", !!initialData);
-      return;
+    if (!['edit', 'view'].includes(mode) || !caseId) {
+      console.log(
+        '⏩ Skipping fetch - mode:',
+        mode,
+        'caseId:',
+        caseId,
+        'initialData:',
+        !!initialData
+      )
+      return
     }
 
-    setIsLoading(true);
-    setFetchError(null);
+    setIsLoading(true)
+    setFetchError(null)
 
     try {
-      console.log("📥 Fetching case data for ID:", caseId);
-      const caseRes = await getCaseById(caseId);
-      console.log("📦 Case API Response:", caseRes);
+      console.log('📥 Fetching case data for ID:', caseId)
+      const caseRes = await getCaseById(caseId)
+      console.log('📦 Case API Response:', caseRes)
 
-      const caseData = caseRes?.data?.data || caseRes?.data || caseRes;
+      const caseData = caseRes?.data?.data || caseRes?.data || caseRes
       if (!caseData || Object.keys(caseData).length === 0) {
-        throw new Error("Case data not found or empty");
+        throw new Error('Case data not found or empty')
       }
 
-      console.log("✅ Case data loaded:", caseData);
+      console.log('✅ Case data loaded:', caseData)
 
-      const client_id = caseData?.client_id || caseData?.data?.client_id;
-      console.log("👤 Client ID:", client_id);
+      const client_id = caseData?.client_id || caseData?.data?.client_id
+      console.log('👤 Client ID:', client_id)
 
-      if (!client_id) throw new Error("Client ID missing from case data");
+      if (!client_id) throw new Error('Client ID missing from case data')
 
-      console.log("📥 Fetching applicant data for client ID:", client_id);
-      const applicantRes = await userApplicant(client_id);
-      console.log("📦 Applicant API Response:", applicantRes);
+      console.log('📥 Fetching applicant data for client ID:', client_id)
+      const applicantRes = await userApplicant(client_id)
+      console.log('📦 Applicant API Response:', applicantRes)
 
-      const applicantData = applicantRes?.data?.data || applicantRes?.data || applicantRes;
+      const applicantData = applicantRes?.data?.data || applicantRes?.data || applicantRes
       if (!applicantData || Object.keys(applicantData).length === 0) {
-        throw new Error("Applicant data not found or empty");
+        throw new Error('Applicant data not found or empty')
       }
 
-      console.log("✅ Applicant data loaded:", applicantData.user);
+      console.log('✅ Applicant data loaded:', applicantData.user)
 
       // Merge the data with proper structure
       const mergedData = {
         ...INITIAL_FORM_DATA,
         ...applicantData.user,
         ...caseData,
-        status: caseData?.status || "Not Started",
+        status: caseData?.status || 'Not Started',
         documents: {
           ...INITIAL_FORM_DATA.documents,
           ...(caseData?.documents || {}),
         },
-      };
+      }
 
-      console.log("🔄 Merged form data:", mergedData);
-      setFormData(mergedData);
-      setFetchError(null);
-
+      console.log('🔄 Merged form data:', mergedData)
+      setFormData(mergedData)
+      setFetchError(null)
     } catch (err) {
-      console.error("❌ Data fetch failed:", err);
-      const msg = err?.message || "Failed to load case or applicant data";
-      setFetchError(msg);
+      console.error('❌ Data fetch failed:', err)
+      const msg = err?.message || 'Failed to load case or applicant data'
+      setFetchError(msg)
       showErrorToast(
-        `Failed to load ${mode === "edit" ? "case for editing" : "case details"}: ${msg}`
-      );
+        `Failed to load ${mode === 'edit' ? 'case for editing' : 'case details'}: ${msg}`
+      )
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [mode, caseId, initialData]);
+  }, [mode, caseId, initialData])
 
   useEffect(() => {
-    console.log("🎯 useEffect triggered - mode:", mode, "caseId:", caseId);
-    fetchCaseAndApplicantData();
-  }, [fetchCaseAndApplicantData]);
+    console.log('🎯 useEffect triggered - mode:', mode, 'caseId:', caseId)
+    fetchCaseAndApplicantData()
+  }, [fetchCaseAndApplicantData])
 
   // Initialize form data when initialData changes
   useEffect(() => {
     if (initialData) {
-      console.log("🔄 Setting initial data:", initialData);
-      setFormData(initialData);
+      console.log('🔄 Setting initial data:', initialData)
+      setFormData(initialData)
     }
-  }, [initialData]);
+  }, [initialData])
 
   // Keep refs updated
   useEffect(() => {
-    formDataRef.current = formData;
-    currentStepRef.current = currentStep;
-  }, [formData, currentStep]);
+    formDataRef.current = formData
+    currentStepRef.current = currentStep
+  }, [formData, currentStep])
 
   // Memoized validation function
-  const validateStep = useCallback((step) => {
-    if (mode === 'view') return true; // Skip validation in view mode
+  const validateStep = useCallback(
+    step => {
+      if (mode === 'view') return true // Skip validation in view mode
 
-    const currentFormData = formDataRef.current;
-    const errors = {};
+      const currentFormData = formDataRef.current
+      const errors = {}
 
-    if (step === 1) {
-      if (!currentFormData.full_name?.trim()) errors.full_name = "Full name is required";
-      if (!currentFormData.date_of_birth) errors.date_of_birth = "Date of birth is required";
-      if (!currentFormData.phone_number?.trim()) errors.phone_number = "Phone number is required";
-      if (!currentFormData.email?.trim()) errors.email = "Email is required";
-      if (!currentFormData.adhar_number?.trim()) errors.adhar_number = "Aadhar number is required";
-    }
-
-    if (step === 2) {
-      if (!currentFormData.deposit_type) errors.deposit_type = "Deposit type is required";
-      if (!currentFormData.saving_account_start_date) errors.saving_account_start_date = "Start date is required";
-    }
-
-    if (step === 4 && mode === 'create') {
-      const missingExhibits = EXHIBITS.filter(
-        exhibit => !currentFormData.documents[exhibit.value] || currentFormData.documents[exhibit.value].length === 0
-      );
-      if (missingExhibits.length > 0) {
-        errors.documents = `Please upload documents for: ${missingExhibits.map(e => e.value).join(", ")}`;
+      if (step === 1) {
+        if (!currentFormData.full_name?.trim()) errors.full_name = 'Full name is required'
+        if (!currentFormData.date_of_birth) errors.date_of_birth = 'Date of birth is required'
+        if (!currentFormData.phone_number?.trim()) errors.phone_number = 'Phone number is required'
+        if (!currentFormData.email?.trim()) errors.email = 'Email is required'
+        if (!currentFormData.adhar_number?.trim()) errors.adhar_number = 'Aadhar number is required'
       }
-    }
 
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [mode]);
+      if (step === 2) {
+        if (!currentFormData.deposit_type) errors.deposit_type = 'Deposit type is required'
+        if (!currentFormData.saving_account_start_date)
+          errors.saving_account_start_date = 'Start date is required'
+      }
+
+      if (step === 4 && mode === 'create') {
+        const missingExhibits = EXHIBITS.filter(
+          exhibit =>
+            !currentFormData.documents[exhibit.value] ||
+            currentFormData.documents[exhibit.value].length === 0
+        )
+        if (missingExhibits.length > 0) {
+          errors.documents = `Please upload documents for: ${missingExhibits.map(e => e.value).join(', ')}`
+        }
+      }
+
+      setValidationErrors(errors)
+      return Object.keys(errors).length === 0
+    },
+    [mode]
+  )
 
   // Optimized input change handler
-  const handleInputChange = useCallback((e) => {
-    if (mode === 'view') return; // Prevent changes in view mode
+  const handleInputChange = useCallback(
+    e => {
+      if (mode === 'view') return // Prevent changes in view mode
 
-    const { name, value } = e.target;
-    console.log("📝 Input change:", name, value);
+      const { name, value } = e.target
+      console.log('📝 Input change:', name, value)
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Debounced validation error clearing
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({
+      setFormData(prev => ({
         ...prev,
-        [name]: ""
-      }));
-    }
-  }, [validationErrors, mode]);
+        [name]: value,
+      }))
+
+      // Debounced validation error clearing
+      if (validationErrors[name]) {
+        setValidationErrors(prev => ({
+          ...prev,
+          [name]: '',
+        }))
+      }
+    },
+    [validationErrors, mode]
+  )
 
   // Optimized documents change handler - now handles specific exhibit
-  const handleDocumentsChange = useCallback((exhibit, updatedFiles) => {
-    if (mode === 'view') return; // Prevent changes in view mode
+  const handleDocumentsChange = useCallback(
+    (exhibit, updatedFiles) => {
+      if (mode === 'view') return // Prevent changes in view mode
 
-    console.log("📁 Documents change for exhibit:", exhibit, "files:", updatedFiles);
+      console.log('📁 Documents change for exhibit:', exhibit, 'files:', updatedFiles)
 
-    setFormData(prev => ({
-      ...prev,
-      documents: {
-        ...prev.documents,
-        [exhibit]: updatedFiles,
-      },
-    }));
-
-    if (validationErrors.documents) {
-      setValidationErrors(prev => ({
+      setFormData(prev => ({
         ...prev,
-        documents: ""
-      }));
-    }
-  }, [validationErrors, mode]);
+        documents: {
+          ...prev.documents,
+          [exhibit]: updatedFiles,
+        },
+      }))
+
+      if (validationErrors.documents) {
+        setValidationErrors(prev => ({
+          ...prev,
+          documents: '',
+        }))
+      }
+    },
+    [validationErrors, mode]
+  )
 
   // Handle save case (for edit mode)
-  const handleSaveCase = useCallback(async (documents = null) => {
-    if (mode !== 'edit') return;
+  const handleSaveCase = useCallback(
+    async (documents = null) => {
+      if (mode !== 'edit') return
 
-    console.log("💾 Saving case...", documents);
-    setIsSubmitting(true);
+      console.log('💾 Saving case...', documents)
+      setIsSubmitting(true)
 
-    try {
-      const currentFormData = formDataRef.current;
+      try {
+        const currentFormData = formDataRef.current
 
-      if (!validateStep(currentStepRef.current)) {
-        showWarningToast("Please fix the validation errors before saving.");
-        return;
-      }
-
-      // Prepare the data for update
-      const updatedFormData = {
-        ...currentFormData,
-        status: "Updated",
-        updated_at: new Date().toISOString()
-      };
-
-      // If documents are passed from DocumentUploader, merge them
-      if (documents) {
-        updatedFormData.documents = {
-          ...updatedFormData.documents,
-          [selectedExhibit]: documents
-        };
-      }
-
-      console.log("📤 Updating case with data:", updatedFormData);
-
-      // Call the update service
-      const response = await updateApplicationData(caseId, updatedFormData);
-
-      console.log("////////////", response);
-
-      // FIXED: Check the correct response structure
-      if (response.data && response.data.data && response.data.data.success) {
-        // Update local state with the response data
-        const updatedCaseData = response.data.data || updatedFormData;
-        setFormData(updatedCaseData);
-
-        console.log("✅ Case updated successfully:", updatedCaseData);
-        showSuccessToast("✅ Case updated successfully!");
-
-        // Call the onSave callback with updated data
-        if (onSave) {
-          onSave(updatedCaseData);
+        if (!validateStep(currentStepRef.current)) {
+          showWarningToast('Please fix the validation errors before saving.')
+          return
         }
-      } else {
-        throw new Error(response.data?.error || "Failed to update case");
-      }
 
-    } catch (error) {
-      console.error("❌ Error saving case:", error);
-      const errorMessage = error?.response?.data?.error || error?.message || "Failed to update case. Please try again.";
-      showErrorToast(`❌ ${errorMessage}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [mode, caseId, validateStep, onSave, selectedExhibit]);
+        // Prepare the data for update
+        const updatedFormData = {
+          ...currentFormData,
+          status: 'Updated',
+          updated_at: new Date().toISOString(),
+        }
+
+        // If documents are passed from DocumentUploader, merge them
+        if (documents) {
+          updatedFormData.documents = {
+            ...updatedFormData.documents,
+            [selectedExhibit]: documents,
+          }
+        }
+
+        console.log('📤 Updating case with data:', updatedFormData)
+
+        // Call the update service
+        const response = await updateApplicationData(caseId, updatedFormData)
+
+        console.log('////////////', response)
+
+        // FIXED: Check the correct response structure
+        if (response.data && response.data.data && response.data.data.success) {
+          // Update local state with the response data
+          const updatedCaseData = response.data.data || updatedFormData
+          setFormData(updatedCaseData)
+
+          console.log('✅ Case updated successfully:', updatedCaseData)
+          showSuccessToast('✅ Case updated successfully!')
+
+          // Call the onSave callback with updated data
+          if (onSave) {
+            onSave(updatedCaseData)
+          }
+        } else {
+          throw new Error(response.data?.error || 'Failed to update case')
+        }
+      } catch (error) {
+        console.error('❌ Error saving case:', error)
+        const errorMessage =
+          error?.response?.data?.error ||
+          error?.message ||
+          'Failed to update case. Please try again.'
+        showErrorToast(`❌ ${errorMessage}`)
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [mode, caseId, validateStep, onSave, selectedExhibit]
+  )
 
   // Optimized navigation handlers
   const goToNextStep = useCallback(() => {
-    console.log("➡️ Next step clicked - current:", currentStep, "mode:", mode);
+    console.log('➡️ Next step clicked - current:', currentStep, 'mode:', mode)
 
     if (mode === 'view') {
-      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-      return;
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps))
+      return
     }
 
-    const step = currentStepRef.current;
+    const step = currentStepRef.current
     if (!validateStep(step)) {
-      showWarningToast("Please fix the validation errors before proceeding.");
-      return;
+      showWarningToast('Please fix the validation errors before proceeding.')
+      return
     }
 
     const statusUpdates = {
-      1: "Basic Info Completed",
-      2: "Case Details Completed",
-      3: "Case Reviewed",
-      4: mode === 'create' ? "Documents Uploaded" : "Case Updated"
-    };
+      1: 'Basic Info Completed',
+      2: 'Case Details Completed',
+      3: 'Case Reviewed',
+      4: mode === 'create' ? 'Documents Uploaded' : 'Case Updated',
+    }
 
     if (statusUpdates[step]) {
       setFormData(prev => ({
         ...prev,
-        status: statusUpdates[step]
-      }));
+        status: statusUpdates[step],
+      }))
     }
 
     // If this is the last step in edit mode, save and exit
     if (mode === 'edit' && step === totalSteps) {
-      handleSaveCase();
-      return;
+      handleSaveCase()
+      return
     }
 
-    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-  }, [validateStep, mode, totalSteps, handleSaveCase, currentStep]);
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps))
+  }, [validateStep, mode, totalSteps, handleSaveCase, currentStep])
 
   const goToPrevStep = useCallback(() => {
-    console.log("⬅️ Previous step clicked - current:", currentStep, "mode:", mode);
+    console.log('⬅️ Previous step clicked - current:', currentStep, 'mode:', mode)
 
     if (mode === 'view') {
-      setCurrentStep(prev => Math.max(prev - 1, 1));
-      return;
+      setCurrentStep(prev => Math.max(prev - 1, 1))
+      return
     }
 
-    const step = currentStepRef.current;
+    const step = currentStepRef.current
     const statusUpdates = {
-      2: "Not Started",
-      3: "Basic Info Completed",
-      4: "Case Details Completed",
-      5: "Documents Uploaded"
-    };
+      2: 'Not Started',
+      3: 'Basic Info Completed',
+      4: 'Case Details Completed',
+      5: 'Documents Uploaded',
+    }
 
     if (statusUpdates[step]) {
       setFormData(prev => ({
         ...prev,
-        status: statusUpdates[step]
-      }));
+        status: statusUpdates[step],
+      }))
     }
 
-    setCurrentStep(prev => Math.max(prev - 1, 1));
-  }, [mode, currentStep]);
+    setCurrentStep(prev => Math.max(prev - 1, 1))
+  }, [mode, currentStep])
 
   // Handle custom back action (goes to cases table)
   const handleBackToCases = useCallback(() => {
-    console.log("🔙 Back to cases action - onBack provided:", !!onBack);
+    console.log('🔙 Back to cases action - onBack provided:', !!onBack)
     if (onBack) {
-      onBack();
+      onBack()
     }
-  }, [onBack]);
+  }, [onBack])
 
   // Handle step back action (goes to previous step)
   const handleStepBack = useCallback(() => {
-    console.log("🔙 Step back action - current step:", currentStep);
-    goToPrevStep();
-  }, [goToPrevStep, currentStep]);
+    console.log('🔙 Step back action - current step:', currentStep)
+    goToPrevStep()
+  }, [goToPrevStep, currentStep])
 
   // Optimized payment success handler (only for create mode)
-  const handlePaymentSuccess = useCallback(async (paymentResponse) => {
-    if (mode !== 'create') return;
+  const handlePaymentSuccess = useCallback(
+    async paymentResponse => {
+      if (mode !== 'create') return
 
-    console.log("💳 Payment success:", paymentResponse);
-    setIsSubmitting(true);
-    try {
-      const currentFormData = formDataRef.current;
-      const updatedFormData = {
-        ...currentFormData,
-        ...paymentResponse,
-        status: "Paid",
-        submitted_at: new Date().toISOString()
-      };
+      console.log('💳 Payment success:', paymentResponse)
+      setIsSubmitting(true)
+      try {
+        const currentFormData = formDataRef.current
+        const updatedFormData = {
+          ...currentFormData,
+          ...paymentResponse,
+          status: 'Paid',
+          submitted_at: new Date().toISOString(),
+        }
 
-      setFormData(updatedFormData);
+        setFormData(updatedFormData)
 
-      let response;
-      if (mode === 'edit' && caseId) {
-        // Update existing case
-        response = await updateApplicationData(caseId, updatedFormData);
-      } else {
-        // Create new case
-        response = await saveApplicationData(updatedFormData);
+        let response
+        if (mode === 'edit' && caseId) {
+          // Update existing case
+          response = await updateApplicationData(caseId, updatedFormData)
+        } else {
+          // Create new case
+          response = await saveApplicationData(updatedFormData)
+        }
+
+        if (!response.data.data?.success) {
+          throw new Error('Failed to save application data')
+        }
+
+        const { user, case: savedCase, payment: savedPayment } = response.data.data
+
+        showSuccessToast(
+          `✅ ${mode === 'edit' ? 'Case updated' : 'Application submitted'} successfully!\n` +
+            `Name: ${user.full_name}\n` +
+            `Case ID: ${savedCase.id}\n` +
+            `Payment: ${savedPayment.amount} (${savedPayment.status})`
+        )
+
+        // Call onSave or onAdd callback if provided
+        if (onSave) {
+          onSave(savedCase)
+        } else if (onAdd) {
+          onAdd(savedCase)
+        } else {
+          resetForm()
+        }
+      } catch (error) {
+        console.error('❌ Payment success handling error:', error)
+        showErrorToast(
+          `❌ Failed to ${mode === 'edit' ? 'update case' : 'process application'}. Please contact support.`
+        )
+      } finally {
+        setIsSubmitting(false)
       }
-
-      if (!response.data.data?.success) {
-        throw new Error("Failed to save application data");
-      }
-
-      const { user, case: savedCase, payment: savedPayment } = response.data.data;
-
-      showSuccessToast(
-        `✅ ${mode === 'edit' ? 'Case updated' : 'Application submitted'} successfully!\n` +
-        `Name: ${user.full_name}\n` +
-        `Case ID: ${savedCase.id}\n` +
-        `Payment: ${savedPayment.amount} (${savedPayment.status})`
-      );
-
-      // Call onSave or onAdd callback if provided
-      if (onSave) {
-        onSave(savedCase);
-      } else if (onAdd) {
-        onAdd(savedCase);
-      } else {
-        resetForm();
-      }
-
-    } catch (error) {
-      console.error("❌ Payment success handling error:", error);
-      showErrorToast(`❌ Failed to ${mode === 'edit' ? 'update case' : 'process application'}. Please contact support.`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [mode, caseId, onSave, onAdd]);
+    },
+    [mode, caseId, onSave, onAdd]
+  )
 
   // Optimized reset function
   const resetForm = useCallback(() => {
-    console.log("🔄 Resetting form");
-    setFormData(INITIAL_FORM_DATA);
-    setSelectedExhibit("Exhibit A");
-    setCurrentStep(1);
-    setValidationErrors({});
-  }, []);
+    console.log('🔄 Resetting form')
+    setFormData(INITIAL_FORM_DATA)
+    setSelectedExhibit('Exhibit A')
+    setCurrentStep(1)
+    setValidationErrors({})
+  }, [])
 
   // Fast component lookup using object map
   const stepContent = useMemo(() => {
-    console.log("🔄 Rendering step content - currentStep:", currentStep, "isLoading:", isLoading, "fetchError:", fetchError);
+    console.log(
+      '🔄 Rendering step content - currentStep:',
+      currentStep,
+      'isLoading:',
+      isLoading,
+      'fetchError:',
+      fetchError
+    )
 
     if (isLoading) {
       return (
@@ -824,7 +864,7 @@ const Application = ({
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
           <span className="ml-3 text-gray-600">Loading case data...</span>
         </div>
-      );
+      )
     }
 
     if (fetchError && !formData.full_name && mode !== 'create') {
@@ -840,13 +880,13 @@ const Application = ({
             Try Again
           </button>
         </div>
-      );
+      )
     }
 
-    const StepComponent = STEP_COMPONENTS[currentStep];
+    const StepComponent = STEP_COMPONENTS[currentStep]
     if (!StepComponent) {
-      console.error("❌ No component found for step:", currentStep);
-      return null;
+      console.error('❌ No component found for step:', currentStep)
+      return null
     }
 
     const stepProps = {
@@ -858,7 +898,7 @@ const Application = ({
         errors: validationErrors,
         mode,
         isLoading: mode !== 'create' && isLoading,
-        isLastStep: currentStep === totalSteps
+        isLastStep: currentStep === totalSteps,
       },
       2: {
         formData,
@@ -868,7 +908,7 @@ const Application = ({
         errors: validationErrors,
         mode,
         isLoading: mode !== 'create' && isLoading,
-        isLastStep: currentStep === totalSteps
+        isLastStep: currentStep === totalSteps,
       },
       3: {
         formData,
@@ -878,7 +918,7 @@ const Application = ({
         onSave: undefined,
         mode,
         isLoading: mode !== 'create' && isLoading,
-        isLastStep: currentStep === totalSteps
+        isLastStep: currentStep === totalSteps,
       },
       4: {
         selectedExhibit,
@@ -891,7 +931,7 @@ const Application = ({
         mode,
         isLoading: mode !== 'create' && isLoading,
         isSubmitting: isSubmitting,
-        isLastStep: currentStep === totalSteps
+        isLastStep: currentStep === totalSteps,
       },
       5: {
         amount: 500,
@@ -900,12 +940,17 @@ const Application = ({
         onSave: mode === 'edit' ? handleSaveCase : undefined,
         isSubmitting,
         mode,
-        isLastStep: currentStep === totalSteps
-      }
-    };
+        isLastStep: currentStep === totalSteps,
+      },
+    }
 
-    console.log("🎨 Creating component for step:", currentStep, "with props:", Object.keys(stepProps[currentStep]));
-    return React.createElement(StepComponent, stepProps[currentStep]);
+    console.log(
+      '🎨 Creating component for step:',
+      currentStep,
+      'with props:',
+      Object.keys(stepProps[currentStep])
+    )
+    return React.createElement(StepComponent, stepProps[currentStep])
   }, [
     currentStep,
     formData,
@@ -923,12 +968,19 @@ const Application = ({
     handleSaveCase,
     STEP_COMPONENTS,
     fetchCaseAndApplicantData,
-    totalSteps
-  ]);
+    totalSteps,
+  ])
 
   // Render action buttons based on mode and current step
   const renderActionButtons = useCallback(() => {
-    console.log("🎯 Rendering action buttons - mode:", mode, "currentStep:", currentStep, "totalSteps:", totalSteps);
+    console.log(
+      '🎯 Rendering action buttons - mode:',
+      mode,
+      'currentStep:',
+      currentStep,
+      'totalSteps:',
+      totalSteps
+    )
 
     // View Mode - Hide Next button in last step
     if (mode === 'view') {
@@ -945,7 +997,7 @@ const Application = ({
             Step {currentStep} of {totalSteps} - View Mode
           </div>
         </div>
-      );
+      )
     }
 
     // Create Mode - Show normal navigation
@@ -967,21 +1019,28 @@ const Application = ({
           Step {currentStep} of {totalSteps}
         </div>
       </div>
-    );
-  }, [mode, currentStep, totalSteps, handleBackToCases]);
+    )
+  }, [mode, currentStep, totalSteps, handleBackToCases])
 
   // Determine container classes based on mode
   const containerClasses = useMemo(() => {
-    const baseClasses = "min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 py-8";
+    const baseClasses = 'min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 py-8'
 
     if (mode === 'view' || mode === 'edit') {
-      return `${baseClasses} px-4 md:px-8 lg:px-16 xl:px-24`;
+      return `${baseClasses} px-4 md:px-8 lg:px-16 xl:px-24`
     }
 
-    return `${baseClasses} px-4`;
-  }, [mode]);
+    return `${baseClasses} px-4`
+  }, [mode])
 
-  console.log("🎬 Rendering Application component - mode:", mode, "currentStep:", currentStep, "formData loaded:", !!formData.full_name);
+  console.log(
+    '🎬 Rendering Application component - mode:',
+    mode,
+    'currentStep:',
+    currentStep,
+    'formData loaded:',
+    !!formData.full_name
+  )
 
   return (
     <div className={containerClasses}>
@@ -989,15 +1048,18 @@ const Application = ({
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-green-800 mb-2">
-            {mode === 'edit' ? 'Edit Case' : mode === 'view' ? 'View Case' : 'Legal Case Application'}
+            {mode === 'edit'
+              ? 'Edit Case'
+              : mode === 'view'
+                ? 'View Case'
+                : 'Legal Case Application'}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {mode === 'view'
               ? 'View case details and documents. This is a read-only view.'
               : mode === 'edit'
                 ? 'Update case information and documents.'
-                : 'Complete your application in 5 simple steps. Ensure all information is accurate and documents are properly uploaded.'
-            }
+                : 'Complete your application in 5 simple steps. Ensure all information is accurate and documents are properly uploaded.'}
           </p>
         </div>
 
@@ -1016,18 +1078,19 @@ const Application = ({
           <div className="bg-gray-50 border-t px-6 py-4">
             <div className="flex justify-between items-center text-sm">
               <div className="text-gray-600">
-                <span className="font-medium">Current Status:</span>{" "}
-                <span className={`font-semibold ${formData.status === "Paid" ? "text-green-600" :
-                  formData.status === "Not Started" ? "text-red-600" :
-                    "text-blue-600"
-                  }`}>
+                <span className="font-medium">Current Status:</span>{' '}
+                <span
+                  className={`font-semibold ${
+                    formData.status === 'Paid'
+                      ? 'text-green-600'
+                      : formData.status === 'Not Started'
+                        ? 'text-red-600'
+                        : 'text-blue-600'
+                  }`}
+                >
                   {formData.status}
                 </span>
-                {caseId && (
-                  <span className="ml-4 text-gray-500">
-                    Case ID: {caseId}
-                  </span>
-                )}
+                {caseId && <span className="ml-4 text-gray-500">Case ID: {caseId}</span>}
               </div>
 
               {currentStep > 1 && currentStep < totalSteps && mode === 'create' && (
@@ -1045,7 +1108,7 @@ const Application = ({
 
       <Toast />
     </div>
-  );
-};
+  )
+}
 
-export default Application;
+export default Application

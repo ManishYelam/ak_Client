@@ -1,12 +1,8 @@
-import React from "react";
+import React from 'react'
 
 const ApplicationForm = ({ formData, handleInputChange, handleSubmit }) => {
   return (
-    <form
-      className="flex flex-col gap-2"
-      onSubmit={handleSubmit}
-      noValidate
-    >
+    <form className="flex flex-col gap-2" onSubmit={handleSubmit} noValidate>
       {/* Header and Save button */}
       <div className="flex justify-between items-center w-full">
         <h4 className="text-[8px] font-semibold text-gray-800">Application Form</h4>
@@ -80,7 +76,7 @@ const ApplicationForm = ({ formData, handleInputChange, handleSubmit }) => {
         />
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default ApplicationForm;
+export default ApplicationForm

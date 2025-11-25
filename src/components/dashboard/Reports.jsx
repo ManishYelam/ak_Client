@@ -7,41 +7,41 @@ const Reports = () => {
 
   const reportData = {
     overview: {
-      title: "Platform Overview",
-      description: "Key metrics and performance indicators",
+      title: 'Platform Overview',
+      description: 'Key metrics and performance indicators',
       metrics: [
-        { label: "Total Revenue", value: "$125,430", change: "+12.5%", trend: "up" },
-        { label: "New Students", value: "1,234", change: "+8.2%", trend: "up" },
-        { label: "Course Completions", value: "845", change: "+15.3%", trend: "up" },
-        { label: "Avg. Rating", value: "4.8/5", change: "+0.2", trend: "up" }
+        { label: 'Total Revenue', value: '$125,430', change: '+12.5%', trend: 'up' },
+        { label: 'New Students', value: '1,234', change: '+8.2%', trend: 'up' },
+        { label: 'Course Completions', value: '845', change: '+15.3%', trend: 'up' },
+        { label: 'Avg. Rating', value: '4.8/5', change: '+0.2', trend: 'up' },
       ],
       charts: [
-        { title: "Revenue Trend", type: "line" },
-        { title: "Student Growth", type: "bar" },
-        { title: "Course Performance", type: "bar" },
-        { title: "Geographic Distribution", type: "map" }
-      ]
+        { title: 'Revenue Trend', type: 'line' },
+        { title: 'Student Growth', type: 'bar' },
+        { title: 'Course Performance', type: 'bar' },
+        { title: 'Geographic Distribution', type: 'map' },
+      ],
     },
     financial: {
-      title: "Financial Reports",
-      description: "Revenue, payments, and financial analytics",
+      title: 'Financial Reports',
+      description: 'Revenue, payments, and financial analytics',
       metrics: [
-        { label: "Total Revenue", value: "$125,430", change: "+12.5%", trend: "up" },
-        { label: "Recurring Revenue", value: "$89,120", change: "+18.7%", trend: "up" },
-        { label: "Refunds", value: "$2,340", change: "-5.2%", trend: "down" },
-        { label: "Avg. Revenue per Student", value: "$102.50", change: "+3.1%", trend: "up" }
-      ]
+        { label: 'Total Revenue', value: '$125,430', change: '+12.5%', trend: 'up' },
+        { label: 'Recurring Revenue', value: '$89,120', change: '+18.7%', trend: 'up' },
+        { label: 'Refunds', value: '$2,340', change: '-5.2%', trend: 'down' },
+        { label: 'Avg. Revenue per Student', value: '$102.50', change: '+3.1%', trend: 'up' },
+      ],
     },
     students: {
-      title: "Student Analytics",
-      description: "Student behavior and engagement metrics",
+      title: 'Student Analytics',
+      description: 'Student behavior and engagement metrics',
       metrics: [
-        { label: "Active Students", value: "3,456", change: "+5.7%", trend: "up" },
-        { label: "Completion Rate", value: "68%", change: "+4.2%", trend: "up" },
-        { label: "Avg. Study Time", value: "4.2h/week", change: "+0.3h", trend: "up" },
-        { label: "Satisfaction Score", value: "92%", change: "+2.1%", trend: "up" }
-      ]
-    }
+        { label: 'Active Students', value: '3,456', change: '+5.7%', trend: 'up' },
+        { label: 'Completion Rate', value: '68%', change: '+4.2%', trend: 'up' },
+        { label: 'Avg. Study Time', value: '4.2h/week', change: '+0.3h', trend: 'up' },
+        { label: 'Satisfaction Score', value: '92%', change: '+2.1%', trend: 'up' },
+      ],
+    },
   }
 
   const reports = [
@@ -50,7 +50,7 @@ const Reports = () => {
     { id: 'students', name: 'Students', icon: '👥' },
     { id: 'courses', name: 'Courses', icon: '📚' },
     { id: 'engagement', name: 'Engagement', icon: '🎯' },
-    { id: 'technical', name: 'Technical', icon: '⚙️' }
+    { id: 'technical', name: 'Technical', icon: '⚙️' },
   ]
 
   const currentReport = reportData[activeReport]
@@ -66,7 +66,7 @@ const Reports = () => {
         <div className="flex space-x-3 mt-4 lg:mt-0">
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
+            onChange={e => setDateRange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="7days">Last 7 days</option>
@@ -108,7 +108,7 @@ const Reports = () => {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
             <h2 className="text-xl font-semibold text-gray-900">{currentReport.title}</h2>
             <p className="text-gray-600 mt-1">{currentReport.description}</p>
-            
+
             <div className="flex items-center space-x-4 mt-4 text-sm">
               <span className="text-gray-600">Date range:</span>
               <span className="font-medium text-gray-900">
@@ -126,18 +126,23 @@ const Reports = () => {
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {currentReport.metrics.map((metric, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+              >
                 <p className="text-sm font-medium text-gray-600 mb-2">{metric.label}</p>
                 <div className="flex items-baseline justify-between">
                   <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-                  <span className={`text-sm font-medium ${
-                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
                     {metric.change}
                   </span>
                 </div>
                 <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${
                       metric.trend === 'up' ? 'bg-green-500' : 'bg-red-500'
                     }`}
@@ -152,7 +157,10 @@ const Reports = () => {
           {currentReport.charts && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {currentReport.charts.map((chart, index) => (
-                <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                >
                   <h3 className="font-semibold text-gray-900 mb-4">{chart.title}</h3>
                   <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
                     <div className="text-center text-gray-500">
@@ -209,7 +217,7 @@ const Reports = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div 
+                          <div
                             className="bg-green-500 h-2 rounded-full"
                             style={{ width: `${Math.floor(Math.random() * 100)}%` }}
                           />

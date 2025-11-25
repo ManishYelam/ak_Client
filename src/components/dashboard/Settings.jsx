@@ -3,22 +3,12 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import {
-  Eye,
-  EyeOff,
-  Lock,
-  Shield,
-  CheckCircle,
-  XCircle,
-  X
-} from 'lucide-react'
+import { Eye, EyeOff, Lock, Shield, CheckCircle, XCircle, X } from 'lucide-react'
 import { authAPI } from '../../services/api'
 
 // Password change validation schema
 const changePasswordSchema = yup.object({
-  old_password: yup
-    .string()
-    .required('Current password is required'),
+  old_password: yup.string().required('Current password is required'),
   new_password: yup
     .string()
     .required('New password is required')
@@ -30,16 +20,32 @@ const changePasswordSchema = yup.object({
   confirm_password: yup
     .string()
     .required('Please confirm your password')
-    .oneOf([yup.ref('new_password')], 'Passwords must match')
+    .oneOf([yup.ref('new_password')], 'Passwords must match'),
 })
 
 // Modal Component
-const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, register, watch, showOldPassword, setShowOldPassword, showNewPassword, setShowNewPassword, showConfirmPassword, setShowConfirmPassword, success, error }) => {
+const ChangePasswordModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+  errors,
+  register,
+  watch,
+  showOldPassword,
+  setShowOldPassword,
+  showNewPassword,
+  setShowNewPassword,
+  showConfirmPassword,
+  setShowConfirmPassword,
+  success,
+  error,
+}) => {
   const newPasswordValue = watch('new_password')
   const confirmPasswordValue = watch('confirm_password')
 
   // Password strength indicator
-  const getPasswordStrength = (password) => {
+  const getPasswordStrength = password => {
     if (!password) return { strength: 0, text: '', color: '' }
 
     let strength = 0
@@ -54,7 +60,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
       2: { text: 'Weak', color: 'bg-orange-500' },
       3: { text: 'Fair', color: 'bg-yellow-500' },
       4: { text: 'Good', color: 'bg-blue-500' },
-      5: { text: 'Strong', color: 'bg-green-500' }
+      5: { text: 'Strong', color: 'bg-green-500' },
     }
 
     return { strength, ...strengthMap[strength] }
@@ -117,9 +123,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                 <div className="flex items-start">
                   <XCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-red-700 font-medium mb-1">
-                      Password Change Failed
-                    </p>
+                    <p className="text-red-700 font-medium mb-1">Password Change Failed</p>
                     <p className="text-red-600 text-sm">{error}</p>
                   </div>
                 </div>
@@ -137,8 +141,9 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                   <input
                     {...register('old_password')}
                     type={showOldPassword ? 'text' : 'password'}
-                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.old_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      errors.old_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Enter current password"
                     disabled={isSubmitting}
                   />
@@ -148,11 +153,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                     disabled={isSubmitting}
                   >
-                    {showOldPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.old_password && (
@@ -164,16 +165,15 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
 
               {/* New Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     {...register('new_password')}
                     type={showNewPassword ? 'text' : 'password'}
-                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.new_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      errors.new_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Enter new password"
                     disabled={isSubmitting}
                   />
@@ -183,11 +183,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                     disabled={isSubmitting}
                   >
-                    {showNewPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
@@ -202,8 +198,9 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1.5">
                       <div
-                        className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color
-                          }`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          passwordStrength.color
+                        }`}
                         style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
                       />
                     </div>
@@ -227,8 +224,9 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                   <input
                     {...register('confirm_password')}
                     type={showConfirmPassword ? 'text' : 'password'}
-                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${errors.confirm_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full pl-10 pr-10 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      errors.confirm_password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Confirm new password"
                     disabled={isSubmitting}
                   />
@@ -253,9 +251,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
 
                 {/* Password Match Indicator */}
                 {confirmPasswordValue && newPasswordValue === confirmPasswordValue && (
-                  <p className="mt-1 text-xs text-green-600 animate-fade-in">
-                    ✓ Passwords match
-                  </p>
+                  <p className="mt-1 text-xs text-green-600 animate-fade-in">✓ Passwords match</p>
                 )}
               </div>
 
@@ -272,10 +268,11 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isSubmitting, errors, 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`flex-1 py-3 px-4 bg-primary-600 text-white rounded-lg font-semibold shadow-sm hover:shadow transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${isSubmitting
+                  className={`flex-1 py-3 px-4 bg-primary-600 text-white rounded-lg font-semibold shadow-sm hover:shadow transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    isSubmitting
                       ? 'opacity-70 cursor-not-allowed'
                       : 'hover:bg-primary-700 hover:-translate-y-0.5'
-                    }`}
+                  }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -315,17 +312,17 @@ const Settings = () => {
     handleSubmit: handleSubmitPassword,
     formState: { errors: passwordErrors },
     watch: watchPassword,
-    reset: resetPasswordForm
+    reset: resetPasswordForm,
   } = useForm({
     resolver: yupResolver(changePasswordSchema),
     defaultValues: {
       old_password: '',
       new_password: '',
-      confirm_password: ''
-    }
+      confirm_password: '',
+    },
   })
 
-  const handleChangePassword = async (data) => {
+  const handleChangePassword = async data => {
     setIsChangingPassword(true)
     setPasswordChangeError('')
     setPasswordChangeSuccess(false)
@@ -333,12 +330,12 @@ const Settings = () => {
     try {
       console.log('Changing password with data:', {
         old_password: data.old_password,
-        new_password: data.new_password
+        new_password: data.new_password,
       })
 
       const response = await authAPI.changePassword({
         old_password: data.old_password,
-        new_password: data.new_password
+        new_password: data.new_password,
       })
 
       console.log('Change password response:', response)
@@ -361,13 +358,16 @@ const Settings = () => {
       let errorMessage = 'Failed to change password. Please try again.'
 
       if (error.response) {
-        errorMessage = error.response.data?.message ||
+        errorMessage =
+          error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
           `Server error: ${error.response.status}`
 
         if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || 'Invalid current password or new password does not meet requirements.'
+          errorMessage =
+            error.response.data?.message ||
+            'Invalid current password or new password does not meet requirements.'
         } else if (error.response.status === 401) {
           errorMessage = 'Current password is incorrect.'
         } else if (error.response.status === 429) {
@@ -399,9 +399,7 @@ const Settings = () => {
     }
   }
 
-  const tabs = [
-    { id: 'security', name: 'Security', icon: '🔒' }
-  ]
+  const tabs = [{ id: 'security', name: 'Security', icon: '🔒' }]
 
   return (
     <div className="space-y-6">
@@ -417,10 +415,11 @@ const Settings = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${activeTab === tab.id
+                className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  activeTab === tab.id
                     ? 'bg-primary-50 text-primary-700 border-l-4 border-primary-500'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                }`}
               >
                 <span className="text-lg">{tab.icon}</span>
                 <span>{tab.name}</span>

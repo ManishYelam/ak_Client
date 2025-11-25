@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import {
   Eye,
   EyeOff,
@@ -12,16 +12,13 @@ import {
   XCircle,
   ArrowLeft,
   User,
-  Mail
-} from 'lucide-react';
-import { authAPI } from '../../services/api';
+  Mail,
+} from 'lucide-react'
+import { authAPI } from '../../services/api'
 
 // Validation schema for set password
 const setPasswordSchema = yup.object({
-  otp: yup
-    .string()
-    .required('OTP is required')
-    .min(6, 'OTP must be at least 6 characters'),
+  otp: yup.string().required('OTP is required').min(6, 'OTP must be at least 6 characters'),
   new_password: yup
     .string()
     .required('New password is required')
@@ -33,198 +30,201 @@ const setPasswordSchema = yup.object({
   confirm_password: yup
     .string()
     .required('Please confirm your password')
-    .oneOf([yup.ref('new_password')], 'Passwords must match')
-});
+    .oneOf([yup.ref('new_password')], 'Passwords must match'),
+})
 
 const SetPassword = () => {
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const [error, setError] = useState('');
-  const [resendError, setResendError] = useState('');
-  const { email } = useParams();
-  const navigate = useNavigate();
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [resendError, setResendError] = useState('')
+  const { email } = useParams()
+  const navigate = useNavigate()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
   } = useForm({
     resolver: yupResolver(setPasswordSchema),
     defaultValues: {
       otp: '',
       new_password: '',
-      confirm_password: ''
-    }
-  });
+      confirm_password: '',
+    },
+  })
 
   // Redirect if no email parameter
   useEffect(() => {
     if (!email) {
-      navigate('/forgot-password', { 
+      navigate('/forgot-password', {
         replace: true,
-        state: { error: 'Invalid reset link. Please request a new password reset.' }
-      });
+        state: { error: 'Invalid reset link. Please request a new password reset.' },
+      })
     }
-  }, [email, navigate]);
+  }, [email, navigate])
 
-  const onSubmit = async (data) => {
-    setIsLoading(true);
-    setError('');
+  const onSubmit = async data => {
+    setIsLoading(true)
+    setError('')
 
     try {
-      console.log('Setting new password for email:', email);
-      console.log('OTP:', data.otp);
-      
+      console.log('Setting new password for email:', email)
+      console.log('OTP:', data.otp)
+
       // Call the OTP change password service
       const response = await authAPI.otpChangePasswordService(email, {
         otp: data.otp,
-        new_password: data.new_password
-      });
+        new_password: data.new_password,
+      })
 
-      console.log('Set password response:', response);
+      console.log('Set password response:', response)
 
       if (response.status === 200 || response.status === 201 || response.data) {
-        setSuccess(true);
-        
+        setSuccess(true)
+
         // Redirect to login after 3 seconds
         setTimeout(() => {
           navigate('/login', {
             replace: true,
-            state: { 
-              message: 'Password reset successfully! Please login with your new password.' 
-            }
-          });
-        }, 3000);
+            state: {
+              message: 'Password reset successfully! Please login with your new password.',
+            },
+          })
+        }, 3000)
       } else {
-        throw new Error('Failed to reset password');
+        throw new Error('Failed to reset password')
       }
     } catch (error) {
-      console.error('Set password error:', error);
-      
-      let errorMessage = 'Failed to reset password. Please try again.';
-      
+      console.error('Set password error:', error)
+
+      let errorMessage = 'Failed to reset password. Please try again.'
+
       if (error.response) {
-        errorMessage = error.response.data?.message ||
+        errorMessage =
+          error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          `Server error: ${error.response.status}`;
-          
+          `Server error: ${error.response.status}`
+
         if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || 'Invalid OTP or password requirements not met.';
+          errorMessage =
+            error.response.data?.message || 'Invalid OTP or password requirements not met.'
         } else if (error.response.status === 404) {
-          errorMessage = 'Invalid reset link. Please request a new password reset.';
+          errorMessage = 'Invalid reset link. Please request a new password reset.'
         } else if (error.response.status === 410) {
-          errorMessage = 'Reset link has expired. Please request a new password reset.';
+          errorMessage = 'Reset link has expired. Please request a new password reset.'
         }
       } else if (error.request) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+        errorMessage = 'Network error. Please check your connection and try again.'
       }
-      
-      setError(errorMessage);
+
+      setError(errorMessage)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Function to resend reset link using forgetPassword service
   const handleResendResetLink = async () => {
-    setIsResending(true);
-    setResendError('');
-    setResendSuccess(false);
+    setIsResending(true)
+    setResendError('')
+    setResendSuccess(false)
 
     try {
-      console.log('Resending reset link for email:', email);
-      
-      // Use the forgetPassword service to resend the reset link
-      const response = await authAPI.forgetPassword(email);
+      console.log('Resending reset link for email:', email)
 
-      console.log('Resend reset link response:', response);
+      // Use the forgetPassword service to resend the reset link
+      const response = await authAPI.forgetPassword(email)
+
+      console.log('Resend reset link response:', response)
 
       if (response.status === 200 || response.status === 201 || response.data) {
-        setResendSuccess(true);
-        
+        setResendSuccess(true)
+
         // Auto hide success message after 5 seconds
         setTimeout(() => {
-          setResendSuccess(false);
-        }, 5000);
+          setResendSuccess(false)
+        }, 5000)
       } else {
-        throw new Error('Failed to send reset link');
+        throw new Error('Failed to send reset link')
       }
     } catch (error) {
-      console.error('Resend reset link error:', error);
-      
-      let errorMessage = 'Failed to send reset link. Please try again.';
-      
+      console.error('Resend reset link error:', error)
+
+      let errorMessage = 'Failed to send reset link. Please try again.'
+
       if (error.response) {
-        errorMessage = error.response.data?.message ||
+        errorMessage =
+          error.response.data?.message ||
           error.response.data?.error ||
           error.response.data?.detail ||
-          `Server error: ${error.response.status}`;
-          
+          `Server error: ${error.response.status}`
+
         if (error.response.status === 404) {
-          errorMessage = 'No account found with this email address.';
+          errorMessage = 'No account found with this email address.'
         } else if (error.response.status === 429) {
-          errorMessage = 'Too many attempts. Please try again later.';
+          errorMessage = 'Too many attempts. Please try again later.'
         } else if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || 'Invalid email address.';
+          errorMessage = error.response.data?.message || 'Invalid email address.'
         }
       } else if (error.request) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+        errorMessage = 'Network error. Please check your connection and try again.'
       }
-      
-      setResendError(errorMessage);
+
+      setResendError(errorMessage)
     } finally {
-      setIsResending(false);
+      setIsResending(false)
     }
-  };
+  }
 
   const toggleNewPasswordVisibility = () => {
-    setShowNewPassword(!showNewPassword);
-  };
+    setShowNewPassword(!showNewPassword)
+  }
 
   const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+    setShowConfirmPassword(!showConfirmPassword)
+  }
 
   const handleBackToLogin = () => {
-    navigate('/login', { replace: true });
-  };
+    navigate('/login', { replace: true })
+  }
 
-  const newPassword = watch('new_password');
-  const confirmPassword = watch('confirm_password');
+  const newPassword = watch('new_password')
+  const confirmPassword = watch('confirm_password')
 
   // Password strength indicator
-  const getPasswordStrength = (password) => {
-    if (!password) return { strength: 0, text: '', color: '' };
-    
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[@$!%*?&]/.test(password)) strength++;
-    
+  const getPasswordStrength = password => {
+    if (!password) return { strength: 0, text: '', color: '' }
+
+    let strength = 0
+    if (password.length >= 8) strength++
+    if (/[a-z]/.test(password)) strength++
+    if (/[A-Z]/.test(password)) strength++
+    if (/[0-9]/.test(password)) strength++
+    if (/[@$!%*?&]/.test(password)) strength++
+
     const strengthMap = {
       1: { text: 'Very Weak', color: 'bg-red-500' },
       2: { text: 'Weak', color: 'bg-orange-500' },
       3: { text: 'Fair', color: 'bg-yellow-500' },
       4: { text: 'Good', color: 'bg-blue-500' },
-      5: { text: 'Strong', color: 'bg-green-500' }
-    };
-    
-    return { strength, ...strengthMap[strength] };
-  };
+      5: { text: 'Strong', color: 'bg-green-500' },
+    }
 
-  const passwordStrength = getPasswordStrength(newPassword);
+    return { strength, ...strengthMap[strength] }
+  }
+
+  const passwordStrength = getPasswordStrength(newPassword)
 
   if (!email) {
-    return null; // Will redirect due to useEffect
+    return null // Will redirect due to useEffect
   }
 
   return (
@@ -245,9 +245,7 @@ const SetPassword = () => {
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-white mb-2">
-              Set New Password
-            </h1>
+            <h1 className="text-xl font-bold text-white mb-2">Set New Password</h1>
             <p className="text-primary-100 text-sm">
               Enter the OTP sent to your email and create a new password
             </p>
@@ -261,12 +259,8 @@ const SetPassword = () => {
                 <div className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-green-700 font-medium mb-1">
-                      Password Reset Successful!
-                    </p>
-                    <p className="text-green-600 text-sm">
-                      Redirecting you to login page...
-                    </p>
+                    <p className="text-green-700 font-medium mb-1">Password Reset Successful!</p>
+                    <p className="text-green-600 text-sm">Redirecting you to login page...</p>
                   </div>
                 </div>
               </div>
@@ -278,12 +272,8 @@ const SetPassword = () => {
                 <div className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-green-700 font-medium mb-1">
-                      Reset Link Sent!
-                    </p>
-                    <p className="text-green-600 text-sm">
-                      Check your email for the new OTP.
-                    </p>
+                    <p className="text-green-700 font-medium mb-1">Reset Link Sent!</p>
+                    <p className="text-green-600 text-sm">Check your email for the new OTP.</p>
                   </div>
                 </div>
               </div>
@@ -295,9 +285,7 @@ const SetPassword = () => {
                 <div className="flex items-start">
                   <XCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-red-700 font-medium mb-1">
-                      Reset Failed
-                    </p>
+                    <p className="text-red-700 font-medium mb-1">Reset Failed</p>
                     <p className="text-red-600 text-sm">{error}</p>
                   </div>
                 </div>
@@ -310,9 +298,7 @@ const SetPassword = () => {
                 <div className="flex items-start">
                   <XCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-red-700 font-medium mb-1">
-                      Resend Failed
-                    </p>
+                    <p className="text-red-700 font-medium mb-1">Resend Failed</p>
                     <p className="text-red-600 text-sm">{resendError}</p>
                   </div>
                 </div>
@@ -372,7 +358,10 @@ const SetPassword = () => {
 
                 {/* New Password Field */}
                 <div>
-                  <label htmlFor="new_password" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="new_password"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     New Password
                   </label>
                   <div className="relative">
@@ -400,7 +389,7 @@ const SetPassword = () => {
                       )}
                     </button>
                   </div>
-                  
+
                   {/* Password Strength Indicator */}
                   {newPassword && (
                     <div className="mt-2">
@@ -420,7 +409,7 @@ const SetPassword = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {errors.new_password && (
                     <p className="mt-1 text-xs text-red-600 animate-fade-in">
                       {errors.new_password.message}
@@ -430,7 +419,10 @@ const SetPassword = () => {
 
                 {/* Confirm Password Field */}
                 <div>
-                  <label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="confirm_password"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -463,12 +455,10 @@ const SetPassword = () => {
                       {errors.confirm_password.message}
                     </p>
                   )}
-                  
+
                   {/* Password Match Indicator */}
                   {confirmPassword && newPassword === confirmPassword && (
-                    <p className="mt-1 text-xs text-green-600 animate-fade-in">
-                      ✓ Passwords match
-                    </p>
+                    <p className="mt-1 text-xs text-green-600 animate-fade-in">✓ Passwords match</p>
                   )}
                 </div>
 
@@ -501,10 +491,7 @@ const SetPassword = () => {
             <div className="mt-6 text-center">
               <p className="text-xs text-gray-500">
                 Need help?{' '}
-                <Link
-                  to="/contact"
-                  className="text-primary-600 hover:text-primary-800 font-medium"
-                >
+                <Link to="/contact" className="text-primary-600 hover:text-primary-800 font-medium">
                   Contact support
                 </Link>
               </p>
@@ -521,7 +508,7 @@ const SetPassword = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default React.memo(SetPassword);
+export default React.memo(SetPassword)

@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { logoutService } from "../services/authService";
-import SearchBar from "./SearchBar";
-import feedbackService from "../services/feedbackService";
+import { useState, useRef, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { logoutService } from '../services/authService'
+import SearchBar from './SearchBar'
+import feedbackService from '../services/feedbackService'
 import {
   FaHome,
   FaFolderOpen,
@@ -23,296 +23,311 @@ import {
   FaUserCog,
   FaFileInvoiceDollar,
   FaChartLine,
-  FaCrown
-} from "react-icons/fa";
+  FaCrown,
+} from 'react-icons/fa'
 
 const Navbar = () => {
-  const [openProfile, setOpenProfile] = useState(false);
-  const [openMobileMenu, setOpenMobileMenu] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false)
+  const [openMobileMenu, setOpenMobileMenu] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [feedback, setFeedback] = useState({
     rating: 0,
-    message: "",
-    category: "general"
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
-  const [validationErrors, setValidationErrors] = useState({});
+    message: '',
+    category: 'general',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' })
+  const [validationErrors, setValidationErrors] = useState({})
 
-  const dropdownRef = useRef(null);
-  const notificationRef = useRef(null);
-  const feedbackModalRef = useRef(null);
+  const dropdownRef = useRef(null)
+  const notificationRef = useRef(null)
+  const feedbackModalRef = useRef(null)
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = useLocation()
+  const navigate = useNavigate()
 
   // User info from local storage
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  const userFullName = user.full_name || "John Doe";
-  const userEmail = user.email || "user@example.com";
-  const userImage = user.image || import.meta.env.VITE_DEFAULT_PROFILE_IMG;
-  const userRole = user.role || "Admin";
+  const user = JSON.parse(localStorage.getItem('user')) || {}
+  const userFullName = user.full_name || 'John Doe'
+  const userEmail = user.email || 'user@example.com'
+  const userImage = user.image || import.meta.env.VITE_DEFAULT_PROFILE_IMG
+  const userRole = user.role || 'Admin'
 
   // Navbar gradient
-  const navbarGradient = "from-green-700 to-green-500";
+  const navbarGradient = 'from-green-700 to-green-500'
 
   // Check user roles for conditional rendering
-  const isAdmin = userRole.toLowerCase() === 'admin';
-  const isAdvocate = userRole.toLowerCase() === 'advocate';
-  const isClient = userRole.toLowerCase() === 'client';
-  const showBillingOptions = isAdmin || isAdvocate;
+  const isAdmin = userRole.toLowerCase() === 'admin'
+  const isAdvocate = userRole.toLowerCase() === 'advocate'
+  const isClient = userRole.toLowerCase() === 'client'
+  const showBillingOptions = isAdmin || isAdvocate
 
   // Sample notifications
   useEffect(() => {
     const sampleNotifications = [
-      { id: 1, message: "New case assigned to you", time: "5 min ago", read: false, type: "case" },
-      { id: 2, message: "Payment received for Case #123", time: "1 hour ago", read: false, type: "payment" },
-      { id: 3, message: "Court date reminder: Tomorrow at 10 AM", time: "2 hours ago", read: true, type: "reminder" },
-      { id: 4, message: "Document approved by client", time: "1 day ago", read: true, type: "document" }
-    ];
-    setNotifications(sampleNotifications);
-  }, []);
+      { id: 1, message: 'New case assigned to you', time: '5 min ago', read: false, type: 'case' },
+      {
+        id: 2,
+        message: 'Payment received for Case #123',
+        time: '1 hour ago',
+        read: false,
+        type: 'payment',
+      },
+      {
+        id: 3,
+        message: 'Court date reminder: Tomorrow at 10 AM',
+        time: '2 hours ago',
+        read: true,
+        type: 'reminder',
+      },
+      {
+        id: 4,
+        message: 'Document approved by client',
+        time: '1 day ago',
+        read: true,
+        type: 'document',
+      },
+    ]
+    setNotifications(sampleNotifications)
+  }, [])
 
   // Navigation items - Conditionally exclude "Clients" for client users
   const navItems = [
-    { path: "/", label: "Home", icon: FaHome },
-    { path: "/cases", label: "Cases", icon: FaFolderOpen },
+    { path: '/', label: 'Home', icon: FaHome },
+    { path: '/cases', label: 'Cases', icon: FaFolderOpen },
     // Only show "Clients" if user is NOT a client
-    ...(isClient ? [] : [{ path: "/clients", label: "Clients", icon: FaUsers }]),
-    { path: "/calendar", label: "Calendar", icon: FaCalendarAlt },
-    { path: "/documents", label: "Documents", icon: FaFileAlt },
-  ];
+    ...(isClient ? [] : [{ path: '/clients', label: 'Clients', icon: FaUsers }]),
+    { path: '/calendar', label: 'Calendar', icon: FaCalendarAlt },
+    { path: '/documents', label: 'Documents', icon: FaFileAlt },
+  ]
 
   const handleLogout = async () => {
     try {
-      await logoutService();
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      await logoutService()
+      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      window.location.href = '/login'
     } catch (error) {
-      console.error("Logout error:", error);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      console.error('Logout error:', error)
+      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      window.location.href = '/login'
     }
-  };
+  }
 
-  const handleSearch = (query) => {
+  const handleSearch = query => {
     if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query)}`);
+      navigate(`/search?q=${encodeURIComponent(query)}`)
     }
-  };
+  }
 
-  const markNotificationAsRead = (id) => {
+  const markNotificationAsRead = id => {
     setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
+      prev.map(notif => (notif.id === id ? { ...notif, read: true } : notif))
+    )
+  }
 
   const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+  }
 
   // Enhanced feedback handlers with Joi validation matching
   const handleFeedbackClick = () => {
-    setShowFeedbackModal(true);
-    setOpenProfile(false);
-    setOpenMobileMenu(false);
-    setSubmitStatus({ type: '', message: '' });
-    setValidationErrors({});
-  };
+    setShowFeedbackModal(true)
+    setOpenProfile(false)
+    setOpenMobileMenu(false)
+    setSubmitStatus({ type: '', message: '' })
+    setValidationErrors({})
+  }
 
   // Frontend validation that matches Joi schema
-  const validateFeedback = (feedbackData) => {
-    const errors = {};
+  const validateFeedback = feedbackData => {
+    const errors = {}
 
     // Rating validation (1-5, required)
     if (!feedbackData.rating || feedbackData.rating < 1 || feedbackData.rating > 5) {
-      errors.rating = 'Rating must be between 1 and 5';
+      errors.rating = 'Rating must be between 1 and 5'
     }
 
     // Category validation (specific values, required)
-    const validCategories = ['general', 'bug', 'feature', 'ui', 'performance'];
+    const validCategories = ['general', 'bug', 'feature', 'ui', 'performance']
     if (!feedbackData.category || !validCategories.includes(feedbackData.category)) {
-      errors.category = 'Please select a valid category';
+      errors.category = 'Please select a valid category'
     }
 
     // Message validation (10-2000 characters, required, trimmed)
-    const trimmedMessage = feedbackData.message.trim();
+    const trimmedMessage = feedbackData.message.trim()
     if (!trimmedMessage) {
-      errors.message = 'Message is required';
+      errors.message = 'Message is required'
     } else if (trimmedMessage.length < 10) {
-      errors.message = 'Message must be at least 10 characters long';
+      errors.message = 'Message must be at least 10 characters long'
     } else if (trimmedMessage.length > 2000) {
-      errors.message = 'Message must be less than 2000 characters';
+      errors.message = 'Message must be less than 2000 characters'
     }
 
-    return errors;
-  };
+    return errors
+  }
 
-  const handleFeedbackSubmit = async (e) => {
-    e.preventDefault();
+  const handleFeedbackSubmit = async e => {
+    e.preventDefault()
 
     // Clear previous errors
-    setValidationErrors({});
-    setSubmitStatus({ type: '', message: '' });
+    setValidationErrors({})
+    setSubmitStatus({ type: '', message: '' })
 
     // Frontend validation
-    const validationErrors = validateFeedback(feedback);
+    const validationErrors = validateFeedback(feedback)
     if (Object.keys(validationErrors).length > 0) {
-      setValidationErrors(validationErrors);
-      return;
+      setValidationErrors(validationErrors)
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       // Prepare payload exactly as your backend expects
       const feedbackData = {
         rating: feedback.rating,
         category: feedback.category,
-        message: feedback.message.trim()
-      };
+        message: feedback.message.trim(),
+      }
 
       // console.log('Sending feedback data:', feedbackData);
 
-      const result = await feedbackService.submitFeedback(feedbackData);
+      const result = await feedbackService.submitFeedback(feedbackData)
 
       // console.log('Feedback API result:', result);
 
       if (result.success) {
         setSubmitStatus({
           type: 'success',
-          message: result.message || 'Thank you for your feedback! We appreciate your input.'
-        });
+          message: result.message || 'Thank you for your feedback! We appreciate your input.',
+        })
 
         // Reset form and close modal after success
         setTimeout(() => {
-          resetFeedbackForm();
-        }, 2000);
-
+          resetFeedbackForm()
+        }, 2000)
       } else {
         setSubmitStatus({
           type: 'error',
-          message: result.message || 'Failed to submit feedback. Please try again.'
-        });
+          message: result.message || 'Failed to submit feedback. Please try again.',
+        })
       }
     } catch (error) {
-      console.error('Feedback submission error:', error);
+      console.error('Feedback submission error:', error)
 
       // Handle specific validation errors from backend
-      if (error.message.includes('Rating must be') ||
+      if (
+        error.message.includes('Rating must be') ||
         error.message.includes('Category must be') ||
-        error.message.includes('Message must be')) {
-        setValidationErrors({ backend: error.message });
+        error.message.includes('Message must be')
+      ) {
+        setValidationErrors({ backend: error.message })
       } else {
         setSubmitStatus({
           type: 'error',
-          message: error.message || 'An unexpected error occurred. Please try again later.'
-        });
+          message: error.message || 'An unexpected error occurred. Please try again later.',
+        })
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const handleRatingClick = (rating) => {
-    setFeedback(prev => ({ ...prev, rating }));
+  const handleRatingClick = rating => {
+    setFeedback(prev => ({ ...prev, rating }))
     // Clear rating error when user selects a rating
     if (validationErrors.rating) {
-      setValidationErrors(prev => ({ ...prev, rating: '' }));
+      setValidationErrors(prev => ({ ...prev, rating: '' }))
     }
     if (submitStatus.type === 'error') {
-      setSubmitStatus({ type: '', message: '' });
+      setSubmitStatus({ type: '', message: '' })
     }
-  };
+  }
 
-  const handleCategoryChange = (e) => {
-    setFeedback(prev => ({ ...prev, category: e.target.value }));
+  const handleCategoryChange = e => {
+    setFeedback(prev => ({ ...prev, category: e.target.value }))
     // Clear category error when user selects a category
     if (validationErrors.category) {
-      setValidationErrors(prev => ({ ...prev, category: '' }));
+      setValidationErrors(prev => ({ ...prev, category: '' }))
     }
-  };
+  }
 
-  const handleMessageChange = (e) => {
-    const message = e.target.value;
-    setFeedback(prev => ({ ...prev, message }));
+  const handleMessageChange = e => {
+    const message = e.target.value
+    setFeedback(prev => ({ ...prev, message }))
 
     // Clear message error when user starts typing
     if (validationErrors.message && message.trim().length >= 10) {
-      setValidationErrors(prev => ({ ...prev, message: '' }));
+      setValidationErrors(prev => ({ ...prev, message: '' }))
     }
 
     if (submitStatus.type === 'error') {
-      setSubmitStatus({ type: '', message: '' });
+      setSubmitStatus({ type: '', message: '' })
     }
-  };
+  }
 
   const resetFeedbackForm = () => {
     setFeedback({
       rating: 0,
-      message: "",
-      category: "general"
-    });
-    setSubmitStatus({ type: '', message: '' });
-    setValidationErrors({});
-    setShowFeedbackModal(false);
-  };
+      message: '',
+      category: 'general',
+    })
+    setSubmitStatus({ type: '', message: '' })
+    setValidationErrors({})
+    setShowFeedbackModal(false)
+  }
 
   // Check if form is valid for submission
   const isFormValid = () => {
-    const trimmedMessage = feedback.message.trim();
+    const trimmedMessage = feedback.message.trim()
     return (
       feedback.rating >= 1 &&
       feedback.rating <= 5 &&
       ['general', 'bug', 'feature', 'ui', 'performance'].includes(feedback.category) &&
       trimmedMessage.length >= 10 &&
       trimmedMessage.length <= 2000
-    );
-  };
+    )
+  }
 
   // Calculate message status
   const getMessageStatus = () => {
-    const trimmedLength = feedback.message.trim().length;
-    if (trimmedLength === 0) return 'empty';
-    if (trimmedLength < 10) return 'too-short';
-    if (trimmedLength > 2000) return 'too-long';
-    return 'valid';
-  };
+    const trimmedLength = feedback.message.trim().length
+    if (trimmedLength === 0) return 'empty'
+    if (trimmedLength < 10) return 'too-short'
+    if (trimmedLength > 2000) return 'too-long'
+    return 'valid'
+  }
 
-  const messageStatus = getMessageStatus();
-  const trimmedMessageLength = feedback.message.trim().length;
+  const messageStatus = getMessageStatus()
+  const trimmedMessageLength = feedback.message.trim().length
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenProfile(false);
+        setOpenProfile(false)
       }
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-        setShowNotifications(false);
+        setShowNotifications(false)
       }
       if (feedbackModalRef.current && !feedbackModalRef.current.contains(event.target)) {
-        setShowFeedbackModal(false);
+        setShowFeedbackModal(false)
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setOpenMobileMenu(false);
-  }, [location.pathname]);
+    setOpenMobileMenu(false)
+  }, [location.pathname])
 
   return (
     <>
@@ -351,22 +366,23 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+            {navItems.map(item => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.path
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
-                      ? "bg-green-600 text-white shadow-inner"
-                      : "text-green-100 hover:bg-green-600 hover:text-white"
-                    }`}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-green-600 text-white shadow-inner'
+                      : 'text-green-100 hover:bg-green-600 hover:text-white'
+                  }`}
                 >
                   <Icon size={14} />
                   <span>{item.label}</span>
                 </Link>
-              );
+              )
             })}
           </div>
 
@@ -400,11 +416,12 @@ const Navbar = () => {
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length > 0 ? (
-                    notifications.map((notification) => (
+                    notifications.map(notification => (
                       <div
                         key={notification.id}
-                        className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.read ? "bg-blue-50" : ""
-                          }`}
+                        className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                          !notification.read ? 'bg-blue-50' : ''
+                        }`}
                         onClick={() => markNotificationAsRead(notification.id)}
                       >
                         <p className="text-sm text-gray-800">{notification.message}</p>
@@ -412,9 +429,7 @@ const Navbar = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 text-center text-gray-500 text-sm">
-                      No notifications
-                    </div>
+                    <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
                   )}
                 </div>
                 <div className="p-2 border-t border-gray-200">
@@ -448,8 +463,7 @@ const Navbar = () => {
               </div>
               <FaChevronDown
                 size={12}
-                className={`text-green-200 transition-transform ${openProfile ? "rotate-180" : ""
-                  }`}
+                className={`text-green-200 transition-transform ${openProfile ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -464,9 +478,7 @@ const Navbar = () => {
                       className="w-12 h-12 rounded-full border-2 border-green-500"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
-                        {userFullName}
-                      </p>
+                      <p className="text-sm font-semibold text-gray-800 truncate">{userFullName}</p>
                       <p className="text-xs text-gray-600 truncate">{userEmail}</p>
                       <p className="text-xs text-green-600 font-medium">{userRole}</p>
                     </div>
@@ -589,23 +601,24 @@ const Navbar = () => {
       {openMobileMenu && (
         <div className="lg:hidden bg-white shadow-lg border-t border-gray-200 z-40">
           <div className="px-4 py-2 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+            {navItems.map(item => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.path
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${isActive
-                      ? "bg-green-100 text-green-700 border-l-4 border-green-600"
-                      : "text-gray-700 hover:bg-gray-100"
-                    }`}
+                  className={`flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-green-100 text-green-700 border-l-4 border-green-600'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
                   onClick={() => setOpenMobileMenu(false)}
                 >
-                  <Icon size={16} className={isActive ? "text-green-600" : "text-gray-500"} />
+                  <Icon size={16} className={isActive ? 'text-green-600' : 'text-gray-500'} />
                   <span>{item.label}</span>
                 </Link>
-              );
+              )
             })}
 
             {/* Mobile Menu Links */}
@@ -734,10 +747,13 @@ const Navbar = () => {
 
               {/* Status Message */}
               {submitStatus.message && (
-                <div className={`mb-4 p-3 rounded-lg ${submitStatus.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-800'
-                    : 'bg-red-50 border border-red-200 text-red-800'
-                  }`}>
+                <div
+                  className={`mb-4 p-3 rounded-lg ${
+                    submitStatus.type === 'success'
+                      ? 'bg-green-50 border border-green-200 text-green-800'
+                      : 'bg-red-50 border border-red-200 text-red-800'
+                  }`}
+                >
                   {submitStatus.message}
                 </div>
               )}
@@ -757,16 +773,17 @@ const Navbar = () => {
                     How would you rate your experience? *
                   </label>
                   <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
+                    {[1, 2, 3, 4, 5].map(star => (
                       <button
                         key={star}
                         type="button"
                         onClick={() => handleRatingClick(star)}
                         disabled={isSubmitting}
-                        className={`p-2 rounded-lg transition-all ${feedback.rating >= star
-                            ? "bg-yellow-100 text-yellow-500 border-2 border-yellow-400"
-                            : "bg-gray-100 text-gray-400 hover:bg-gray-200 border-2 border-transparent"
-                          } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`p-2 rounded-lg transition-all ${
+                          feedback.rating >= star
+                            ? 'bg-yellow-100 text-yellow-500 border-2 border-yellow-400'
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200 border-2 border-transparent'
+                        } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         <FaStar size={20} />
                       </button>
@@ -783,15 +800,14 @@ const Navbar = () => {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                   <select
                     value={feedback.category}
                     onChange={handleCategoryChange}
                     disabled={isSubmitting}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${validationErrors.category ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      validationErrors.category ? 'border-red-300' : 'border-gray-300'
+                    }`}
                   >
                     <option value="general">General Feedback</option>
                     <option value="bug">Bug Report</option>
@@ -815,16 +831,21 @@ const Navbar = () => {
                     placeholder="Please share your thoughts, suggestions, or issues (minimum 10 characters)..."
                     rows={4}
                     disabled={isSubmitting}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed ${validationErrors.message ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      validationErrors.message ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     required
                   />
                   <div className="text-xs mt-1 flex justify-between">
-                    <span className={
-                      messageStatus === 'valid' ? 'text-green-600' :
-                        messageStatus === 'empty' ? 'text-gray-500' :
-                          'text-red-500'
-                    }>
+                    <span
+                      className={
+                        messageStatus === 'valid'
+                          ? 'text-green-600'
+                          : messageStatus === 'empty'
+                            ? 'text-gray-500'
+                            : 'text-red-500'
+                      }
+                    >
                       {trimmedMessageLength}/2000 characters
                       {messageStatus === 'too-short' && ` (minimum 10 required)`}
                       {messageStatus === 'too-long' && ` (maximum 2000 exceeded)`}
@@ -859,7 +880,7 @@ const Navbar = () => {
                         Submitting...
                       </>
                     ) : (
-                      "Submit Feedback"
+                      'Submit Feedback'
                     )}
                   </button>
                 </div>
@@ -884,7 +905,7 @@ const Navbar = () => {
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

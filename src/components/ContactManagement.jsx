@@ -1,11 +1,11 @@
 // components/ContactManagement.jsx
-import { useState, useEffect } from 'react';
-import { 
-  FaSearch, 
-  FaEye, 
-  FaTrash, 
-  FaEdit, 
-  FaCheck, 
+import { useState, useEffect } from 'react'
+import {
+  FaSearch,
+  FaEye,
+  FaTrash,
+  FaEdit,
+  FaCheck,
   FaClock,
   FaExclamationTriangle,
   FaUserCheck,
@@ -16,218 +16,225 @@ import {
   FaExclamationCircle,
   FaArrowLeft,
   FaChevronLeft,
-  FaChevronRight
-} from 'react-icons/fa';
-import { getAllContacts, getContactById, deleteContact, updateContactStatus, updateContactRemarks } from '../services/contactService';
-import { showSuccessToast, showErrorToast, showWarningToast } from '../utils/Toastify';
+  FaChevronRight,
+} from 'react-icons/fa'
+import {
+  getAllContacts,
+  getContactById,
+  deleteContact,
+  updateContactStatus,
+  updateContactRemarks,
+} from '../services/contactService'
+import { showSuccessToast, showErrorToast, showWarningToast } from '../utils/Toastify'
 
 const ContactManagement = () => {
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [view, setView] = useState('list');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [updateLoading, setUpdateLoading] = useState(false);
-  const [adminRemarks, setAdminRemarks] = useState('');
-  const [error, setError] = useState('');
+  const [contacts, setContacts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedContact, setSelectedContact] = useState(null)
+  const [view, setView] = useState('list')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [updateLoading, setUpdateLoading] = useState(false)
+  const [adminRemarks, setAdminRemarks] = useState('')
+  const [error, setError] = useState('')
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    totalRecords: 0
-  });
+    totalRecords: 0,
+  })
 
   useEffect(() => {
-    fetchContacts();
-  }, []);
+    fetchContacts()
+  }, [])
 
   const fetchContacts = async (page = 1) => {
     try {
-      setLoading(true);
-      setError('');
-      const response = await getAllContacts({ page });
-      
-      const contactsData = response?.data?.data || [];
-      const paginationData = response?.data || {};
-      
-      setContacts(contactsData);
+      setLoading(true)
+      setError('')
+      const response = await getAllContacts({ page })
+
+      const contactsData = response?.data?.data || []
+      const paginationData = response?.data || {}
+
+      setContacts(contactsData)
       setPagination({
         currentPage: paginationData.currentPage || page,
         totalPages: paginationData.totalPages || 1,
-        totalRecords: paginationData.totalRecords || contactsData.length
-      });
+        totalRecords: paginationData.totalRecords || contactsData.length,
+      })
     } catch (error) {
-      console.error('Error fetching contacts:', error);
-      setError('Failed to load contacts');
-      setContacts([]);
+      console.error('Error fetching contacts:', error)
+      setError('Failed to load contacts')
+      setContacts([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleViewContact = async (id) => {
+  const handleViewContact = async id => {
     try {
-      const response = await getContactById(id);
-      
-      let contactData = response?.data?.data || response?.data || response;
-      
-      setSelectedContact(contactData);
-      setAdminRemarks(contactData.admin_remarks || '');
-      setView('detail');
-      
+      const response = await getContactById(id)
+
+      let contactData = response?.data?.data || response?.data || response
+
+      setSelectedContact(contactData)
+      setAdminRemarks(contactData.admin_remarks || '')
+      setView('detail')
+
       if (!contactData.is_read) {
-        await updateContactStatus(id, { is_read: true });
+        await updateContactStatus(id, { is_read: true })
       }
     } catch (error) {
-      console.error('Error fetching contact details:', error);
-      showErrorToast('Failed to load contact details');
+      console.error('Error fetching contact details:', error)
+      showErrorToast('Failed to load contact details')
     }
-  };
+  }
 
-  const handleDeleteContact = async (id) => {
+  const handleDeleteContact = async id => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       try {
-        await deleteContact(id);
-        setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id));
-        showSuccessToast('Contact deleted successfully');
-        
+        await deleteContact(id)
+        setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id))
+        showSuccessToast('Contact deleted successfully')
+
         if (selectedContact && selectedContact.id === id) {
-          setView('list');
-          setSelectedContact(null);
+          setView('list')
+          setSelectedContact(null)
         }
       } catch (error) {
-        console.error('Error deleting contact:', error);
-        showErrorToast('Failed to delete contact');
+        console.error('Error deleting contact:', error)
+        showErrorToast('Failed to delete contact')
       }
     }
-  };
+  }
 
-  const handleUpdateStatus = async (status) => {
-    if (!selectedContact) return;
+  const handleUpdateStatus = async status => {
+    if (!selectedContact) return
 
-    setUpdateLoading(true);
+    setUpdateLoading(true)
     try {
-      await updateContactStatus(selectedContact.id, { status });
-      
-      setContacts(prevContacts => 
-        prevContacts.map(contact => 
+      await updateContactStatus(selectedContact.id, { status })
+
+      setContacts(prevContacts =>
+        prevContacts.map(contact =>
           contact.id === selectedContact.id ? { ...contact, status } : contact
         )
-      );
-      
-      setSelectedContact(prev => ({ ...prev, status }));
-      
-      showSuccessToast(`Status updated to ${status}`);
+      )
+
+      setSelectedContact(prev => ({ ...prev, status }))
+
+      showSuccessToast(`Status updated to ${status}`)
     } catch (error) {
-      console.error('Error updating status:', error);
-      showErrorToast('Failed to update status');
+      console.error('Error updating status:', error)
+      showErrorToast('Failed to update status')
     } finally {
-      setUpdateLoading(false);
+      setUpdateLoading(false)
     }
-  };
+  }
 
   const handleUpdateRemarks = async () => {
     if (!selectedContact || !adminRemarks.trim()) {
-      showWarningToast('Please enter remarks');
-      return;
+      showWarningToast('Please enter remarks')
+      return
     }
 
-    setUpdateLoading(true);
+    setUpdateLoading(true)
     try {
-      await updateContactRemarks(selectedContact.id, { admin_remarks: adminRemarks });
-      
-      setContacts(prevContacts => 
-        prevContacts.map(contact => 
+      await updateContactRemarks(selectedContact.id, { admin_remarks: adminRemarks })
+
+      setContacts(prevContacts =>
+        prevContacts.map(contact =>
           contact.id === selectedContact.id ? { ...contact, admin_remarks: adminRemarks } : contact
         )
-      );
-      
-      setSelectedContact(prev => ({ ...prev, admin_remarks: adminRemarks }));
-      
-      showSuccessToast('Remarks updated successfully');
-      setView('detail');
+      )
+
+      setSelectedContact(prev => ({ ...prev, admin_remarks: adminRemarks }))
+
+      showSuccessToast('Remarks updated successfully')
+      setView('detail')
     } catch (error) {
-      console.error('Error updating remarks:', error);
-      showErrorToast('Failed to update remarks');
+      console.error('Error updating remarks:', error)
+      showErrorToast('Failed to update remarks')
     } finally {
-      setUpdateLoading(false);
+      setUpdateLoading(false)
     }
-  };
+  }
 
   const handleMarkAsResponded = async () => {
-    if (!selectedContact) return;
+    if (!selectedContact) return
 
-    setUpdateLoading(true);
+    setUpdateLoading(true)
     try {
-      await updateContactStatus(selectedContact.id, { 
+      await updateContactStatus(selectedContact.id, {
         responded_at: new Date().toISOString(),
-        handled_by_admin_id: 1
-      });
-      
-      const updatedContact = { 
+        handled_by_admin_id: 1,
+      })
+
+      const updatedContact = {
         responded_at: new Date().toISOString(),
-        handled_by_admin_id: 1 
-      };
-      
-      setContacts(prevContacts => 
-        prevContacts.map(contact => 
+        handled_by_admin_id: 1,
+      }
+
+      setContacts(prevContacts =>
+        prevContacts.map(contact =>
           contact.id === selectedContact.id ? { ...contact, ...updatedContact } : contact
         )
-      );
-      
-      setSelectedContact(prev => ({ ...prev, ...updatedContact }));
-      
-      showSuccessToast('Marked as responded');
+      )
+
+      setSelectedContact(prev => ({ ...prev, ...updatedContact }))
+
+      showSuccessToast('Marked as responded')
     } catch (error) {
-      console.error('Error marking as responded:', error);
-      showErrorToast('Failed to update response status');
+      console.error('Error marking as responded:', error)
+      showErrorToast('Failed to update response status')
     } finally {
-      setUpdateLoading(false);
+      setUpdateLoading(false)
     }
-  };
+  }
 
   const filteredContacts = contacts.filter(contact => {
-    const matchesSearch = contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact.message?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || contact.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+    const matchesSearch =
+      contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.message?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     const colors = {
-      'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'Reviewed': 'bg-blue-100 text-blue-800 border-blue-200',
-      'Resolved': 'bg-green-100 text-green-800 border-green-200'
-    };
-    return colors[status] || colors.Pending;
-  };
+      Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      Reviewed: 'bg-blue-100 text-blue-800 border-blue-200',
+      Resolved: 'bg-green-100 text-green-800 border-green-200',
+    }
+    return colors[status] || colors.Pending
+  }
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = priority => {
     const colors = {
-      'Low': 'bg-gray-100 text-gray-800',
-      'Medium': 'bg-orange-100 text-orange-800',
-      'High': 'bg-red-100 text-red-800'
-    };
-    return colors[priority] || colors.Medium;
-  };
+      Low: 'bg-gray-100 text-gray-800',
+      Medium: 'bg-orange-100 text-orange-800',
+      High: 'bg-red-100 text-red-800',
+    }
+    return colors[priority] || colors.Medium
+  }
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = status => {
     const icons = {
-      'Pending': FaClock,
-      'Reviewed': FaEye,
-      'Resolved': FaCheck
-    };
-    const Icon = icons[status] || FaClock;
-    return <Icon size={12} />;
-  };
+      Pending: FaClock,
+      Reviewed: FaEye,
+      Resolved: FaCheck,
+    }
+    const Icon = icons[status] || FaClock
+    return <Icon size={12} />
+  }
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -269,14 +276,14 @@ const ContactManagement = () => {
                     type="text"
                     placeholder="Search contacts by name, email, or message..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={e => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={e => setStatusFilter(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Status</option>
@@ -352,14 +359,13 @@ const ContactManagement = () => {
                     {contacts.length === 0 ? 'No contacts found' : 'No contacts match your search'}
                   </h3>
                   <p className="text-gray-500">
-                    {contacts.length === 0 
-                      ? 'No contact submissions have been made yet.' 
-                      : 'Try adjusting your search criteria.'
-                    }
+                    {contacts.length === 0
+                      ? 'No contact submissions have been made yet.'
+                      : 'Try adjusting your search criteria.'}
                   </p>
                 </div>
               ) : (
-                filteredContacts.map((contact) => (
+                filteredContacts.map(contact => (
                   <div key={contact.id} className="p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -368,11 +374,15 @@ const ContactManagement = () => {
                             <FaUser className="text-gray-400" />
                             {contact.name || 'Unknown Name'}
                           </h3>
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(contact.status)}`}
+                          >
                             {getStatusIcon(contact.status)}
                             {contact.status || 'Pending'}
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(contact.priority)}`}>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(contact.priority)}`}
+                          >
                             {contact.priority || 'Medium'}
                           </span>
                           {!contact.is_read && (
@@ -381,20 +391,22 @@ const ContactManagement = () => {
                             </span>
                           )}
                         </div>
-                        
+
                         <p className="text-gray-600 text-sm mb-2 flex items-center gap-2">
                           <FaEnvelope className="text-gray-400" />
                           {contact.email || 'No email provided'}
                         </p>
-                        
+
                         <p className="text-gray-700 line-clamp-2 mb-2">
                           {contact.message || 'No message provided'}
                         </p>
-                        
+
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
                             <FaCalendar className="text-gray-400" />
-                            {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : 'Unknown date'}
+                            {contact.createdAt
+                              ? new Date(contact.createdAt).toLocaleDateString()
+                              : 'Unknown date'}
                           </span>
                           {contact.responded_at && (
                             <span className="text-green-600 flex items-center gap-1">
@@ -404,7 +416,7 @@ const ContactManagement = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => handleViewContact(contact.id)}
@@ -462,11 +474,11 @@ const ContactManagement = () => {
 
       {/* Detail View */}
       {view === 'detail' && selectedContact && (
-        <ContactDetailView 
+        <ContactDetailView
           contact={selectedContact}
           onBack={() => {
-            setView('list');
-            setSelectedContact(null);
+            setView('list')
+            setSelectedContact(null)
           }}
           onEdit={() => setView('edit')}
           onUpdateStatus={handleUpdateStatus}
@@ -487,28 +499,35 @@ const ContactManagement = () => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
 // Contact Detail View Component
-const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsResponded, updateLoading }) => {
-  const getStatusColor = (status) => {
+const ContactDetailView = ({
+  contact,
+  onBack,
+  onEdit,
+  onUpdateStatus,
+  onMarkAsResponded,
+  updateLoading,
+}) => {
+  const getStatusColor = status => {
     const colors = {
-      'Pending': 'bg-yellow-100 text-yellow-800',
-      'Reviewed': 'bg-blue-100 text-blue-800',
-      'Resolved': 'bg-green-100 text-green-800'
-    };
-    return colors[status] || colors.Pending;
-  };
+      Pending: 'bg-yellow-100 text-yellow-800',
+      Reviewed: 'bg-blue-100 text-blue-800',
+      Resolved: 'bg-green-100 text-green-800',
+    }
+    return colors[status] || colors.Pending
+  }
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = priority => {
     const colors = {
-      'Low': 'bg-gray-100 text-gray-800',
-      'Medium': 'bg-orange-100 text-orange-800',
-      'High': 'bg-red-100 text-red-800'
-    };
-    return colors[priority] || colors.Medium;
-  };
+      Low: 'bg-gray-100 text-gray-800',
+      Medium: 'bg-orange-100 text-orange-800',
+      High: 'bg-red-100 text-red-800',
+    }
+    return colors[priority] || colors.Medium
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -525,10 +544,14 @@ const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsRe
           <h2 className="text-xl font-semibold text-gray-800">Contact Details</h2>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(contact.status)}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(contact.status)}`}
+          >
             {contact.status || 'Pending'}
           </span>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(contact.priority)}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(contact.priority)}`}
+          >
             {contact.priority || 'Medium'}
           </span>
         </div>
@@ -551,7 +574,9 @@ const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsRe
         <div>
           <label className="block text-sm font-medium text-gray-600 mb-2">Message</label>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{contact.message || 'No message provided'}</p>
+            <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">
+              {contact.message || 'No message provided'}
+            </p>
           </div>
         </div>
 
@@ -584,7 +609,7 @@ const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsRe
           <div className="flex flex-wrap gap-3">
             <select
               value={contact.status || 'Pending'}
-              onChange={(e) => onUpdateStatus(e.target.value)}
+              onChange={e => onUpdateStatus(e.target.value)}
               disabled={updateLoading}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
             >
@@ -619,9 +644,7 @@ const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsRe
             {contact.updatedAt && (
               <div>
                 <label className="block text-sm font-medium text-gray-600">Last Updated</label>
-                <p className="mt-1 text-gray-900">
-                  {new Date(contact.updatedAt).toLocaleString()}
-                </p>
+                <p className="mt-1 text-gray-900">{new Date(contact.updatedAt).toLocaleString()}</p>
               </div>
             )}
             {contact.responded_at && (
@@ -640,11 +663,18 @@ const ContactDetailView = ({ contact, onBack, onEdit, onUpdateStatus, onMarkAsRe
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Contact Edit View Component
-const ContactEditView = ({ contact, adminRemarks, setAdminRemarks, onSave, onCancel, updateLoading }) => {
+const ContactEditView = ({
+  contact,
+  adminRemarks,
+  setAdminRemarks,
+  onSave,
+  onCancel,
+  updateLoading,
+}) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header */}
@@ -677,12 +707,10 @@ const ContactEditView = ({ contact, adminRemarks, setAdminRemarks, onSave, onCan
 
         {/* Remarks Textarea */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-2">
-            Admin Remarks
-          </label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">Admin Remarks</label>
           <textarea
             value={adminRemarks}
-            onChange={(e) => setAdminRemarks(e.target.value)}
+            onChange={e => setAdminRemarks(e.target.value)}
             rows={6}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Enter your remarks or response for this contact submission..."
@@ -710,7 +738,7 @@ const ContactEditView = ({ contact, adminRemarks, setAdminRemarks, onSave, onCan
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ContactManagement;
+export default ContactManagement

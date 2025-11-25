@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react'
 
 const EditCaseModal = ({ caseData, onClose, onSave }) => {
-  const [editedCase, setEditedCase] = useState({ ...caseData });
+  const [editedCase, setEditedCase] = useState({ ...caseData })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedCase((prev) => ({
+  const handleChange = e => {
+    const { name, value } = e.target
+    setEditedCase(prev => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSave = () => {
-    onSave(editedCase);
-    onClose(); // Close the modal after saving
-  };
+    onSave(editedCase)
+    onClose() // Close the modal after saving
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -22,7 +22,9 @@ const EditCaseModal = ({ caseData, onClose, onSave }) => {
         <h3 className="text-lg font-semibold mb-4">Edit Case</h3>
         <form className="space-y-4">
           <div>
-            <label htmlFor="case_name" className="block text-sm">Case Name</label>
+            <label htmlFor="case_name" className="block text-sm">
+              Case Name
+            </label>
             <input
               id="case_name"
               name="case_name"
@@ -32,7 +34,9 @@ const EditCaseModal = ({ caseData, onClose, onSave }) => {
             />
           </div>
           <div>
-            <label htmlFor="client_name" className="block text-sm">Client Name</label>
+            <label htmlFor="client_name" className="block text-sm">
+              Client Name
+            </label>
             <input
               id="client_name"
               name="client_name"
@@ -61,7 +65,7 @@ const EditCaseModal = ({ caseData, onClose, onSave }) => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EditCaseModal;
+export default EditCaseModal

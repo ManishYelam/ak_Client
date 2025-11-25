@@ -20,8 +20,8 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-primary-200 mb-4 max-w-md">
-              Transform your career with comprehensive SAP ABAP training. 
-              Learn from certified professionals and get job-ready in just 3 months.
+              Transform your career with comprehensive SAP ABAP training. Learn from certified
+              professionals and get job-ready in just 3 months.
             </p>
             <div className="flex items-center space-x-4 text-primary-200">
               <div className="flex items-center space-x-2">
@@ -39,10 +39,26 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/courses" className="text-primary-200 hover:text-white transition-colors">All Courses</Link></li>
-              <li><Link to="/about" className="text-primary-200 hover:text-white transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="text-primary-200 hover:text-white transition-colors">Contact</Link></li>
-              <li><Link to="/demo" className="text-primary-200 hover:text-white transition-colors">Book Demo</Link></li>
+              <li>
+                <Link to="/courses" className="text-primary-200 hover:text-white transition-colors">
+                  All Courses
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-primary-200 hover:text-white transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-primary-200 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link to="/demo" className="text-primary-200 hover:text-white transition-colors">
+                  Book Demo
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -50,10 +66,38 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Courses</h3>
             <ul className="space-y-2">
-              <li><Link to="/courses/sap-abap-beginner" className="text-primary-200 hover:text-white transition-colors">SAP ABAP Beginner</Link></li>
-              <li><Link to="/courses/sap-abap-advanced" className="text-primary-200 hover:text-white transition-colors">SAP ABAP Advanced</Link></li>
-              <li><Link to="/courses/abap-on-hana" className="text-primary-200 hover:text-white transition-colors">ABAP on HANA</Link></li>
-              <li><Link to="/courses/oo-abap" className="text-primary-200 hover:text-white transition-colors">OO ABAP</Link></li>
+              <li>
+                <Link
+                  to="/courses/sap-abap-beginner"
+                  className="text-primary-200 hover:text-white transition-colors"
+                >
+                  SAP ABAP Beginner
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/courses/sap-abap-advanced"
+                  className="text-primary-200 hover:text-white transition-colors"
+                >
+                  SAP ABAP Advanced
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/courses/abap-on-hana"
+                  className="text-primary-200 hover:text-white transition-colors"
+                >
+                  ABAP on HANA
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/courses/oo-abap"
+                  className="text-primary-200 hover:text-white transition-colors"
+                >
+                  OO ABAP
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -63,10 +107,16 @@ const Footer = () => {
             © 2024 Learn SAP ABAP with Akshay. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/privacy" className="text-primary-200 hover:text-white text-sm transition-colors">
+            <Link
+              to="/privacy"
+              className="text-primary-200 hover:text-white text-sm transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link to="/terms" className="text-primary-200 hover:text-white text-sm transition-colors">
+            <Link
+              to="/terms"
+              className="text-primary-200 hover:text-white text-sm transition-colors"
+            >
               Terms of Service
             </Link>
           </div>

@@ -1,214 +1,214 @@
-import React, { useState, useEffect } from "react";
-import { FiEdit, FiArrowLeft, FiSave, FiRefreshCcw, FiInfo } from "react-icons/fi";
-import Toast from "../components/Toast";
-import { showErrorToast, showSuccessToast, showWarningToast } from "../utils/Toastify";
-import { calculateAgeFromDOB, calculateDOBFromAge } from "../utils/Age";
-import { updateUserApplicant, userApplicant } from "../services/applicationService";
-import { getUserId } from "../utils/getUserId";
+import React, { useState, useEffect } from 'react'
+import { FiEdit, FiArrowLeft, FiSave, FiRefreshCcw, FiInfo } from 'react-icons/fi'
+import Toast from '../components/Toast'
+import { showErrorToast, showSuccessToast, showWarningToast } from '../utils/Toastify'
+import { calculateAgeFromDOB, calculateDOBFromAge } from '../utils/Age'
+import { updateUserApplicant, userApplicant } from '../services/applicationService'
+import { getUserId } from '../utils/getUserId'
 
 const Profile = () => {
-  const userId = getUserId();
+  const userId = getUserId()
 
   const [formData, setFormData] = useState({
-    full_name: "",
-    date_of_birth: "",
-    age: "",
-    gender: "",
-    phone_number: "",
-    email: "",
-    occupation: "",
-    adhar_number: "",
-    address: "",
-    additional_notes: "",
-  });
+    full_name: '',
+    date_of_birth: '',
+    age: '',
+    gender: '',
+    phone_number: '',
+    email: '',
+    occupation: '',
+    adhar_number: '',
+    address: '',
+    additional_notes: '',
+  })
 
-  const [initialData, setInitialData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [updating, setUpdating] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [initialData, setInitialData] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const [errors, setErrors] = useState({})
 
   // Input formatting functions
-  const formatPhoneNumber = (value) => {
-    return value.replace(/\D/g, '').slice(0, 10);
-  };
+  const formatPhoneNumber = value => {
+    return value.replace(/\D/g, '').slice(0, 10)
+  }
 
-  const formatAadharNumber = (value) => {
-    return value.replace(/\D/g, '').slice(0, 12);
-  };
+  const formatAadharNumber = value => {
+    return value.replace(/\D/g, '').slice(0, 12)
+  }
 
   // Field validation
   const validateField = (name, value) => {
-    const newErrors = { ...errors };
-    
+    const newErrors = { ...errors }
+
     switch (name) {
       case 'phone_number':
         if (value && !/^\d{10}$/.test(value)) {
-          newErrors.phone_number = 'Phone number must be 10 digits';
+          newErrors.phone_number = 'Phone number must be 10 digits'
         } else {
-          delete newErrors.phone_number;
+          delete newErrors.phone_number
         }
-        break;
+        break
       case 'adhar_number':
         if (value && !/^\d{12}$/.test(value)) {
-          newErrors.adhar_number = 'Aadhar number must be 12 digits';
+          newErrors.adhar_number = 'Aadhar number must be 12 digits'
         } else {
-          delete newErrors.adhar_number;
+          delete newErrors.adhar_number
         }
-        break;
+        break
       case 'email':
         if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = 'Invalid email format';
+          newErrors.email = 'Invalid email format'
         } else {
-          delete newErrors.email;
+          delete newErrors.email
         }
-        break;
+        break
       case 'full_name':
         if (!value.trim()) {
-          newErrors.full_name = 'Full name is required';
+          newErrors.full_name = 'Full name is required'
         } else {
-          delete newErrors.full_name;
+          delete newErrors.full_name
         }
-        break;
+        break
       default:
-        break;
+        break
     }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   // Fetch profile data
   const fetchProfile = async () => {
     try {
       if (!userId) {
-        showErrorToast("User not logged in!");
-        return;
+        showErrorToast('User not logged in!')
+        return
       }
 
-      const res = await userApplicant(userId);
-      const data = res?.data?.user || res?.data || {};
+      const res = await userApplicant(userId)
+      const data = res?.data?.user || res?.data || {}
 
       if (!data || Object.keys(data).length === 0) {
-        showWarningToast("Profile not found.");
-        return;
+        showWarningToast('Profile not found.')
+        return
       }
 
       const profileData = {
-        full_name: data.full_name || "",
-        date_of_birth: data.date_of_birth || "",
-        age: data.age || "",
-        gender: data.gender || "",
-        phone_number: data.phone_number || "",
-        email: data.email || "",
-        occupation: data.occupation || "",
-        adhar_number: data.adhar_number || "",
-        address: data.address || "",
-        additional_notes: data.additional_notes || "",
-      };
+        full_name: data.full_name || '',
+        date_of_birth: data.date_of_birth || '',
+        age: data.age || '',
+        gender: data.gender || '',
+        phone_number: data.phone_number || '',
+        email: data.email || '',
+        occupation: data.occupation || '',
+        adhar_number: data.adhar_number || '',
+        address: data.address || '',
+        additional_notes: data.additional_notes || '',
+      }
 
-      setFormData(profileData);
-      setInitialData({ ...profileData });
+      setFormData(profileData)
+      setInitialData({ ...profileData })
     } catch (error) {
-      console.error("Fetch profile error:", error);
-      showWarningToast("Failed to load profile data.");
+      console.error('Fetch profile error:', error)
+      showWarningToast('Failed to load profile data.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (userId) fetchProfile();
-  }, [userId]);
+    if (userId) fetchProfile()
+  }, [userId])
 
   // Warn about unsaved changes
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
+    const handleBeforeUnload = e => {
       if (isEditing && JSON.stringify(formData) !== JSON.stringify(initialData)) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-        return 'You have unsaved changes. Are you sure you want to leave?';
+        e.preventDefault()
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
+        return 'You have unsaved changes. Are you sure you want to leave?'
       }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isEditing, formData, initialData]);
-
-  // Input handlers
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-
-    if (name === 'phone_number') {
-      formattedValue = formatPhoneNumber(value);
-    } else if (name === 'adhar_number') {
-      formattedValue = formatAadharNumber(value);
     }
 
-    setFormData((prev) => ({ ...prev, [name]: formattedValue }));
-    validateField(name, formattedValue);
-  };
+    window.addEventListener('beforeunload', handleBeforeUnload)
 
-  const handleDOBChange = (e) => {
-    const dob = e.target.value;
-    setFormData((prev) => ({ 
-      ...prev, 
-      date_of_birth: dob, 
-      age: calculateAgeFromDOB(dob) 
-    }));
-  };
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [isEditing, formData, initialData])
 
-  const handleAgeChange = (e) => {
-    let age = e.target.value;
-    if (age < 1) age = 1;
-    if (age > 120) age = 120;
-    setFormData((prev) => ({ 
-      ...prev, 
-      age, 
-      date_of_birth: calculateDOBFromAge(age) 
-    }));
-  };
+  // Input handlers
+  const handleInputChange = e => {
+    const { name, value } = e.target
+    let formattedValue = value
+
+    if (name === 'phone_number') {
+      formattedValue = formatPhoneNumber(value)
+    } else if (name === 'adhar_number') {
+      formattedValue = formatAadharNumber(value)
+    }
+
+    setFormData(prev => ({ ...prev, [name]: formattedValue }))
+    validateField(name, formattedValue)
+  }
+
+  const handleDOBChange = e => {
+    const dob = e.target.value
+    setFormData(prev => ({
+      ...prev,
+      date_of_birth: dob,
+      age: calculateAgeFromDOB(dob),
+    }))
+  }
+
+  const handleAgeChange = e => {
+    let age = e.target.value
+    if (age < 1) age = 1
+    if (age > 120) age = 120
+    setFormData(prev => ({
+      ...prev,
+      age,
+      date_of_birth: calculateDOBFromAge(age),
+    }))
+  }
 
   // Edit, back, reset, update
   const handleEditClick = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleBack = () => {
-    setIsEditing(false);
-    setFormData(initialData);
-    setErrors({});
-  };
+    setIsEditing(false)
+    setFormData(initialData)
+    setErrors({})
+  }
 
   const handleReset = () => {
-    setFormData(initialData);
-    setErrors({});
-    showWarningToast("Form reset to last saved data.");
-  };
+    setFormData(initialData)
+    setErrors({})
+    showWarningToast('Form reset to last saved data.')
+  }
 
   // FIXED: Handle update with edit_flag
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    
+  const handleUpdate = async e => {
+    e.preventDefault()
+
     // Validate required fields
     if (!formData.full_name || !formData.phone_number || !formData.email) {
-      return showErrorToast("Please fill all required fields!");
+      return showErrorToast('Please fill all required fields!')
     }
 
     // Validate field formats
     if (formData.phone_number && !/^\d{10}$/.test(formData.phone_number)) {
-      return showErrorToast("Phone number must be exactly 10 digits.");
+      return showErrorToast('Phone number must be exactly 10 digits.')
     }
 
     if (formData.adhar_number && !/^\d{12}$/.test(formData.adhar_number)) {
-      return showErrorToast("Aadhar number must be exactly 12 digits.");
+      return showErrorToast('Aadhar number must be exactly 12 digits.')
     }
 
-    setUpdating(true);
+    setUpdating(true)
     try {
       // Send edit_flag to indicate this is a profile edit (not password change)
       const updateData = {
@@ -222,52 +222,54 @@ const Profile = () => {
         adhar_number: formData.adhar_number,
         address: formData.address,
         additional_notes: formData.additional_notes,
-        edit_flag: 'profile_edit' // This tells backend not to update password
-      };
+        edit_flag: 'profile_edit', // This tells backend not to update password
+      }
 
-      const res = await updateUserApplicant(userId, updateData);
-      
+      const res = await updateUserApplicant(userId, updateData)
+
       if (res.data.message) {
-        showSuccessToast("Profile updated successfully!");
-        setIsEditing(false);
+        showSuccessToast('Profile updated successfully!')
+        setIsEditing(false)
         if (res.data.user) {
-          setFormData(res.data.user);
-          setInitialData(res.data.user);
+          setFormData(res.data.user)
+          setInitialData(res.data.user)
         }
       } else {
-        showErrorToast("Failed to update profile.");
+        showErrorToast('Failed to update profile.')
       }
     } catch (error) {
-      console.error("Update error:", error);
-      
+      console.error('Update error:', error)
+
       // More specific error handling
       if (error.response?.status === 500) {
         if (error.response?.data?.message?.includes('data and salt arguments required')) {
-          showErrorToast("Server configuration error. Please contact support.");
+          showErrorToast('Server configuration error. Please contact support.')
         } else {
-          showErrorToast("Server error. Please try again later.");
+          showErrorToast('Server error. Please try again later.')
         }
       } else if (error.response?.data?.message) {
-        showErrorToast(error.response.data.message);
+        showErrorToast(error.response.data.message)
       } else {
-        showErrorToast("Error updating profile. Please check your connection.");
+        showErrorToast('Error updating profile. Please check your connection.')
       }
     } finally {
-      setUpdating(false);
+      setUpdating(false)
     }
-  };
+  }
 
   // Character count component
   const CharacterCount = ({ text, maxLength }) => {
-    const currentLength = text?.length || 0;
+    const currentLength = text?.length || 0
     return (
-      <div className={`text-right text-xs ${
-        currentLength > maxLength * 0.9 ? 'text-red-500' : 'text-gray-500'
-      }`}>
+      <div
+        className={`text-right text-xs ${
+          currentLength > maxLength * 0.9 ? 'text-red-500' : 'text-gray-500'
+        }`}
+      >
         {currentLength}/{maxLength}
       </div>
-    );
-  };
+    )
+  }
 
   if (loading) {
     return (
@@ -275,27 +277,29 @@ const Profile = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-900"></div>
         <p className="text-green-900 text-xl font-semibold ml-4">Loading Profile...</p>
       </div>
-    );
+    )
   }
 
-  const mandatoryLabel = (label) => (
+  const mandatoryLabel = label => (
     <>
       {label} <span className="text-red-600">*</span>
     </>
-  );
+  )
 
-  const ErrorMessage = ({ message }) => (
+  const ErrorMessage = ({ message }) =>
     message ? <p className="text-red-500 text-xs mt-1">{message}</p> : null
-  );
 
-  const hasUnsavedChanges = isEditing && JSON.stringify(formData) !== JSON.stringify(initialData);
+  const hasUnsavedChanges = isEditing && JSON.stringify(formData) !== JSON.stringify(initialData)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 via-white to-green-50 py-10 px-4">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white p-2 rounded shadow-lg">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white p-2 rounded shadow-lg"
+      >
         Skip to main content
       </a>
-      
+
       <Toast />
       <div className="max-w-4xl mx-auto bg-white rounded shadow-md p-4 relative">
         {/* Unsaved changes indicator */}
@@ -305,9 +309,7 @@ const Profile = () => {
           </div>
         )}
 
-        <h2 className="font-bold text-center text-green-900 mb-4">
-          User Profile
-        </h2>
+        <h2 className="font-bold text-center text-green-900 mb-4">User Profile</h2>
 
         {/* Top Icons */}
         <div className="absolute top-4 w-full px-4 flex justify-between">
@@ -342,7 +344,7 @@ const Profile = () => {
         >
           {/* Column 1 */}
           <div className="flex flex-col gap-2">
-            <label>{mandatoryLabel("Full Name")}</label>
+            <label>{mandatoryLabel('Full Name')}</label>
             <input
               type="text"
               name="full_name"
@@ -355,11 +357,11 @@ const Profile = () => {
               required
               aria-required="true"
               aria-invalid={!!errors.full_name}
-              aria-describedby={errors.full_name ? "full-name-error" : undefined}
+              aria-describedby={errors.full_name ? 'full-name-error' : undefined}
             />
             <ErrorMessage message={errors.full_name} />
 
-            <label>{mandatoryLabel("Date of Birth")}</label>
+            <label>{mandatoryLabel('Date of Birth')}</label>
             <input
               type="date"
               name="date_of_birth"
@@ -371,7 +373,7 @@ const Profile = () => {
               aria-required="true"
             />
 
-            <label>{mandatoryLabel("Age")}</label>
+            <label>{mandatoryLabel('Age')}</label>
             <input
               type="number"
               name="age"
@@ -388,7 +390,7 @@ const Profile = () => {
 
           {/* Column 2 */}
           <div className="flex flex-col gap-2">
-            <label>{mandatoryLabel("Phone Number")}</label>
+            <label>{mandatoryLabel('Phone Number')}</label>
             <input
               type="tel"
               name="phone_number"
@@ -402,11 +404,11 @@ const Profile = () => {
               required
               aria-required="true"
               aria-invalid={!!errors.phone_number}
-              aria-describedby={errors.phone_number ? "phone-error" : undefined}
+              aria-describedby={errors.phone_number ? 'phone-error' : undefined}
             />
             <ErrorMessage message={errors.phone_number} />
 
-            <label>{mandatoryLabel("Email")}</label>
+            <label>{mandatoryLabel('Email')}</label>
             <input
               type="email"
               name="email"
@@ -421,7 +423,7 @@ const Profile = () => {
             />
             <ErrorMessage message={errors.email} />
 
-            <label>{mandatoryLabel("Gender")}</label>
+            <label>{mandatoryLabel('Gender')}</label>
             <select
               name="gender"
               value={formData.gender}
@@ -440,7 +442,7 @@ const Profile = () => {
 
           {/* Column 3 */}
           <div className="flex flex-col gap-2">
-            <label>{mandatoryLabel("Occupation")}</label>
+            <label>{mandatoryLabel('Occupation')}</label>
             <input
               type="text"
               name="occupation"
@@ -464,11 +466,11 @@ const Profile = () => {
               pattern="[0-9]{12}"
               disabled={!isEditing}
               aria-invalid={!!errors.adhar_number}
-              aria-describedby={errors.adhar_number ? "aadhar-error" : undefined}
+              aria-describedby={errors.adhar_number ? 'aadhar-error' : undefined}
             />
             <ErrorMessage message={errors.adhar_number} />
 
-            <label>{mandatoryLabel("Address")}</label>
+            <label>{mandatoryLabel('Address')}</label>
             <textarea
               name="address"
               value={formData.address}
@@ -538,13 +540,13 @@ const Profile = () => {
         <div className="text-center mt-6 pt-3 border-t border-gray-200">
           <p className="text-[10px] text-gray-500 italic flex justify-center items-center gap-1">
             <FiInfo className="text-green-700" />
-            Please ensure all details are accurate before saving. Fields marked with{" "}
+            Please ensure all details are accurate before saving. Fields marked with{' '}
             <span className="text-red-600">*</span> are mandatory.
           </p>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import feedbackService from '../services/feedbackService';
+import { useState, useEffect } from 'react'
+import feedbackService from '../services/feedbackService'
 import {
   FaStar,
   FaClock,
@@ -20,19 +20,19 @@ import {
   FaDownload,
   FaSort,
   FaSortUp,
-  FaSortDown
-} from 'react-icons/fa';
+  FaSortDown,
+} from 'react-icons/fa'
 
 const AdminFeedbackManagement = () => {
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedFeedback, setSelectedFeedback] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [showStats, setShowStats] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-  const [expandedFeedback, setExpandedFeedback] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [selectedFeedback, setSelectedFeedback] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [showStats, setShowStats] = useState(true)
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' })
+  const [expandedFeedback, setExpandedFeedback] = useState(null)
 
   // Filters
   const [filters, setFilters] = useState({
@@ -41,225 +41,258 @@ const AdminFeedbackManagement = () => {
     rating: '',
     search: '',
     page: 1,
-    limit: 10
-  });
+    limit: 10,
+  })
 
   // Status update form
   const [statusForm, setStatusForm] = useState({
     status: '',
-    adminNotes: ''
-  });
+    adminNotes: '',
+  })
 
   const statusOptions = [
-    { value: 'pending', label: 'Pending', color: 'yellow', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' },
-    { value: 'reviewed', label: 'Reviewed', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
-    { value: 'in_progress', label: 'In Progress', color: 'orange', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
-    { value: 'resolved', label: 'Resolved', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
-    { value: 'closed', label: 'Closed', color: 'gray', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' }
-  ];
+    {
+      value: 'pending',
+      label: 'Pending',
+      color: 'yellow',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
+    },
+    {
+      value: 'reviewed',
+      label: 'Reviewed',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+    },
+    {
+      value: 'in_progress',
+      label: 'In Progress',
+      color: 'orange',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+    },
+    {
+      value: 'resolved',
+      label: 'Resolved',
+      color: 'green',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+    },
+    {
+      value: 'closed',
+      label: 'Closed',
+      color: 'gray',
+      bgColor: 'bg-gray-50',
+      borderColor: 'border-gray-200',
+    },
+  ]
 
   const categoryOptions = [
     { value: 'general', label: 'General', color: 'blue' },
     { value: 'bug', label: 'Bug', color: 'red' },
     { value: 'feature', label: 'Feature', color: 'green' },
     { value: 'ui', label: 'UI/UX', color: 'purple' },
-    { value: 'performance', label: 'Performance', color: 'orange' }
-  ];
+    { value: 'performance', label: 'Performance', color: 'orange' },
+  ]
 
   const ratingOptions = [
     { value: '1', label: '1 Star' },
     { value: '2', label: '2 Stars' },
     { value: '3', label: '3 Stars' },
     { value: '4', label: '4 Stars' },
-    { value: '5', label: '5 Stars' }
-  ];
+    { value: '5', label: '5 Stars' },
+  ]
 
   // Helper function to process stats data
-  const processStats = (statsData) => {
-    if (!statsData) return null;
-    
-    const pendingCount = statsData.byStatus?.find(item => item.status === 'pending')?.count || 0;
-    const resolvedCount = statsData.byStatus?.find(item => item.status === 'resolved')?.count || 0;
-    const reviewedCount = statsData.byStatus?.find(item => item.status === 'reviewed')?.count || 0;
-    const inProgressCount = statsData.byStatus?.find(item => item.status === 'in_progress')?.count || 0;
-    const closedCount = statsData.byStatus?.find(item => item.status === 'closed')?.count || 0;
+  const processStats = statsData => {
+    if (!statsData) return null
+
+    const pendingCount = statsData.byStatus?.find(item => item.status === 'pending')?.count || 0
+    const resolvedCount = statsData.byStatus?.find(item => item.status === 'resolved')?.count || 0
+    const reviewedCount = statsData.byStatus?.find(item => item.status === 'reviewed')?.count || 0
+    const inProgressCount =
+      statsData.byStatus?.find(item => item.status === 'in_progress')?.count || 0
+    const closedCount = statsData.byStatus?.find(item => item.status === 'closed')?.count || 0
 
     return {
       totalCount: statsData.totalCount || 0,
-      averageRating: statsData.overallAverage ? parseFloat(statsData.overallAverage).toFixed(1) : '0.0',
+      averageRating: statsData.overallAverage
+        ? parseFloat(statsData.overallAverage).toFixed(1)
+        : '0.0',
       pendingCount,
       resolvedCount,
       reviewedCount,
       inProgressCount,
-      closedCount
-    };
-  };
+      closedCount,
+    }
+  }
 
-  const [processedStats, setProcessedStats] = useState(null);
+  const [processedStats, setProcessedStats] = useState(null)
 
   const fetchFeedbacks = async () => {
     try {
-      setLoading(true);
-      setError('');
-      const response = await feedbackService.getAllFeedback(filters);
-      
+      setLoading(true)
+      setError('')
+      const response = await feedbackService.getAllFeedback(filters)
+
       if (response.success) {
-        setFeedbacks(response.data.feedbacks || response.data || []);
+        setFeedbacks(response.data.feedbacks || response.data || [])
       } else {
-        setError('Failed to load feedback data');
+        setError('Failed to load feedback data')
       }
     } catch (error) {
-      console.error('Error fetching feedbacks:', error);
-      setError(error.message);
+      console.error('Error fetching feedbacks:', error)
+      setError(error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchStats = async () => {
     try {
-      const response = await feedbackService.getFeedbackStats();
+      const response = await feedbackService.getFeedbackStats()
       // console.log('Stats response:', response);
-      
+
       if (response.success) {
-        setStats(response.data);
-        setProcessedStats(processStats(response.data));
+        setStats(response.data)
+        setProcessedStats(processStats(response.data))
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching stats:', error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchFeedbacks();
-    fetchStats();
-  }, [filters]);
+    fetchFeedbacks()
+    fetchStats()
+  }, [filters])
 
-  const handleSort = (key) => {
+  const handleSort = key => {
     setSortConfig({
       key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-    });
-  };
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc',
+    })
+  }
 
   const getSortedFeedbacks = () => {
-    if (!sortConfig.key) return feedbacks;
+    if (!sortConfig.key) return feedbacks
 
     return [...feedbacks].sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
+        return sortConfig.direction === 'asc' ? -1 : 1
       }
       if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
+        return sortConfig.direction === 'asc' ? 1 : -1
       }
-      return 0;
-    });
-  };
+      return 0
+    })
+  }
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({
       ...prev,
       [key]: value,
-      page: 1
-    }));
-  };
+      page: 1,
+    }))
+  }
 
-  const handleStatusUpdate = async (e) => {
-    e.preventDefault();
-    if (!selectedFeedback) return;
+  const handleStatusUpdate = async e => {
+    e.preventDefault()
+    if (!selectedFeedback) return
 
     try {
       await feedbackService.updateFeedbackStatus(
         selectedFeedback.feedback_id || selectedFeedback.id,
         statusForm.status,
         statusForm.adminNotes
-      );
+      )
 
-      await fetchFeedbacks();
-      await fetchStats();
-      
-      setShowModal(false);
-      setSelectedFeedback(null);
-      setStatusForm({ status: '', adminNotes: '' });
-      
+      await fetchFeedbacks()
+      await fetchStats()
+
+      setShowModal(false)
+      setSelectedFeedback(null)
+      setStatusForm({ status: '', adminNotes: '' })
+
       // Show success notification
-      alert('Feedback status updated successfully!');
+      alert('Feedback status updated successfully!')
     } catch (error) {
-      alert(error.message);
+      alert(error.message)
     }
-  };
+  }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (!confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
-      return;
+      return
     }
 
     try {
-      await feedbackService.deleteFeedback(id);
-      await fetchFeedbacks();
-      await fetchStats();
-      alert('Feedback deleted successfully!');
+      await feedbackService.deleteFeedback(id)
+      await fetchFeedbacks()
+      await fetchStats()
+      alert('Feedback deleted successfully!')
     } catch (error) {
-      alert(error.message);
+      alert(error.message)
     }
-  };
+  }
 
-  const openStatusModal = (feedback) => {
-    setSelectedFeedback(feedback);
+  const openStatusModal = feedback => {
+    setSelectedFeedback(feedback)
     setStatusForm({
       status: feedback.status || 'pending',
-      adminNotes: feedback.admin_notes || feedback.adminNotes || ''
-    });
-    setShowModal(true);
-  };
+      adminNotes: feedback.admin_notes || feedback.adminNotes || '',
+    })
+    setShowModal(true)
+  }
 
-  const toggleExpandFeedback = (id) => {
-    setExpandedFeedback(expandedFeedback === id ? null : id);
-  };
+  const toggleExpandFeedback = id => {
+    setExpandedFeedback(expandedFeedback === id ? null : id)
+  }
 
-  const getStatusConfig = (status) => {
-    return statusOptions.find(option => option.value === status) || statusOptions[0];
-  };
+  const getStatusConfig = status => {
+    return statusOptions.find(option => option.value === status) || statusOptions[0]
+  }
 
-  const getCategoryConfig = (category) => {
-    return categoryOptions.find(option => option.value === category) || categoryOptions[0];
-  };
+  const getCategoryConfig = category => {
+    return categoryOptions.find(option => option.value === category) || categoryOptions[0]
+  }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown date';
+  const formatDate = dateString => {
+    if (!dateString) return 'Unknown date'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+      minute: '2-digit',
+    })
+  }
 
-  const renderStars = (rating) => {
+  const renderStars = rating => {
     return (
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => (
           <FaStar
             key={i}
             className={`text-sm ${
-              i < rating 
-                ? 'text-yellow-500 fill-current drop-shadow-sm' 
-                : 'text-gray-300'
+              i < rating ? 'text-yellow-500 fill-current drop-shadow-sm' : 'text-gray-300'
             } transition-transform hover:scale-110`}
           />
         ))}
         <span className="ml-1 text-xs text-gray-500 font-medium">({rating})</span>
       </div>
-    );
-  };
+    )
+  }
 
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key) return <FaSort className="text-gray-400" />;
-    return sortConfig.direction === 'asc' 
-      ? <FaSortUp className="text-blue-600" /> 
-      : <FaSortDown className="text-blue-600" />;
-  };
+  const getSortIcon = key => {
+    if (sortConfig.key !== key) return <FaSort className="text-gray-400" />
+    return sortConfig.direction === 'asc' ? (
+      <FaSortUp className="text-blue-600" />
+    ) : (
+      <FaSortDown className="text-blue-600" />
+    )
+  }
 
   if (loading && !feedbacks.length) {
     return (
@@ -269,10 +302,10 @@ const AdminFeedbackManagement = () => {
           <p className="text-gray-600">Loading feedback data...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  const sortedFeedbacks = getSortedFeedbacks();
+  const sortedFeedbacks = getSortedFeedbacks()
 
   return (
     <div className="min-h-screen bg-gray-50/30">
@@ -301,11 +334,11 @@ const AdminFeedbackManagement = () => {
                   {showStats ? 'Hide Analytics' : 'Show Analytics'}
                 </span>
               </button>
-              
+
               <button
                 onClick={() => {
-                  fetchFeedbacks();
-                  fetchStats();
+                  fetchFeedbacks()
+                  fetchStats()
                 }}
                 className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
@@ -330,9 +363,7 @@ const AdminFeedbackManagement = () => {
                     <FaComments className="text-2xl" />
                   </div>
                 </div>
-                <div className="mt-4 text-blue-100 text-sm">
-                  All user submissions
-                </div>
+                <div className="mt-4 text-blue-100 text-sm">All user submissions</div>
               </div>
 
               <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl">
@@ -345,9 +376,7 @@ const AdminFeedbackManagement = () => {
                     <FaStar className="text-2xl" />
                   </div>
                 </div>
-                <div className="mt-4 text-amber-100 text-sm">
-                  Overall satisfaction
-                </div>
+                <div className="mt-4 text-amber-100 text-sm">Overall satisfaction</div>
               </div>
 
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
@@ -360,9 +389,7 @@ const AdminFeedbackManagement = () => {
                     <FaExclamationTriangle className="text-2xl" />
                   </div>
                 </div>
-                <div className="mt-4 text-orange-100 text-sm">
-                  Awaiting action
-                </div>
+                <div className="mt-4 text-orange-100 text-sm">Awaiting action</div>
               </div>
 
               <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
@@ -375,9 +402,7 @@ const AdminFeedbackManagement = () => {
                     <FaCheckCircle className="text-2xl" />
                   </div>
                 </div>
-                <div className="mt-4 text-emerald-100 text-sm">
-                  Completed items
-                </div>
+                <div className="mt-4 text-emerald-100 text-sm">Completed items</div>
               </div>
             </div>
           </div>
@@ -397,9 +422,16 @@ const AdminFeedbackManagement = () => {
                 </div>
               </div>
               <button
-                onClick={() => setFilters({
-                  status: '', category: '', rating: '', search: '', page: 1, limit: 10
-                })}
+                onClick={() =>
+                  setFilters({
+                    status: '',
+                    category: '',
+                    rating: '',
+                    search: '',
+                    page: 1,
+                    limit: 10,
+                  })
+                }
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors font-medium"
               >
                 Clear All
@@ -419,7 +451,7 @@ const AdminFeedbackManagement = () => {
                   <input
                     type="text"
                     value={filters.search}
-                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    onChange={e => handleFilterChange('search', e.target.value)}
                     placeholder="Search messages..."
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   />
@@ -428,12 +460,10 @@ const AdminFeedbackManagement = () => {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Status
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
                 <select
                   value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  onChange={e => handleFilterChange('status', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                 >
                   <option value="">All Status</option>
@@ -447,12 +477,10 @@ const AdminFeedbackManagement = () => {
 
               {/* Category Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Category
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                 <select
                   value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  onChange={e => handleFilterChange('category', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                 >
                   <option value="">All Categories</option>
@@ -466,12 +494,10 @@ const AdminFeedbackManagement = () => {
 
               {/* Rating Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Rating
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
                 <select
                   value={filters.rating}
-                  onChange={(e) => handleFilterChange('rating', e.target.value)}
+                  onChange={e => handleFilterChange('rating', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                 >
                   <option value="">All Ratings</option>
@@ -511,9 +537,7 @@ const AdminFeedbackManagement = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Feedback Submissions
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">Feedback Submissions</h3>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
                   {feedbacks.length} items
@@ -526,7 +550,7 @@ const AdminFeedbackManagement = () => {
             <table className="w-full">
               <thead className="bg-gray-50/80">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('user_id')}
                   >
@@ -535,7 +559,7 @@ const AdminFeedbackManagement = () => {
                       {getSortIcon('user_id')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('rating')}
                   >
@@ -544,7 +568,7 @@ const AdminFeedbackManagement = () => {
                       {getSortIcon('rating')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('category')}
                   >
@@ -553,7 +577,7 @@ const AdminFeedbackManagement = () => {
                       {getSortIcon('category')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('status')}
                   >
@@ -562,7 +586,7 @@ const AdminFeedbackManagement = () => {
                       {getSortIcon('status')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('createdAt')}
                   >
@@ -592,14 +616,14 @@ const AdminFeedbackManagement = () => {
                     </td>
                   </tr>
                 ) : (
-                  sortedFeedbacks.map((feedback) => {
-                    const statusConfig = getStatusConfig(feedback.status);
-                    const categoryConfig = getCategoryConfig(feedback.category);
-                    const isExpanded = expandedFeedback === feedback.feedback_id;
+                  sortedFeedbacks.map(feedback => {
+                    const statusConfig = getStatusConfig(feedback.status)
+                    const categoryConfig = getCategoryConfig(feedback.category)
+                    const isExpanded = expandedFeedback === feedback.feedback_id
 
                     return (
-                      <tr 
-                        key={feedback.feedback_id} 
+                      <tr
+                        key={feedback.feedback_id}
                         className="hover:bg-gray-50/50 transition-colors group"
                       >
                         <td className="px-6 py-4">
@@ -617,17 +641,19 @@ const AdminFeedbackManagement = () => {
                             </div>
                           </div>
                         </td>
+                        <td className="px-6 py-4">{renderStars(feedback.rating)}</td>
                         <td className="px-6 py-4">
-                          {renderStars(feedback.rating)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-${categoryConfig.color}-50 text-${categoryConfig.color}-700 border border-${categoryConfig.color}-200`}>
+                          <span
+                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-${categoryConfig.color}-50 text-${categoryConfig.color}-700 border border-${categoryConfig.color}-200`}
+                          >
                             <FaTag className="mr-1.5" size={10} />
                             {feedback.category}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bgColor} text-${statusConfig.color}-700 border ${statusConfig.borderColor}`}>
+                          <span
+                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bgColor} text-${statusConfig.color}-700 border ${statusConfig.borderColor}`}
+                          >
                             {feedback.status.replace('_', ' ')}
                           </span>
                         </td>
@@ -663,7 +689,7 @@ const AdminFeedbackManagement = () => {
                           </div>
                         </td>
                       </tr>
-                    );
+                    )
                   })
                 )}
               </tbody>
@@ -677,9 +703,7 @@ const AdminFeedbackManagement = () => {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Update Feedback Status
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-900">Update Feedback Status</h3>
                   <button
                     onClick={() => setShowModal(false)}
                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
@@ -694,9 +718,7 @@ const AdminFeedbackManagement = () => {
                       Feedback Message
                     </label>
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                      <p className="text-gray-700 leading-relaxed">
-                        {selectedFeedback.message}
-                      </p>
+                      <p className="text-gray-700 leading-relaxed">{selectedFeedback.message}</p>
                     </div>
                   </div>
 
@@ -705,11 +727,15 @@ const AdminFeedbackManagement = () => {
                       Current Status
                     </label>
                     <div className="flex items-center gap-2">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusConfig(selectedFeedback.status).bgColor} text-${getStatusConfig(selectedFeedback.status).color}-700 border ${getStatusConfig(selectedFeedback.status).borderColor}`}>
+                      <span
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusConfig(selectedFeedback.status).bgColor} text-${getStatusConfig(selectedFeedback.status).color}-700 border ${getStatusConfig(selectedFeedback.status).borderColor}`}
+                      >
                         {selectedFeedback.status.replace('_', ' ')}
                       </span>
                       <span className="text-gray-400">→</span>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusConfig(statusForm.status).bgColor} text-${getStatusConfig(statusForm.status).color}-700 border ${getStatusConfig(statusForm.status).borderColor}`}>
+                      <span
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusConfig(statusForm.status).bgColor} text-${getStatusConfig(statusForm.status).color}-700 border ${getStatusConfig(statusForm.status).borderColor}`}
+                      >
                         {statusForm.status.replace('_', ' ')}
                       </span>
                     </div>
@@ -721,7 +747,7 @@ const AdminFeedbackManagement = () => {
                     </label>
                     <select
                       value={statusForm.status}
-                      onChange={(e) => setStatusForm(prev => ({ ...prev, status: e.target.value }))}
+                      onChange={e => setStatusForm(prev => ({ ...prev, status: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                       required
                     >
@@ -739,7 +765,9 @@ const AdminFeedbackManagement = () => {
                     </label>
                     <textarea
                       value={statusForm.adminNotes}
-                      onChange={(e) => setStatusForm(prev => ({ ...prev, adminNotes: e.target.value }))}
+                      onChange={e =>
+                        setStatusForm(prev => ({ ...prev, adminNotes: e.target.value }))
+                      }
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all duration-200"
                       placeholder="Add internal notes or follow-up actions..."
@@ -768,7 +796,7 @@ const AdminFeedbackManagement = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminFeedbackManagement;
+export default AdminFeedbackManagement

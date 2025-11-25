@@ -4,18 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { 
-  Eye, 
-  EyeOff, 
-  User, 
-  Mail, 
-  Lock, 
-  Shield,
-  Scale,
-  AlertCircle,
-  Check,
-  X
-} from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Lock, Shield, Scale, AlertCircle, Check, X } from 'lucide-react'
 import { authAPI } from '../../services/api'
 
 // Enhanced validation schema
@@ -24,10 +13,7 @@ const signupSchema = yup.object({
     .string()
     .min(2, 'Full name must be at least 2 characters')
     .required('Full name is required'),
-  email: yup
-    .string()
-    .email('Please enter a valid email address')
-    .required('Email is required'),
+  email: yup.string().email('Please enter a valid email address').required('Email is required'),
   password: yup
     .string()
     .min(6, 'Password must be at least 6 characters')
@@ -44,9 +30,7 @@ const signupSchema = yup.object({
     .string()
     .oneOf(['student', 'instructor'], 'Please select a valid role')
     .required('Role is required'),
-  agreeToTerms: yup
-    .boolean()
-    .oneOf([true], 'You must agree to the terms and conditions')
+  agreeToTerms: yup.boolean().oneOf([true], 'You must agree to the terms and conditions'),
 })
 
 const Signup = () => {
@@ -55,7 +39,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
-    feedback: []
+    feedback: [],
   })
 
   const navigate = useNavigate()
@@ -67,7 +51,7 @@ const Signup = () => {
     formState: { errors },
     setError,
     watch,
-    setValue
+    setValue,
   } = useForm({
     resolver: yupResolver(signupSchema),
     defaultValues: {
@@ -76,8 +60,8 @@ const Signup = () => {
       password: '',
       confirmPassword: '',
       role: 'student',
-      agreeToTerms: false
-    }
+      agreeToTerms: false,
+    },
   })
 
   const watchedPassword = watch('password')
@@ -85,7 +69,7 @@ const Signup = () => {
   const watchedEmail = watch('email')
 
   // Password strength checker
-  const checkPasswordStrength = (password) => {
+  const checkPasswordStrength = password => {
     const feedback = []
     let score = 0
 
@@ -131,31 +115,31 @@ const Signup = () => {
     }
   }, [watchedPassword])
 
-  const onSubmit = async (data) => {
+  const onSubmit = async data => {
     setIsLoading(true)
-    
+
     try {
       // Remove confirmPassword from submission data
       const { confirmPassword, agreeToTerms, ...submitData } = data
-      
+
       console.log('Signup Data:', submitData)
-      
+
       // Simulate API call - replace with your actual signup service
       await authAPI.register(submitData)
-      
+
       // Show success message and redirect
-      navigate('/login', { 
+      navigate('/login', {
         replace: true,
-        state: { 
+        state: {
           message: 'Account created successfully! Please login to continue.',
-          type: 'success'
-        }
+          type: 'success',
+        },
       })
     } catch (error) {
       console.error('Signup error:', error)
-      setError('root', { 
+      setError('root', {
         type: 'manual',
-        message: 'Signup failed. Please try again.' 
+        message: 'Signup failed. Please try again.',
       })
     } finally {
       setIsLoading(false)
@@ -170,7 +154,7 @@ const Signup = () => {
     setShowConfirmPassword(!showConfirmPassword)
   }
 
-  const getPasswordStrengthColor = (score) => {
+  const getPasswordStrengthColor = score => {
     if (score === 0) return 'bg-gray-200'
     if (score <= 2) return 'bg-red-500'
     if (score <= 3) return 'bg-yellow-500'
@@ -178,7 +162,7 @@ const Signup = () => {
     return 'bg-green-500'
   }
 
-  const getPasswordStrengthText = (score) => {
+  const getPasswordStrengthText = score => {
     if (score === 0) return 'Very Weak'
     if (score <= 2) return 'Weak'
     if (score <= 3) return 'Good'
@@ -189,7 +173,6 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-blue-50 p-3">
       <div className="flex flex-col md:flex-row w-full max-w-md md:max-w-2xl shadow-md rounded-lg overflow-hidden bg-white">
-        
         {/* Left Side - Brand & Illustration */}
         <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 p-4 flex-col items-center justify-center relative overflow-hidden">
           {/* Background Pattern */}
@@ -198,25 +181,21 @@ const Signup = () => {
             <div className="absolute bottom-12 right-12 w-20 h-20 bg-white rounded-full"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full"></div>
           </div>
-          
+
           <div className="relative z-10 text-center text-white">
             <div className="mb-3 flex justify-center">
               <div className="bg-white bg-opacity-20 p-2 rounded-lg">
                 <Scale className="w-6 h-6 text-white" />
               </div>
             </div>
-            
-            <h1 className="text-xl font-bold mb-2 font-display">
-              Learn SAP ABAP
-            </h1>
-            <p className="text-xs mb-3 opacity-90">
-              Start Your SAP Journey
-            </p>
-            
+
+            <h1 className="text-xl font-bold mb-2 font-display">Learn SAP ABAP</h1>
+            <p className="text-xs mb-3 opacity-90">Start Your SAP Journey</p>
+
             <div className="w-48 h-32 bg-white bg-opacity-10 rounded-lg flex items-center justify-center backdrop-blur-sm mb-3">
               <User className="w-12 h-12 text-white opacity-80" />
             </div>
-            
+
             <div className="text-left bg-white bg-opacity-10 p-3 rounded-lg backdrop-blur-sm">
               <h3 className="font-semibold mb-1 text-sm">Benefits</h3>
               <ul className="space-y-1 text-xs opacity-90">
@@ -254,12 +233,8 @@ const Signup = () => {
 
           {/* Desktop Header */}
           <div className="hidden md:block text-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">
-              Create Account
-            </h2>
-            <p className="text-gray-600 text-xs mt-1">
-              Join our SAP learning community
-            </p>
+            <h2 className="text-lg font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-600 text-xs mt-1">Join our SAP learning community</p>
           </div>
 
           <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
@@ -295,7 +270,9 @@ const Signup = () => {
                 />
               </div>
               {errors.full_name && (
-                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.full_name.message}</p>
+                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                  {errors.full_name.message}
+                </p>
               )}
             </div>
 
@@ -318,7 +295,9 @@ const Signup = () => {
                 />
               </div>
               {errors.email && (
-                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.email.message}</p>
+                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -369,15 +348,13 @@ const Signup = () => {
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                   disabled={isLoading}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-3 h-3" />
-                  ) : (
-                    <Eye className="w-3 h-3" />
-                  )}
+                  {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.password.message}</p>
+                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                  {errors.password.message}
+                </p>
               )}
 
               {/* Password Strength Indicator */}
@@ -385,16 +362,22 @@ const Signup = () => {
                 <div className="mt-2 space-y-1">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-600">Strength:</span>
-                    <span className={`font-medium ${
-                      passwordStrength.score <= 2 ? 'text-red-600' :
-                      passwordStrength.score <= 3 ? 'text-yellow-600' :
-                      passwordStrength.score <= 4 ? 'text-blue-600' : 'text-green-600'
-                    }`}>
+                    <span
+                      className={`font-medium ${
+                        passwordStrength.score <= 2
+                          ? 'text-red-600'
+                          : passwordStrength.score <= 3
+                            ? 'text-yellow-600'
+                            : passwordStrength.score <= 4
+                              ? 'text-blue-600'
+                              : 'text-green-600'
+                      }`}
+                    >
                       {getPasswordStrengthText(passwordStrength.score)}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div 
+                    <div
                       className={`h-1.5 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength.score)}`}
                       style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                     ></div>
@@ -405,7 +388,10 @@ const Signup = () => {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-xs font-medium text-gray-700 mb-1"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -434,24 +420,27 @@ const Signup = () => {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">{errors.confirmPassword.message}</p>
+                <p className="mt-0.5 text-xs text-red-600 animate-fade-in">
+                  {errors.confirmPassword.message}
+                </p>
               )}
 
               {/* Password Match Indicator */}
               {watchedConfirmPassword && (
-                <div className={`flex items-center space-x-1 mt-1 text-xs ${
-                  watchedPassword === watchedConfirmPassword ? 'text-green-600' : 'text-red-600'
-                }`}>
+                <div
+                  className={`flex items-center space-x-1 mt-1 text-xs ${
+                    watchedPassword === watchedConfirmPassword ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
                   {watchedPassword === watchedConfirmPassword ? (
                     <Check className="w-3 h-3" />
                   ) : (
                     <X className="w-3 h-3" />
                   )}
                   <span>
-                    {watchedPassword === watchedConfirmPassword 
-                      ? 'Passwords match' 
-                      : 'Passwords do not match'
-                    }
+                    {watchedPassword === watchedConfirmPassword
+                      ? 'Passwords match'
+                      : 'Passwords do not match'}
                   </span>
                 </div>
               )}
@@ -486,7 +475,9 @@ const Signup = () => {
               type="submit"
               disabled={isLoading}
               className={`w-full py-2 px-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded font-semibold text-xs shadow-sm hover:shadow transform transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:ring-offset-1 ${
-                isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5'
+                isLoading
+                  ? 'opacity-70 cursor-not-allowed'
+                  : 'hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5'
               }`}
             >
               {isLoading ? (

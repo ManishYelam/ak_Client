@@ -29,14 +29,15 @@ import {
   User,
   CreditCard,
   DollarSign,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import { applicationAPI, genericAPI } from '../../services/api'
 
 // Validation schemas
 const emailSettingsSchema = yup.object({
   smtpServer: yup.string().required('SMTP server is required'),
-  port: yup.number()
+  port: yup
+    .number()
     .typeError('Port must be a number')
     .required('Port is required')
     .min(1, 'Port must be at least 1')
@@ -45,27 +46,27 @@ const emailSettingsSchema = yup.object({
   username: yup.string().email('Must be a valid email').required('Username is required'),
   password: yup.string().required('Password is required'),
   useTLS: yup.boolean().default(true),
-  description: yup.string()
+  description: yup.string(),
 })
 
 const razorpaySettingsSchema = yup.object({
   keyId: yup.string().required('Key ID is required'),
   keySecret: yup.string().required('Key Secret is required'),
   webhookSecret: yup.string().required('Webhook Secret is required'),
-  description: yup.string()
+  description: yup.string(),
 })
 
 const generalSettingsSchema = yup.object({
   siteName: yup.string().required('Site name is required'),
   siteDescription: yup.string().required('Site description is required'),
-  contactEmail: yup.string().email('Must be a valid email').required('Contact email is required')
+  contactEmail: yup.string().email('Must be a valid email').required('Contact email is required'),
 })
 
 const lovSchema = yup.object({
   category: yup.string().required('Category is required'),
   code: yup.string().required('Code is required'),
   description: yup.string().required('Description is required'),
-  isActive: yup.boolean().default(true)
+  isActive: yup.boolean().default(true),
 })
 
 const SystemSettings = () => {
@@ -107,13 +108,13 @@ const SystemSettings = () => {
     category: 'all',
     status: 'all',
     page: 1,
-    limit: 10
+    limit: 10,
   })
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [pagination, setPagination] = useState({
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   })
 
   // Confirmation Modal State
@@ -123,26 +124,26 @@ const SystemSettings = () => {
     message: '',
     type: '', // 'delete', 'reset', 'lovDelete'
     onConfirm: null,
-    data: null
+    data: null,
   })
 
   // Settings state
   const [settings, setSettings] = useState({
-    site_title: "Learn SAP ABAP",
-    site_description: "Master SAP ABAP programming with expert-led courses",
-    contact_email: "support@learnsapabap.com",
+    site_title: 'Learn SAP ABAP',
+    site_description: 'Master SAP ABAP programming with expert-led courses',
+    contact_email: 'support@learnsapabap.com',
     maintenance_mode: false,
     user_registration: true,
     email_verification: true,
     strong_passwords: true,
     session_timeout: 120,
     max_login_attempts: 5,
-    smtp_host: "smtp.gmail.com",
+    smtp_host: 'smtp.gmail.com',
     smtp_port: 587,
-    smtp_service: "gmail",
-    smtp_username: "noreply@learnsapabap.com",
-    smtp_password: "",
-    smtp_use_tls: true
+    smtp_service: 'gmail',
+    smtp_username: 'noreply@learnsapabap.com',
+    smtp_password: '',
+    smtp_use_tls: true,
   })
 
   // Forms
@@ -151,21 +152,21 @@ const SystemSettings = () => {
     handleSubmit: handleSubmitGeneral,
     formState: { errors: generalErrors },
     reset: resetGeneral,
-    watch: watchGeneral
+    watch: watchGeneral,
   } = useForm({
     resolver: yupResolver(generalSettingsSchema),
     defaultValues: {
       siteName: '',
       siteDescription: '',
-      contactEmail: ''
-    }
+      contactEmail: '',
+    },
   })
 
   const {
     register: registerEmail,
     handleSubmit: handleSubmitEmail,
     formState: { errors: emailErrors },
-    reset: resetEmail
+    reset: resetEmail,
   } = useForm({
     resolver: yupResolver(emailSettingsSchema),
     defaultValues: {
@@ -175,45 +176,45 @@ const SystemSettings = () => {
       username: '',
       password: '',
       useTLS: true,
-      description: ''
-    }
+      description: '',
+    },
   })
 
   const {
     register: registerRazorpay,
     handleSubmit: handleSubmitRazorpay,
     formState: { errors: razorpayErrors },
-    reset: resetRazorpay
+    reset: resetRazorpay,
   } = useForm({
     resolver: yupResolver(razorpaySettingsSchema),
     defaultValues: {
       keyId: '',
       keySecret: '',
       webhookSecret: '',
-      description: ''
-    }
+      description: '',
+    },
   })
 
   const {
     register: registerLov,
     handleSubmit: handleSubmitLov,
     formState: { errors: lovErrors },
-    reset: resetLov
+    reset: resetLov,
   } = useForm({
     resolver: yupResolver(lovSchema),
     defaultValues: {
       category: '',
       code: '',
       description: '',
-      isActive: true
-    }
+      isActive: true,
+    },
   })
 
   const tabs = [
     { id: 'general', name: 'General', icon: '⚙️' },
     { id: 'email', name: 'Email', icon: '📧' },
     { id: 'razorpay', name: 'Razorpay', icon: '💳' },
-    { id: 'advanced', name: 'Advanced', icon: '🔧' }
+    { id: 'advanced', name: 'Advanced', icon: '🔧' },
   ]
 
   // Load settings on component mount
@@ -241,7 +242,7 @@ const SystemSettings = () => {
       message,
       type,
       onConfirm,
-      data
+      data,
     })
   }
 
@@ -252,7 +253,7 @@ const SystemSettings = () => {
       message: '',
       type: '',
       onConfirm: null,
-      data: null
+      data: null,
     })
   }
 
@@ -288,7 +289,7 @@ const SystemSettings = () => {
         resetGeneral({
           siteName: loadedSettings.site_title || '',
           siteDescription: loadedSettings.site_description || '',
-          contactEmail: loadedSettings.contact_email || ''
+          contactEmail: loadedSettings.contact_email || '',
         })
       }
     } catch (error) {
@@ -307,8 +308,8 @@ const SystemSettings = () => {
         search: '',
         searchFields: ['property_name', 'property_value'],
         filters: {
-          property_name: 'app_email'
-        }
+          property_name: 'app_email',
+        },
       }
 
       const response = await applicationAPI.getAllProperties(payload)
@@ -329,8 +330,8 @@ const SystemSettings = () => {
         search: '',
         searchFields: ['property_name', 'property_value'],
         filters: {
-          property_name: 'app_rzp'
-        }
+          property_name: 'app_rzp',
+        },
       }
 
       const response = await applicationAPI.getAllProperties(payload)
@@ -354,8 +355,8 @@ const SystemSettings = () => {
         ...(filters.search && { search: filters.search }),
         ...(filters.category !== 'all' && { categories: [filters.category] }),
         ...(filters.status !== 'all' && {
-          isActive: filters.status === 'active'
-        })
+          isActive: filters.status === 'active',
+        }),
       }
 
       const response = await genericAPI.getAllLOVs(payload)
@@ -367,7 +368,7 @@ const SystemSettings = () => {
         // Update pagination info from response
         setPagination({
           total: response.data.total || 0,
-          totalPages: response.data.totalPages || 0
+          totalPages: response.data.totalPages || 0,
         })
 
         // Extract unique categories from the data
@@ -383,39 +384,39 @@ const SystemSettings = () => {
   }
 
   // Filter handlers for LOV fields
-  const handleSearchChange = (value) => {
+  const handleSearchChange = value => {
     setFilters(prev => ({
       ...prev,
       search: value,
-      page: 1 // Reset to first page when searching
+      page: 1, // Reset to first page when searching
     }))
   }
 
-  const handleCategoryChange = (category) => {
+  const handleCategoryChange = category => {
     setFilters(prev => ({
       ...prev,
       category: category,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleStatusChange = (status) => {
+  const handleStatusChange = status => {
     setFilters(prev => ({
       ...prev,
       status: status,
-      page: 1
+      page: 1,
     }))
   }
 
-  const handleLimitChange = (newLimit) => {
+  const handleLimitChange = newLimit => {
     setFilters(prev => ({
       ...prev,
       limit: parseInt(newLimit),
-      page: 1
+      page: 1,
     }))
   }
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = newPage => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setFilters(prev => ({ ...prev, page: newPage }))
     }
@@ -427,12 +428,13 @@ const SystemSettings = () => {
       category: 'all',
       status: 'all',
       page: 1,
-      limit: 10
+      limit: 10,
     })
   }
 
   // Check if any filters are active
-  const hasActiveFilters = filters.search !== '' || filters.category !== 'all' || filters.status !== 'all'
+  const hasActiveFilters =
+    filters.search !== '' || filters.category !== 'all' || filters.status !== 'all'
 
   const openLovModal = (lov = null) => {
     setEditingLov(lov)
@@ -441,14 +443,14 @@ const SystemSettings = () => {
         category: lov.category,
         code: lov.code,
         description: lov.description,
-        isActive: lov.isActive
+        isActive: lov.isActive,
       })
     } else {
       resetLov({
         category: '',
         code: '',
         description: '',
-        isActive: true
+        isActive: true,
       })
     }
     setShowLovModal(true)
@@ -460,12 +462,12 @@ const SystemSettings = () => {
     resetLov()
   }
 
-  const handleLovSubmit = async (data) => {
+  const handleLovSubmit = async data => {
     setSaveLoading(true)
     try {
       const payload = {
         ...data,
-        isActive: data.isActive !== false
+        isActive: data.isActive !== false,
       }
 
       if (editingLov) {
@@ -474,7 +476,10 @@ const SystemSettings = () => {
 
       const response = await genericAPI.createOrUpdateLOV(payload)
       if (response.data && response.data.success) {
-        showMessage('success', editingLov ? 'LOV updated successfully!' : 'LOV created successfully!')
+        showMessage(
+          'success',
+          editingLov ? 'LOV updated successfully!' : 'LOV created successfully!'
+        )
         closeLovModal()
         loadLOVs()
       }
@@ -487,19 +492,20 @@ const SystemSettings = () => {
   }
 
   // Delete Functions with Custom Confirmation
-  const deleteEmailConfig = (config) => {
+  const deleteEmailConfig = config => {
     showConfirmation(
       'Delete Email Configuration',
       `Are you sure you want to delete the email configuration for "${config.property_value}"? This action cannot be undone.`,
       'delete',
-      async (data) => {
+      async data => {
         try {
           await applicationAPI.deleteProperty(data.app_prop_id)
           showMessage('success', 'Email configuration deleted successfully!')
           loadEmailConfigs()
         } catch (error) {
           console.error('Error deleting email config:', error)
-          const errorMessage = error.response?.data?.message || 'Failed to delete email configuration'
+          const errorMessage =
+            error.response?.data?.message || 'Failed to delete email configuration'
           showMessage('error', errorMessage)
         }
       },
@@ -507,19 +513,20 @@ const SystemSettings = () => {
     )
   }
 
-  const deleteRazorpayConfig = (config) => {
+  const deleteRazorpayConfig = config => {
     showConfirmation(
       'Delete Razorpay Configuration',
       `Are you sure you want to delete the Razorpay configuration for "${config.property_value}"? This action cannot be undone.`,
       'delete',
-      async (data) => {
+      async data => {
         try {
           await applicationAPI.deleteProperty(data.app_prop_id)
           showMessage('success', 'Razorpay configuration deleted successfully!')
           loadRazorpayConfigs()
         } catch (error) {
           console.error('Error deleting Razorpay config:', error)
-          const errorMessage = error.response?.data?.message || 'Failed to delete Razorpay configuration'
+          const errorMessage =
+            error.response?.data?.message || 'Failed to delete Razorpay configuration'
           showMessage('error', errorMessage)
         }
       },
@@ -527,13 +534,13 @@ const SystemSettings = () => {
     )
   }
 
-  const deleteLOV = (lovId) => {
+  const deleteLOV = lovId => {
     const lov = lovs.find(l => l.lov_id === lovId)
     showConfirmation(
       'Delete List of Value',
       `Are you sure you want to delete the LOV item "${lov?.code}"? This action cannot be undone.`,
       'lovDelete',
-      async (data) => {
+      async data => {
         try {
           const response = await genericAPI.deleteLOV(data)
           if (response.data && response.data.success) {
@@ -555,7 +562,7 @@ const SystemSettings = () => {
   }
 
   // Email Modal Functions
-  const openEditEmailModal = (config) => {
+  const openEditEmailModal = config => {
     setEditingEmailConfig(config)
     setEmailFormStatus(config.status || 'active')
 
@@ -568,7 +575,7 @@ const SystemSettings = () => {
         username: emailSettings.username || '',
         password: emailSettings.password || '',
         useTLS: emailSettings.useTLS !== false,
-        description: config.desc || ''
+        description: config.desc || '',
       })
     } else {
       resetEmail({
@@ -578,7 +585,7 @@ const SystemSettings = () => {
         username: '',
         password: '',
         useTLS: true,
-        description: config.desc || ''
+        description: config.desc || '',
       })
     }
 
@@ -602,7 +609,7 @@ const SystemSettings = () => {
   }
 
   // FIXED: Correct parameter order for email activation
-  const setActiveEmailConfig = async (config) => {
+  const setActiveEmailConfig = async config => {
     try {
       // FIXED: Correct parameter order (property_name, app_prop_id) - No confirmation
       await applicationAPI.activeAppProperty(config.property_name, config.app_prop_id)
@@ -615,27 +622,27 @@ const SystemSettings = () => {
     }
   }
 
-  const handleEmailSubmit = async (data) => {
+  const handleEmailSubmit = async data => {
     setSaveLoading(true)
     try {
       const payload = {
-        property_name: "app_email",
+        property_name: 'app_email',
         property_value: data.username,
-        desc: data.description || "SMTP email server configuration",
+        desc: data.description || 'SMTP email server configuration',
         metadata: {
-          appName: settings.site_title || "Learn SAP ABAP",
-          companyName: "Learn SAP ABAP",
-          contactNumber: "+91 000-000-0000",
+          appName: settings.site_title || 'Learn SAP ABAP',
+          companyName: 'Learn SAP ABAP',
+          contactNumber: '+91 000-000-0000',
           emailSettings: {
             smtpServer: data.smtpServer,
             port: parseInt(data.port),
             service: data.service,
             username: data.username,
             password: data.password,
-            useTLS: data.useTLS
-          }
+            useTLS: data.useTLS,
+          },
         },
-        status: "inactive"
+        status: 'inactive',
       }
 
       if (editingEmailConfig) {
@@ -643,7 +650,12 @@ const SystemSettings = () => {
       }
 
       await applicationAPI.createOrUpdateProperty(payload)
-      showMessage('success', editingEmailConfig ? 'Email configuration updated successfully!' : 'Email configuration created successfully!')
+      showMessage(
+        'success',
+        editingEmailConfig
+          ? 'Email configuration updated successfully!'
+          : 'Email configuration created successfully!'
+      )
       closeEmailModal()
       loadEmailConfigs()
     } catch (error) {
@@ -656,7 +668,7 @@ const SystemSettings = () => {
   }
 
   // Razorpay Modal Functions
-  const openEditRazorpayModal = (config) => {
+  const openEditRazorpayModal = config => {
     setEditingRazorpayConfig(config)
     setRazorpayFormStatus(config.status || 'active')
 
@@ -666,14 +678,14 @@ const SystemSettings = () => {
         keyId: razorpaySettings.keyId || '',
         keySecret: razorpaySettings.keySecret || '',
         webhookSecret: razorpaySettings.webhookSecret || '',
-        description: config.desc || ''
+        description: config.desc || '',
       })
     } else {
       resetRazorpay({
         keyId: '',
         keySecret: '',
         webhookSecret: '',
-        description: config.desc || ''
+        description: config.desc || '',
       })
     }
 
@@ -697,7 +709,7 @@ const SystemSettings = () => {
   }
 
   // FIXED: Correct parameter order for Razorpay activation
-  const setActiveRazorpayConfig = async (config) => {
+  const setActiveRazorpayConfig = async config => {
     try {
       // FIXED: Correct parameter order (property_name, app_prop_id) - No confirmation
       await applicationAPI.activeAppProperty(config.property_name, config.app_prop_id)
@@ -705,28 +717,29 @@ const SystemSettings = () => {
       showMessage('success', 'Razorpay configuration activated successfully!')
     } catch (error) {
       console.error('Error activating Razorpay config:', error)
-      const errorMessage = error.response?.data?.message || 'Failed to activate Razorpay configuration'
+      const errorMessage =
+        error.response?.data?.message || 'Failed to activate Razorpay configuration'
       showMessage('error', errorMessage)
     }
   }
 
-  const handleRazorpaySubmit = async (data) => {
+  const handleRazorpaySubmit = async data => {
     setSaveLoading(true)
     try {
       const payload = {
-        property_name: "app_rzp",
+        property_name: 'app_rzp',
         property_value: data.keyId,
-        desc: data.description || "Razorpay payment gateway configuration",
+        desc: data.description || 'Razorpay payment gateway configuration',
         metadata: {
-          appName: settings.site_title || "Learn SAP ABAP",
-          companyName: "Learn SAP ABAP",
+          appName: settings.site_title || 'Learn SAP ABAP',
+          companyName: 'Learn SAP ABAP',
           razorpaySettings: {
             keyId: data.keyId,
             keySecret: data.keySecret,
-            webhookSecret: data.webhookSecret
-          }
+            webhookSecret: data.webhookSecret,
+          },
         },
-        status: "inactive"
+        status: 'inactive',
       }
 
       if (editingRazorpayConfig) {
@@ -734,7 +747,12 @@ const SystemSettings = () => {
       }
 
       await applicationAPI.createOrUpdateProperty(payload)
-      showMessage('success', editingRazorpayConfig ? 'Razorpay configuration updated successfully!' : 'Razorpay configuration created successfully!')
+      showMessage(
+        'success',
+        editingRazorpayConfig
+          ? 'Razorpay configuration updated successfully!'
+          : 'Razorpay configuration created successfully!'
+      )
       closeRazorpayModal()
       loadRazorpayConfigs()
     } catch (error) {
@@ -747,24 +765,30 @@ const SystemSettings = () => {
   }
 
   // Test functions
-  const testSpecificEmailConfig = async (config) => {
+  const testSpecificEmailConfig = async config => {
     try {
       showMessage('info', `Testing email configuration: ${config.property_value}...`)
 
       setTimeout(() => {
-        showMessage('success', `Email configuration test for ${config.property_value} completed successfully!`)
+        showMessage(
+          'success',
+          `Email configuration test for ${config.property_value} completed successfully!`
+        )
       }, 2000)
     } catch (error) {
       showMessage('error', `Failed to test email configuration: ${config.property_value}`)
     }
   }
 
-  const testSpecificRazorpayConfig = async (config) => {
+  const testSpecificRazorpayConfig = async config => {
     try {
       showMessage('info', `Testing Razorpay configuration: ${config.property_value}...`)
 
       setTimeout(() => {
-        showMessage('success', `Razorpay configuration test for ${config.property_value} completed successfully!`)
+        showMessage(
+          'success',
+          `Razorpay configuration test for ${config.property_value} completed successfully!`
+        )
       }, 2000)
     } catch (error) {
       showMessage('error', `Failed to test Razorpay configuration: ${config.property_value}`)
@@ -810,13 +834,13 @@ const SystemSettings = () => {
         case 'general':
           const generalData = watchGeneral()
           payload = {
-            property_name: "site_title",
-            property_value: generalData.siteName || "",
-            desc: "Website title and name",
+            property_name: 'site_title',
+            property_value: generalData.siteName || '',
+            desc: 'Website title and name',
             metadata: {
               site_description: generalData.siteDescription,
-              contact_email: generalData.contactEmail
-            }
+              contact_email: generalData.contactEmail,
+            },
           }
           break
 
@@ -827,21 +851,27 @@ const SystemSettings = () => {
       }
 
       await applicationAPI.createOrUpdateProperty(payload)
-      showMessage('success', `${tabs.find(tab => tab.id === activeTab)?.name} settings saved successfully!`)
+      showMessage(
+        'success',
+        `${tabs.find(tab => tab.id === activeTab)?.name} settings saved successfully!`
+      )
     } catch (error) {
       console.error('Error saving settings:', error)
-      showMessage('error', `Failed to save ${tabs.find(tab => tab.id === activeTab)?.name} settings`)
+      showMessage(
+        'error',
+        `Failed to save ${tabs.find(tab => tab.id === activeTab)?.name} settings`
+      )
     } finally {
       setSaveLoading(false)
     }
   }
 
-  const handleGeneralSubmit = (data) => {
+  const handleGeneralSubmit = data => {
     setSettings(prev => ({
       ...prev,
       site_title: data.siteName,
       site_description: data.siteDescription,
-      contact_email: data.contactEmail
+      contact_email: data.contactEmail,
     }))
     saveCurrentTab()
   }
@@ -878,26 +908,26 @@ const SystemSettings = () => {
           showMessage('info', 'Resetting settings to default...')
           setTimeout(() => {
             setSettings({
-              site_title: "Learn SAP ABAP",
-              site_description: "Master SAP ABAP programming with expert-led courses",
-              contact_email: "support@learnsapabap.com",
+              site_title: 'Learn SAP ABAP',
+              site_description: 'Master SAP ABAP programming with expert-led courses',
+              contact_email: 'support@learnsapabap.com',
               maintenance_mode: false,
               user_registration: true,
               email_verification: true,
               strong_passwords: true,
               session_timeout: 120,
               max_login_attempts: 5,
-              smtp_host: "smtp.gmail.com",
+              smtp_host: 'smtp.gmail.com',
               smtp_port: 587,
-              smtp_service: "gmail",
-              smtp_username: "noreply@learnsapabap.com",
-              smtp_password: "",
-              smtp_use_tls: true
+              smtp_service: 'gmail',
+              smtp_username: 'noreply@learnsapabap.com',
+              smtp_password: '',
+              smtp_use_tls: true,
             })
             resetGeneral({
-              siteName: "Learn SAP ABAP",
-              siteDescription: "Master SAP ABAP programming with expert-led courses",
-              contactEmail: "support@learnsapabap.com"
+              siteName: 'Learn SAP ABAP',
+              siteDescription: 'Master SAP ABAP programming with expert-led courses',
+              contactEmail: 'support@learnsapabap.com',
             })
             showMessage('success', 'Settings reset to default successfully!')
           }, 1500)
@@ -908,14 +938,14 @@ const SystemSettings = () => {
     )
   }
 
-  const toggleLOVStatus = async (lov) => {
+  const toggleLOVStatus = async lov => {
     try {
       const payload = {
         lov_id: lov.lov_id,
         category: lov.category,
         code: lov.code,
         description: lov.description,
-        isActive: !lov.isActive
+        isActive: !lov.isActive,
       }
 
       const response = await genericAPI.createOrUpdateLOV(payload)
@@ -943,7 +973,9 @@ const SystemSettings = () => {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
           {/* <h1 className="text-2xl font-bold text-gray-900">System Settings</h1> */}
-          <p className="text-gray-600 text-sm mt-1">Configure platform-wide settings and preferences</p>
+          <p className="text-gray-600 text-sm mt-1">
+            Configure platform-wide settings and preferences
+          </p>
         </div>
         {/* <div className="flex space-x-2 mt-4 lg:mt-0">
           <button
@@ -959,10 +991,15 @@ const SystemSettings = () => {
 
       {/* Message Display */}
       {message.text && (
-        <div className={`rounded-lg p-3 ${message.type === 'success' ? 'bg-green-50 border border-green-200' :
-            message.type === 'error' ? 'bg-red-50 border border-red-200' :
-              'bg-blue-50 border border-blue-200'
-          }`}>
+        <div
+          className={`rounded-lg p-3 ${
+            message.type === 'success'
+              ? 'bg-green-50 border border-green-200'
+              : message.type === 'error'
+                ? 'bg-red-50 border border-red-200'
+                : 'bg-blue-50 border border-blue-200'
+          }`}
+        >
           <div className="flex items-start">
             {message.type === 'success' ? (
               <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
@@ -971,10 +1008,15 @@ const SystemSettings = () => {
             ) : (
               <AlertCircle className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
             )}
-            <p className={`text-sm ${message.type === 'success' ? 'text-green-700' :
-                message.type === 'error' ? 'text-red-700' :
-                  'text-blue-700'
-              }`}>
+            <p
+              className={`text-sm ${
+                message.type === 'success'
+                  ? 'text-green-700'
+                  : message.type === 'error'
+                    ? 'text-red-700'
+                    : 'text-blue-700'
+              }`}
+            >
               {message.text}
             </p>
           </div>
@@ -989,10 +1031,11 @@ const SystemSettings = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${activeTab === tab.id
+                className={`w-full flex items-center space-x-2 px-3 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === tab.id
                     ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-500'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                }`}
               >
                 <span className="text-base">{tab.icon}</span>
                 <span>{tab.name}</span>
@@ -1015,8 +1058,9 @@ const SystemSettings = () => {
                     <input
                       type="text"
                       {...registerGeneral('siteName')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.siteName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        generalErrors.siteName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="Enter site name"
                     />
                     {generalErrors.siteName && (
@@ -1031,12 +1075,17 @@ const SystemSettings = () => {
                     <textarea
                       {...registerGeneral('siteDescription')}
                       rows="2"
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.siteDescription ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        generalErrors.siteDescription
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-300'
+                      }`}
                       placeholder="Enter site description"
                     />
                     {generalErrors.siteDescription && (
-                      <p className="mt-1 text-xs text-red-600">{generalErrors.siteDescription.message}</p>
+                      <p className="mt-1 text-xs text-red-600">
+                        {generalErrors.siteDescription.message}
+                      </p>
                     )}
                   </div>
 
@@ -1047,12 +1096,15 @@ const SystemSettings = () => {
                     <input
                       type="email"
                       {...registerGeneral('contactEmail')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${generalErrors.contactEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        generalErrors.contactEmail ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="Enter contact email"
                     />
                     {generalErrors.contactEmail && (
-                      <p className="mt-1 text-xs text-red-600">{generalErrors.contactEmail.message}</p>
+                      <p className="mt-1 text-xs text-red-600">
+                        {generalErrors.contactEmail.message}
+                      </p>
                     )}
                   </div>
                 </form>
@@ -1117,21 +1169,28 @@ const SystemSettings = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {emailConfigs.map((config) => (
+                        {emailConfigs.map(config => (
                           <tr
                             key={config.app_prop_id}
-                            className={`hover:bg-gray-50 transition-colors ${config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
-                              }`}
+                            className={`hover:bg-gray-50 transition-colors ${
+                              config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                            }`}
                           >
                             {/* Status Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className={`w-2 h-2 rounded-full mr-1.5 ${config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
-                                  }`} />
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.status === 'active'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-700'
-                                  }`}>
+                                <div
+                                  className={`w-2 h-2 rounded-full mr-1.5 ${
+                                    config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                  }`}
+                                />
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    config.status === 'active'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}
+                                >
                                   {config.status}
                                 </span>
                               </div>
@@ -1163,18 +1222,27 @@ const SystemSettings = () => {
 
                             {/* Service Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize ${config.metadata?.emailSettings?.service === 'gmail' ? 'bg-red-100 text-red-800' :
-                                  config.metadata?.emailSettings?.service === 'outlook' ? 'bg-blue-100 text-blue-800' :
-                                    config.metadata?.emailSettings?.service === 'yahoo' ? 'bg-purple-100 text-purple-800' :
-                                      'bg-gray-100 text-gray-700'
-                                }`}>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize ${
+                                  config.metadata?.emailSettings?.service === 'gmail'
+                                    ? 'bg-red-100 text-red-800'
+                                    : config.metadata?.emailSettings?.service === 'outlook'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : config.metadata?.emailSettings?.service === 'yahoo'
+                                        ? 'bg-purple-100 text-purple-800'
+                                        : 'bg-gray-100 text-gray-700'
+                                }`}
+                              >
                                 {config.metadata?.emailSettings?.service || 'custom'}
                               </span>
                             </td>
 
                             {/* Description Column */}
                             <td className="px-3 py-2">
-                              <div className="text-gray-900 text-xs max-w-[120px] truncate" title={config.desc}>
+                              <div
+                                className="text-gray-900 text-xs max-w-[120px] truncate"
+                                title={config.desc}
+                              >
                                 {config.desc || 'No description'}
                               </div>
                             </td>
@@ -1223,8 +1291,12 @@ const SystemSettings = () => {
                     {emailConfigs.length === 0 && (
                       <div className="text-center py-6">
                         <Mail className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <h3 className="text-sm font-medium text-gray-900 mb-1">No email configurations</h3>
-                        <p className="text-xs text-gray-500 mb-3">Get started by creating a new email configuration.</p>
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">
+                          No email configurations
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Get started by creating a new email configuration.
+                        </p>
                         <button
                           onClick={openNewEmailModal}
                           className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
@@ -1246,9 +1318,12 @@ const SystemSettings = () => {
               <div className="bg-white rounded-xl p-4 border border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">Razorpay Configurations</h2>
+                    <h2 className="text-base font-semibold text-gray-900">
+                      Razorpay Configurations
+                    </h2>
                     <p className="text-xs text-gray-600 mt-0.5">
-                      Manage your Razorpay payment gateway configurations ({razorpayConfigs.length} total)
+                      Manage your Razorpay payment gateway configurations ({razorpayConfigs.length}{' '}
+                      total)
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -1294,21 +1369,28 @@ const SystemSettings = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {razorpayConfigs.map((config) => (
+                        {razorpayConfigs.map(config => (
                           <tr
                             key={config.app_prop_id}
-                            className={`hover:bg-gray-50 transition-colors ${config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
-                              }`}
+                            className={`hover:bg-gray-50 transition-colors ${
+                              config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                            }`}
                           >
                             {/* Status Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className={`w-2 h-2 rounded-full mr-1.5 ${config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
-                                  }`} />
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.status === 'active'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-700'
-                                  }`}>
+                                <div
+                                  className={`w-2 h-2 rounded-full mr-1.5 ${
+                                    config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                  }`}
+                                />
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    config.status === 'active'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}
+                                >
                                   {config.status}
                                 </span>
                               </div>
@@ -1321,24 +1403,32 @@ const SystemSettings = () => {
                                   {config.property_value}
                                 </div>
                                 <div className="text-gray-500 text-xs mt-0.5">
-                                  {config.metadata?.razorpaySettings?.keyId ? 'Key ID configured' : 'No Key ID'}
+                                  {config.metadata?.razorpaySettings?.keyId
+                                    ? 'Key ID configured'
+                                    : 'No Key ID'}
                                 </div>
                               </div>
                             </td>
 
                             {/* Environment Column */}
                             <td className="px-3 py-2 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${config.property_value?.includes('test')
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-blue-100 text-blue-800'
-                                }`}>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  config.property_value?.includes('test')
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}
+                              >
                                 {config.property_value?.includes('test') ? 'Test' : 'Live'}
                               </span>
                             </td>
 
                             {/* Description Column */}
                             <td className="px-3 py-2">
-                              <div className="text-gray-900 text-xs max-w-[120px] truncate" title={config.desc}>
+                              <div
+                                className="text-gray-900 text-xs max-w-[120px] truncate"
+                                title={config.desc}
+                              >
                                 {config.desc || 'No description'}
                               </div>
                             </td>
@@ -1387,8 +1477,12 @@ const SystemSettings = () => {
                     {razorpayConfigs.length === 0 && (
                       <div className="text-center py-6">
                         <CreditCard className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <h3 className="text-sm font-medium text-gray-900 mb-1">No Razorpay configurations</h3>
-                        <p className="text-xs text-gray-500 mb-3">Get started by creating a new Razorpay configuration.</p>
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">
+                          No Razorpay configurations
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Get started by creating a new Razorpay configuration.
+                        </p>
                         <button
                           onClick={openNewRazorpayModal}
                           className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
@@ -1413,7 +1507,9 @@ const SystemSettings = () => {
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-gray-900">Clear Application Cache</p>
-                      <p className="text-xs text-gray-600">Remove temporary files and refresh system cache</p>
+                      <p className="text-xs text-gray-600">
+                        Remove temporary files and refresh system cache
+                      </p>
                     </div>
                     <button
                       onClick={handleClearCache}
@@ -1426,7 +1522,9 @@ const SystemSettings = () => {
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-gray-900">Create System Backup</p>
-                      <p className="text-xs text-gray-600">Generate a complete backup of system data</p>
+                      <p className="text-xs text-gray-600">
+                        Generate a complete backup of system data
+                      </p>
                     </div>
                     <button
                       onClick={handleCreateBackup}
@@ -1464,10 +1562,11 @@ const SystemSettings = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors ${showAdvancedFilters || hasActiveFilters
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors ${
+                        showAdvancedFilters || hasActiveFilters
                           ? 'bg-primary-100 text-primary-700 border border-primary-300'
                           : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                        }`}
+                      }`}
                     >
                       <Sliders className="w-3.5 h-3.5" />
                       <span>Filters {hasActiveFilters && '•'}</span>
@@ -1489,24 +1588,26 @@ const SystemSettings = () => {
                     <input
                       type="text"
                       value={filters.search}
-                      onChange={(e) => handleSearchChange(e.target.value)}
+                      onChange={e => handleSearchChange(e.target.value)}
                       placeholder="Search by category, code, or description..."
                       className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <select
                     value={filters.category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    onChange={e => handleCategoryChange(e.target.value)}
                     className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="all">All Categories</option>
                     {lovCategories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
                   </select>
                   <select
                     value={filters.status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
+                    onChange={e => handleStatusChange(e.target.value)}
                     className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="all">All Status</option>
@@ -1515,7 +1616,7 @@ const SystemSettings = () => {
                   </select>
                   <select
                     value={filters.limit}
-                    onChange={(e) => handleLimitChange(e.target.value)}
+                    onChange={e => handleLimitChange(e.target.value)}
                     className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="10">10 per page</option>
@@ -1608,70 +1709,76 @@ const SystemSettings = () => {
                             </div>
                           </td>
                         </tr>
-                      ) : lovs.map((lov) => (
-                        <tr key={lov.lov_id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <div className="flex items-center space-x-1.5">
-                              <Tag className="w-3 h-3 text-gray-400" />
-                              <span className="font-medium text-gray-900 text-xs">{lov.category}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <code className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">
-                              {lov.code}
-                            </code>
-                          </td>
-                          <td className="px-3 py-2">
-                            <span className="text-gray-700 text-xs">{lov.description}</span>
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <button
-                              onClick={() => toggleLOVStatus(lov)}
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${lov.isActive
-                                  ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ) : (
+                        lovs.map(lov => (
+                          <tr key={lov.lov_id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center space-x-1.5">
+                                <Tag className="w-3 h-3 text-gray-400" />
+                                <span className="font-medium text-gray-900 text-xs">
+                                  {lov.category}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <code className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">
+                                {lov.code}
+                              </code>
+                            </td>
+                            <td className="px-3 py-2">
+                              <span className="text-gray-700 text-xs">{lov.description}</span>
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <button
+                                onClick={() => toggleLOVStatus(lov)}
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${
+                                  lov.isActive
+                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
-                            >
-                              {lov.isActive ? 'Active' : 'Inactive'}
-                            </button>
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <span className="text-gray-500 text-xs">
-                              {new Date(lov.createdAt).toLocaleDateString()}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => openLovModal(lov)}
-                                className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
-                                title="Edit LOV"
                               >
-                                <Edit className="w-3.5 h-3.5" />
+                                {lov.isActive ? 'Active' : 'Inactive'}
                               </button>
-                              <button
-                                onClick={() => deleteLOV(lov.lov_id)}
-                                className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors"
-                                title="Delete LOV"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className="text-gray-500 text-xs">
+                                {new Date(lov.createdAt).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center space-x-1">
+                                <button
+                                  onClick={() => openLovModal(lov)}
+                                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
+                                  title="Edit LOV"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteLOV(lov.lov_id)}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors"
+                                  title="Delete LOV"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
 
                   {lovs.length === 0 && !lovLoading && (
                     <div className="text-center py-8">
                       <List className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">No list of values found</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">
+                        No list of values found
+                      </h3>
                       <p className="text-xs text-gray-500 mb-3">
                         {hasActiveFilters
                           ? 'Try adjusting your filters or search terms'
-                          : 'Get started by creating your first list of values'
-                        }
+                          : 'Get started by creating your first list of values'}
                       </p>
                       {!hasActiveFilters && (
                         <button
@@ -1718,29 +1825,30 @@ const SystemSettings = () => {
 
                       {/* Page numbers */}
                       {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        let pageNum;
+                        let pageNum
                         if (pagination.totalPages <= 5) {
-                          pageNum = i + 1;
+                          pageNum = i + 1
                         } else if (filters.page <= 3) {
-                          pageNum = i + 1;
+                          pageNum = i + 1
                         } else if (filters.page >= pagination.totalPages - 2) {
-                          pageNum = pagination.totalPages - 4 + i;
+                          pageNum = pagination.totalPages - 4 + i
                         } else {
-                          pageNum = filters.page - 2 + i;
+                          pageNum = filters.page - 2 + i
                         }
 
                         return (
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 text-xs rounded border ${filters.page === pageNum
+                            className={`w-8 h-8 text-xs rounded border ${
+                              filters.page === pageNum
                                 ? 'bg-primary-600 text-white border-primary-600'
                                 : 'border-gray-300 hover:bg-gray-50'
-                              }`}
+                            }`}
                           >
                             {pageNum}
                           </button>
-                        );
+                        )
                       })}
 
                       <button
@@ -1771,10 +1879,15 @@ const SystemSettings = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-md w-full">
             <div className="flex items-center space-x-3 p-4 border-b border-gray-200">
-              <div className={`p-2 rounded-full ${confirmationModal.type === 'delete' || confirmationModal.type === 'lovDelete' || confirmationModal.type === 'reset'
-                  ? 'bg-red-100 text-red-600'
-                  : 'bg-blue-100 text-blue-600'
-                }`}>
+              <div
+                className={`p-2 rounded-full ${
+                  confirmationModal.type === 'delete' ||
+                  confirmationModal.type === 'lovDelete' ||
+                  confirmationModal.type === 'reset'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-blue-100 text-blue-600'
+                }`}
+              >
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
@@ -1796,10 +1909,13 @@ const SystemSettings = () => {
               </button>
               <button
                 onClick={handleConfirm}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${confirmationModal.type === 'delete' || confirmationModal.type === 'lovDelete' || confirmationModal.type === 'reset'
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+                  confirmationModal.type === 'delete' ||
+                  confirmationModal.type === 'lovDelete' ||
+                  confirmationModal.type === 'reset'
                     ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
                     : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                  }`}
+                }`}
               >
                 Confirm
               </button>
@@ -1821,8 +1937,7 @@ const SystemSettings = () => {
                 <p className="text-xs text-gray-600 mt-0.5">
                   {editingEmailConfig
                     ? `Editing: ${editingEmailConfig.property_value}`
-                    : 'Configure SMTP email settings'
-                  }
+                    : 'Configure SMTP email settings'}
                 </p>
               </div>
               <button
@@ -1844,8 +1959,9 @@ const SystemSettings = () => {
                     <input
                       type="text"
                       {...registerEmail('smtpServer')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.smtpServer ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="smtp.gmail.com"
                     />
                     {emailErrors.smtpServer && (
@@ -1859,8 +1975,9 @@ const SystemSettings = () => {
                     <input
                       type="number"
                       {...registerEmail('port')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.port ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="587"
                     />
                     {emailErrors.port && (
@@ -1876,8 +1993,9 @@ const SystemSettings = () => {
                     </label>
                     <select
                       {...registerEmail('service')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.service ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                     >
                       <option value="">Select service</option>
                       <option value="gmail">Gmail</option>
@@ -1907,8 +2025,9 @@ const SystemSettings = () => {
                     <input
                       type="email"
                       {...registerEmail('username')}
-                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        emailErrors.username ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="your-email@gmail.com"
                     />
                     {emailErrors.username && (
@@ -1921,10 +2040,11 @@ const SystemSettings = () => {
                     </label>
                     <div className="relative">
                       <input
-                        type={showSmtpPassword ? "text" : "password"}
+                        type={showSmtpPassword ? 'text' : 'password'}
                         {...registerEmail('password')}
-                        className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                          }`}
+                        className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                          emailErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        }`}
                         placeholder="••••••••"
                       />
                       <button
@@ -1932,7 +2052,11 @@ const SystemSettings = () => {
                         onClick={() => setShowSmtpPassword(!showSmtpPassword)}
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
                       >
-                        {showSmtpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showSmtpPassword ? (
+                          <EyeOff className="w-3.5 h-3.5" />
+                        ) : (
+                          <Eye className="w-3.5 h-3.5" />
+                        )}
                       </button>
                     </div>
                     {emailErrors.password && (
@@ -1962,13 +2086,19 @@ const SystemSettings = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setEmailFormStatus(editingEmailConfig.status === 'active' ? 'inactive' : 'active')}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${emailFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
-                        }`}
+                      onClick={() =>
+                        setEmailFormStatus(
+                          editingEmailConfig.status === 'active' ? 'inactive' : 'active'
+                        )
+                      }
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        emailFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                      }`}
                     >
                       <span
-                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${emailFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
-                          }`}
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          emailFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                        }`}
                       />
                     </button>
                   </div>
@@ -2005,10 +2135,7 @@ const SystemSettings = () => {
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>
-                        {saveLoading
-                          ? 'Saving...'
-                          : (editingEmailConfig ? 'Update' : 'Create')
-                        }
+                        {saveLoading ? 'Saving...' : editingEmailConfig ? 'Update' : 'Create'}
                       </span>
                     </button>
                   </div>
@@ -2032,8 +2159,7 @@ const SystemSettings = () => {
                 <p className="text-xs text-gray-600 mt-0.5">
                   {editingRazorpayConfig
                     ? `Editing: ${editingRazorpayConfig.property_value}`
-                    : 'Configure Razorpay payment gateway settings'
-                  }
+                    : 'Configure Razorpay payment gateway settings'}
                 </p>
               </div>
               <button
@@ -2048,14 +2174,13 @@ const SystemSettings = () => {
             <div className="p-4">
               <form onSubmit={handleSubmitRazorpay(handleRazorpaySubmit)} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Key ID *
-                  </label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Key ID *</label>
                   <input
                     type="text"
                     {...registerRazorpay('keyId')}
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.keyId ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      razorpayErrors.keyId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="rzp_test_xxxxxxxxxxxxx"
                   />
                   {razorpayErrors.keyId && (
@@ -2069,10 +2194,11 @@ const SystemSettings = () => {
                   </label>
                   <div className="relative">
                     <input
-                      type={showRazorpaySecret ? "text" : "password"}
+                      type={showRazorpaySecret ? 'text' : 'password'}
                       {...registerRazorpay('keySecret')}
-                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.keySecret ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        razorpayErrors.keySecret ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
                       placeholder="••••••••"
                     />
                     <button
@@ -2080,7 +2206,11 @@ const SystemSettings = () => {
                       onClick={() => setShowRazorpaySecret(!showRazorpaySecret)}
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
                     >
-                      {showRazorpaySecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showRazorpaySecret ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                   {razorpayErrors.keySecret && (
@@ -2094,10 +2224,13 @@ const SystemSettings = () => {
                   </label>
                   <div className="relative">
                     <input
-                      type={showWebhookSecret ? "text" : "password"}
+                      type={showWebhookSecret ? 'text' : 'password'}
                       {...registerRazorpay('webhookSecret')}
-                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${razorpayErrors.webhookSecret ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        razorpayErrors.webhookSecret
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-300'
+                      }`}
                       placeholder="••••••••"
                     />
                     <button
@@ -2105,11 +2238,17 @@ const SystemSettings = () => {
                       onClick={() => setShowWebhookSecret(!showWebhookSecret)}
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
                     >
-                      {showWebhookSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showWebhookSecret ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                   {razorpayErrors.webhookSecret && (
-                    <p className="mt-1 text-xs text-red-600">{razorpayErrors.webhookSecret.message}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                      {razorpayErrors.webhookSecret.message}
+                    </p>
                   )}
                 </div>
 
@@ -2134,13 +2273,19 @@ const SystemSettings = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setRazorpayFormStatus(editingRazorpayConfig.status === 'active' ? 'inactive' : 'active')}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${razorpayFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
-                        }`}
+                      onClick={() =>
+                        setRazorpayFormStatus(
+                          editingRazorpayConfig.status === 'active' ? 'inactive' : 'active'
+                        )
+                      }
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        razorpayFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                      }`}
                     >
                       <span
-                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${razorpayFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
-                          }`}
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          razorpayFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                        }`}
                       />
                     </button>
                   </div>
@@ -2177,10 +2322,7 @@ const SystemSettings = () => {
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>
-                        {saveLoading
-                          ? 'Saving...'
-                          : (editingRazorpayConfig ? 'Update' : 'Create')
-                        }
+                        {saveLoading ? 'Saving...' : editingRazorpayConfig ? 'Update' : 'Create'}
                       </span>
                     </button>
                   </div>
@@ -2202,10 +2344,7 @@ const SystemSettings = () => {
                   {editingLov ? 'Edit List of Value' : 'New List of Value'}
                 </h2>
                 <p className="text-xs text-gray-600 mt-0.5">
-                  {editingLov
-                    ? `Editing: ${editingLov.code}`
-                    : 'Create new list of value item'
-                  }
+                  {editingLov ? `Editing: ${editingLov.code}` : 'Create new list of value item'}
                 </p>
               </div>
               <button
@@ -2226,8 +2365,9 @@ const SystemSettings = () => {
                   <input
                     type="text"
                     {...registerLov('category')}
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      lovErrors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="e.g., ASSESSMENT_TYPE, BADGE_TYPE"
                   />
                   {lovErrors.category && (
@@ -2236,14 +2376,13 @@ const SystemSettings = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Code *
-                  </label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Code *</label>
                   <input
                     type="text"
                     {...registerLov('code')}
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.code ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      lovErrors.code ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="e.g., QUIZ, PROJECT_CHAMPION"
                   />
                   {lovErrors.code && (
@@ -2258,8 +2397,9 @@ const SystemSettings = () => {
                   <textarea
                     {...registerLov('description')}
                     rows="3"
-                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${lovErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      lovErrors.description ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Enter description for this value"
                   />
                   {lovErrors.description && (
@@ -2296,12 +2436,7 @@ const SystemSettings = () => {
                       className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="w-3.5 h-3.5" />
-                      <span>
-                        {saveLoading
-                          ? 'Saving...'
-                          : (editingLov ? 'Update' : 'Create')
-                        }
-                      </span>
+                      <span>{saveLoading ? 'Saving...' : editingLov ? 'Update' : 'Create'}</span>
                     </button>
                   </div>
                 </div>

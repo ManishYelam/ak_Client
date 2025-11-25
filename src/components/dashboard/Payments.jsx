@@ -9,135 +9,152 @@ const Payments = () => {
       id: 'INV-001',
       course: {
         id: 1,
-        title: "SAP ABAP Basics",
-        instructor: "Akshay Kumar"
+        title: 'SAP ABAP Basics',
+        instructor: 'Akshay Kumar',
       },
       amount: 99,
-      status: "completed",
-      date: "2024-02-15",
-      method: "credit_card",
-      currency: "USD",
-      invoiceUrl: "/invoices/inv-001.pdf",
-      receiptUrl: "/receipts/rec-001.pdf"
+      status: 'completed',
+      date: '2024-02-15',
+      method: 'credit_card',
+      currency: 'USD',
+      invoiceUrl: '/invoices/inv-001.pdf',
+      receiptUrl: '/receipts/rec-001.pdf',
     },
     {
       id: 'INV-002',
       course: {
         id: 2,
-        title: "Advanced ABAP Programming",
-        instructor: "Akshay Kumar"
+        title: 'Advanced ABAP Programming',
+        instructor: 'Akshay Kumar',
       },
       amount: 149,
-      status: "completed",
-      date: "2024-02-14",
-      method: "paypal",
-      currency: "USD",
-      invoiceUrl: "/invoices/inv-002.pdf",
-      receiptUrl: "/receipts/rec-002.pdf"
+      status: 'completed',
+      date: '2024-02-14',
+      method: 'paypal',
+      currency: 'USD',
+      invoiceUrl: '/invoices/inv-002.pdf',
+      receiptUrl: '/receipts/rec-002.pdf',
     },
     {
       id: 'INV-003',
       course: {
         id: 3,
-        title: "SAP Fiori Development",
-        instructor: "Akshay Kumar"
+        title: 'SAP Fiori Development',
+        instructor: 'Akshay Kumar',
       },
       amount: 199,
-      status: "pending",
-      date: "2024-02-14",
-      method: "credit_card",
-      currency: "USD",
-      invoiceUrl: "/invoices/inv-003.pdf",
-      receiptUrl: null
+      status: 'pending',
+      date: '2024-02-14',
+      method: 'credit_card',
+      currency: 'USD',
+      invoiceUrl: '/invoices/inv-003.pdf',
+      receiptUrl: null,
     },
     {
       id: 'INV-004',
       course: {
         id: 4,
-        title: "ABAP Object-Oriented Programming",
-        instructor: "Akshay Kumar"
+        title: 'ABAP Object-Oriented Programming',
+        instructor: 'Akshay Kumar',
       },
       amount: 129,
-      status: "failed",
-      date: "2024-02-13",
-      method: "credit_card",
-      currency: "USD",
-      invoiceUrl: "/invoices/inv-004.pdf",
-      receiptUrl: null
+      status: 'failed',
+      date: '2024-02-13',
+      method: 'credit_card',
+      currency: 'USD',
+      invoiceUrl: '/invoices/inv-004.pdf',
+      receiptUrl: null,
     },
     {
       id: 'INV-005',
       course: {
         id: 1,
-        title: "SAP ABAP Basics",
-        instructor: "Akshay Kumar"
+        title: 'SAP ABAP Basics',
+        instructor: 'Akshay Kumar',
       },
       amount: 99,
-      status: "refunded",
-      date: "2024-02-12",
-      method: "credit_card",
-      currency: "USD",
-      invoiceUrl: "/invoices/inv-005.pdf",
-      receiptUrl: "/receipts/rec-005.pdf"
-    }
+      status: 'refunded',
+      date: '2024-02-12',
+      method: 'credit_card',
+      currency: 'USD',
+      invoiceUrl: '/invoices/inv-005.pdf',
+      receiptUrl: '/receipts/rec-005.pdf',
+    },
   ]
 
   const tabs = [
     { id: 'all', name: 'All Payments', count: payments.length },
-    { id: 'completed', name: 'Completed', count: payments.filter(p => p.status === 'completed').length },
+    {
+      id: 'completed',
+      name: 'Completed',
+      count: payments.filter(p => p.status === 'completed').length,
+    },
     { id: 'pending', name: 'Pending', count: payments.filter(p => p.status === 'pending').length },
     { id: 'failed', name: 'Failed', count: payments.filter(p => p.status === 'failed').length },
-    { id: 'refunded', name: 'Refunded', count: payments.filter(p => p.status === 'refunded').length }
+    {
+      id: 'refunded',
+      name: 'Refunded',
+      count: payments.filter(p => p.status === 'refunded').length,
+    },
   ]
 
-  const filteredPayments = payments.filter(payment => 
-    activeTab === 'all' || payment.status === activeTab
+  const filteredPayments = payments.filter(
+    payment => activeTab === 'all' || payment.status === activeTab
   )
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'failed': return 'bg-red-100 text-red-800'
-      case 'refunded': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'failed':
+        return 'bg-red-100 text-red-800'
+      case 'refunded':
+        return 'bg-gray-100 text-gray-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getMethodIcon = (method) => {
+  const getMethodIcon = method => {
     switch (method) {
-      case 'credit_card': return '💳 Credit Card'
-      case 'paypal': return '📊 PayPal'
-      case 'bank_transfer': return '🏦 Bank Transfer'
-      default: return '💰 ' + method
+      case 'credit_card':
+        return '💳 Credit Card'
+      case 'paypal':
+        return '📊 PayPal'
+      case 'bank_transfer':
+        return '🏦 Bank Transfer'
+      default:
+        return '💰 ' + method
     }
   }
 
   const stats = [
-    { 
-      label: "Total Spent", 
-      value: "$576", 
-      description: "Lifetime total",
-      trend: "+$129 this month"
+    {
+      label: 'Total Spent',
+      value: '$576',
+      description: 'Lifetime total',
+      trend: '+$129 this month',
     },
-    { 
-      label: "Successful Payments", 
-      value: "3", 
-      description: "Completed transactions",
-      trend: "2 courses enrolled"
+    {
+      label: 'Successful Payments',
+      value: '3',
+      description: 'Completed transactions',
+      trend: '2 courses enrolled',
     },
-    { 
-      label: "Pending Payments", 
-      value: "1", 
-      description: "Awaiting confirmation",
-      trend: "Needs attention"
+    {
+      label: 'Pending Payments',
+      value: '1',
+      description: 'Awaiting confirmation',
+      trend: 'Needs attention',
     },
-    { 
-      label: "Saved Cards", 
-      value: "2", 
-      description: "Payment methods",
-      trend: "1 default card"
-    }
+    {
+      label: 'Saved Cards',
+      value: '2',
+      description: 'Payment methods',
+      trend: '1 default card',
+    },
   ]
 
   return (
@@ -240,31 +257,25 @@ const Payments = () => {
                     {new Date(payment.date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(payment.status)}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusColor(payment.status)}`}
+                    >
                       {payment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       {payment.invoiceUrl && (
-                        <button className="text-primary-600 hover:text-primary-900">
-                          Invoice
-                        </button>
+                        <button className="text-primary-600 hover:text-primary-900">Invoice</button>
                       )}
                       {payment.receiptUrl && (
-                        <button className="text-green-600 hover:text-green-900">
-                          Receipt
-                        </button>
+                        <button className="text-green-600 hover:text-green-900">Receipt</button>
                       )}
                       {payment.status === 'pending' && (
-                        <button className="text-blue-600 hover:text-blue-900">
-                          Retry
-                        </button>
+                        <button className="text-blue-600 hover:text-blue-900">Retry</button>
                       )}
                       {payment.status === 'failed' && (
-                        <button className="text-red-600 hover:text-red-900">
-                          Contact Support
-                        </button>
+                        <button className="text-red-600 hover:text-red-900">Contact Support</button>
                       )}
                     </div>
                   </td>
@@ -277,18 +288,27 @@ const Payments = () => {
         {/* Empty State */}
         {filteredPayments.length === 0 && (
           <div className="text-center py-12">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              />
             </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
             <p className="text-gray-600 mb-4">
-              {activeTab === 'all' 
-                ? 'You haven\'t made any payments yet' 
-                : 'No payments match your current filter'
-              }
+              {activeTab === 'all'
+                ? "You haven't made any payments yet"
+                : 'No payments match your current filter'}
             </p>
             {activeTab !== 'all' && (
-              <button 
+              <button
                 onClick={() => setActiveTab('all')}
                 className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium"
               >
@@ -315,10 +335,17 @@ const Payments = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Default</span>
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                Default
+              </span>
               <button className="text-gray-400 hover:text-gray-600">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -336,7 +363,12 @@ const Payments = () => {
             </div>
             <button className="text-gray-400 hover:text-gray-600">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
@@ -345,7 +377,12 @@ const Payments = () => {
           <button className="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-300 hover:text-primary-600 transition-colors text-center">
             <div className="flex items-center justify-center space-x-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               <span>Add New Payment Method</span>
             </div>
@@ -383,8 +420,8 @@ const Payments = () => {
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
         <h3 className="font-semibold text-blue-900 mb-2">Need Help with Payments?</h3>
         <p className="text-blue-800 mb-4">
-          If you're experiencing issues with payments or have questions about billing, 
-          our support team is here to help.
+          If you're experiencing issues with payments or have questions about billing, our support
+          team is here to help.
         </p>
         <div className="flex space-x-3">
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">

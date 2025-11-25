@@ -1,71 +1,71 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react'
 
-const AuthContext = createContext();
+const AuthContext = createContext()
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
-};
+  return context
+}
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Check for stored user data on app load
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user')
+    const token = localStorage.getItem('token')
 
     if (storedUser && token) {
       try {
-        const userData = JSON.parse(storedUser);
+        const userData = JSON.parse(storedUser)
         // Validate token expiration
         if (!isTokenExpired(token)) {
-          setUser(userData);
+          setUser(userData)
         } else {
           // Token expired, clear storage
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
+          localStorage.removeItem('user')
+          localStorage.removeItem('token')
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        console.error('Error parsing stored user data:', error)
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
       }
     }
-    setLoading(false);
-  }, []);
+    setLoading(false)
+  }, [])
 
-  const isTokenExpired = (token) => {
-    if (!token) return true;
+  const isTokenExpired = token => {
+    if (!token) return true
     try {
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return decodedToken.exp < currentTime;
+      const decodedToken = JSON.parse(atob(token.split('.')[1]))
+      const currentTime = Math.floor(Date.now() / 1000)
+      return decodedToken.exp < currentTime
     } catch (error) {
-      return true;
+      return true
     }
-  };
+  }
 
   const login = (userData, token) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', token);
-  };
+    setUser(userData)
+    localStorage.setItem('user', JSON.stringify(userData))
+    localStorage.setItem('token', token)
+  }
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-  };
+    setUser(null)
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
+  }
 
-  const updateUser = (updatedUserData) => {
-    setUser(updatedUserData);
-    localStorage.setItem('user', JSON.stringify(updatedUserData));
-  };
+  const updateUser = updatedUserData => {
+    setUser(updatedUserData)
+    localStorage.setItem('user', JSON.stringify(updatedUserData))
+  }
 
   const value = {
     user,
@@ -73,12 +73,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     loading,
-    isAuthenticated: !!user
-  };
+    isAuthenticated: !!user,
+  }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}

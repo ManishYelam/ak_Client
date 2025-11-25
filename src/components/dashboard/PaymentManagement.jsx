@@ -9,106 +9,123 @@ const PaymentManagement = () => {
     {
       id: 'INV-001',
       student: {
-        name: "Rahul Sharma",
-        email: "rahul@example.com"
+        name: 'Rahul Sharma',
+        email: 'rahul@example.com',
       },
-      course: "SAP ABAP Basics",
+      course: 'SAP ABAP Basics',
       amount: 99,
-      status: "completed",
-      date: "2024-02-15",
-      method: "credit_card",
-      currency: "USD"
+      status: 'completed',
+      date: '2024-02-15',
+      method: 'credit_card',
+      currency: 'USD',
     },
     {
       id: 'INV-002',
       student: {
-        name: "Priya Patel",
-        email: "priya@example.com"
+        name: 'Priya Patel',
+        email: 'priya@example.com',
       },
-      course: "Advanced ABAP Programming",
+      course: 'Advanced ABAP Programming',
       amount: 149,
-      status: "completed",
-      date: "2024-02-14",
-      method: "paypal",
-      currency: "USD"
+      status: 'completed',
+      date: '2024-02-14',
+      method: 'paypal',
+      currency: 'USD',
     },
     {
       id: 'INV-003',
       student: {
-        name: "Amit Kumar",
-        email: "amit@example.com"
+        name: 'Amit Kumar',
+        email: 'amit@example.com',
       },
-      course: "SAP Fiori Development",
+      course: 'SAP Fiori Development',
       amount: 199,
-      status: "pending",
-      date: "2024-02-14",
-      method: "credit_card",
-      currency: "USD"
+      status: 'pending',
+      date: '2024-02-14',
+      method: 'credit_card',
+      currency: 'USD',
     },
     {
       id: 'INV-004',
       student: {
-        name: "Sneha Gupta",
-        email: "sneha@example.com"
+        name: 'Sneha Gupta',
+        email: 'sneha@example.com',
       },
-      course: "ABAP Object-Oriented Programming",
+      course: 'ABAP Object-Oriented Programming',
       amount: 129,
-      status: "failed",
-      date: "2024-02-13",
-      method: "credit_card",
-      currency: "USD"
+      status: 'failed',
+      date: '2024-02-13',
+      method: 'credit_card',
+      currency: 'USD',
     },
     {
       id: 'INV-005',
       student: {
-        name: "Rajesh Singh",
-        email: "rajesh@example.com"
+        name: 'Rajesh Singh',
+        email: 'rajesh@example.com',
       },
-      course: "SAP ABAP Basics",
+      course: 'SAP ABAP Basics',
       amount: 99,
-      status: "refunded",
-      date: "2024-02-12",
-      method: "credit_card",
-      currency: "USD"
-    }
+      status: 'refunded',
+      date: '2024-02-12',
+      method: 'credit_card',
+      currency: 'USD',
+    },
   ]
 
   const tabs = [
     { id: 'all', name: 'All Payments', count: payments.length },
-    { id: 'completed', name: 'Completed', count: payments.filter(p => p.status === 'completed').length },
+    {
+      id: 'completed',
+      name: 'Completed',
+      count: payments.filter(p => p.status === 'completed').length,
+    },
     { id: 'pending', name: 'Pending', count: payments.filter(p => p.status === 'pending').length },
     { id: 'failed', name: 'Failed', count: payments.filter(p => p.status === 'failed').length },
-    { id: 'refunded', name: 'Refunded', count: payments.filter(p => p.status === 'refunded').length }
+    {
+      id: 'refunded',
+      name: 'Refunded',
+      count: payments.filter(p => p.status === 'refunded').length,
+    },
   ]
 
-  const filteredPayments = payments.filter(payment => 
-    activeTab === 'all' || payment.status === activeTab
+  const filteredPayments = payments.filter(
+    payment => activeTab === 'all' || payment.status === activeTab
   )
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'failed': return 'bg-red-100 text-red-800'
-      case 'refunded': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'failed':
+        return 'bg-red-100 text-red-800'
+      case 'refunded':
+        return 'bg-gray-100 text-gray-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getMethodIcon = (method) => {
+  const getMethodIcon = method => {
     switch (method) {
-      case 'credit_card': return '💳'
-      case 'paypal': return '📊'
-      case 'bank_transfer': return '🏦'
-      default: return '💰'
+      case 'credit_card':
+        return '💳'
+      case 'paypal':
+        return '📊'
+      case 'bank_transfer':
+        return '🏦'
+      default:
+        return '💰'
     }
   }
 
   const stats = [
-    { label: "Total Revenue", value: "$12,543", change: "+18.2%", trend: "up" },
-    { label: "Successful Payments", value: "142", change: "+12.5%", trend: "up" },
-    { label: "Avg. Transaction", value: "$88.50", change: "+3.2%", trend: "up" },
-    { label: "Refund Rate", value: "2.4%", change: "-0.8%", trend: "down" }
+    { label: 'Total Revenue', value: '$12,543', change: '+18.2%', trend: 'up' },
+    { label: 'Successful Payments', value: '142', change: '+12.5%', trend: 'up' },
+    { label: 'Avg. Transaction', value: '$88.50', change: '+3.2%', trend: 'up' },
+    { label: 'Refund Rate', value: '2.4%', change: '-0.8%', trend: 'down' },
   ]
 
   return (
@@ -122,7 +139,7 @@ const PaymentManagement = () => {
         <div className="flex space-x-3 mt-4 lg:mt-0">
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
+            onChange={e => setDateRange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="7days">Last 7 days</option>
@@ -143,9 +160,11 @@ const PaymentManagement = () => {
             <p className="text-sm font-medium text-gray-600">{stat.label}</p>
             <div className="flex items-baseline justify-between mt-2">
               <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-              <span className={`text-sm font-medium ${
-                stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {stat.change}
               </span>
             </div>
@@ -236,23 +255,19 @@ const PaymentManagement = () => {
                     {new Date(payment.date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(payment.status)}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusColor(payment.status)}`}
+                    >
                       {payment.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-primary-600 hover:text-primary-900 mr-3">
-                      View
-                    </button>
+                    <button className="text-primary-600 hover:text-primary-900 mr-3">View</button>
                     {payment.status === 'pending' && (
-                      <button className="text-green-600 hover:text-green-900 mr-3">
-                        Approve
-                      </button>
+                      <button className="text-green-600 hover:text-green-900 mr-3">Approve</button>
                     )}
                     {payment.status === 'completed' && (
-                      <button className="text-orange-600 hover:text-orange-900">
-                        Refund
-                      </button>
+                      <button className="text-orange-600 hover:text-orange-900">Refund</button>
                     )}
                   </td>
                 </tr>
@@ -265,8 +280,9 @@ const PaymentManagement = () => {
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to <span className="font-medium">5</span> of{' '}
-              <span className="font-medium">142</span> payments
+              Showing <span className="font-medium">1</span> to{' '}
+              <span className="font-medium">5</span> of <span className="font-medium">142</span>{' '}
+              payments
             </div>
             <div className="flex space-x-2">
               <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
@@ -304,7 +320,7 @@ const PaymentManagement = () => {
               { method: 'Credit Card', percentage: 65, color: 'bg-blue-500' },
               { method: 'PayPal', percentage: 25, color: 'bg-blue-400' },
               { method: 'Bank Transfer', percentage: 8, color: 'bg-blue-300' },
-              { method: 'Other', percentage: 2, color: 'bg-gray-300' }
+              { method: 'Other', percentage: 2, color: 'bg-gray-300' },
             ].map((item, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -312,7 +328,7 @@ const PaymentManagement = () => {
                   <span className="text-gray-600">{item.percentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${item.color} transition-all duration-1000`}
                     style={{ width: `${item.percentage}%` }}
                   />

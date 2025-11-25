@@ -7,41 +7,41 @@ const Analytics = () => {
 
   const metrics = {
     engagement: {
-      title: "User Engagement",
-      description: "How users interact with your platform",
+      title: 'User Engagement',
+      description: 'How users interact with your platform',
       data: [
-        { label: "Daily Active Users", value: "1,234", change: "+12.5%", trend: "up" },
-        { label: "Avg. Session Duration", value: "24m 18s", change: "+2.3m", trend: "up" },
-        { label: "Pages per Session", value: "8.2", change: "+0.7", trend: "up" },
-        { label: "Bounce Rate", value: "32%", change: "-4.2%", trend: "down" }
-      ]
+        { label: 'Daily Active Users', value: '1,234', change: '+12.5%', trend: 'up' },
+        { label: 'Avg. Session Duration', value: '24m 18s', change: '+2.3m', trend: 'up' },
+        { label: 'Pages per Session', value: '8.2', change: '+0.7', trend: 'up' },
+        { label: 'Bounce Rate', value: '32%', change: '-4.2%', trend: 'down' },
+      ],
     },
     acquisition: {
-      title: "User Acquisition",
-      description: "How new users discover your platform",
+      title: 'User Acquisition',
+      description: 'How new users discover your platform',
       data: [
-        { label: "New Users", value: "2,345", change: "+18.7%", trend: "up" },
-        { label: "Returning Users", value: "1,892", change: "+8.3%", trend: "up" },
-        { label: "Acquisition Cost", value: "$4.52", change: "-$0.38", trend: "down" },
-        { label: "Conversion Rate", value: "3.8%", change: "+0.6%", trend: "up" }
-      ]
+        { label: 'New Users', value: '2,345', change: '+18.7%', trend: 'up' },
+        { label: 'Returning Users', value: '1,892', change: '+8.3%', trend: 'up' },
+        { label: 'Acquisition Cost', value: '$4.52', change: '-$0.38', trend: 'down' },
+        { label: 'Conversion Rate', value: '3.8%', change: '+0.6%', trend: 'up' },
+      ],
     },
     retention: {
-      title: "User Retention",
-      description: "How well you retain users over time",
+      title: 'User Retention',
+      description: 'How well you retain users over time',
       data: [
-        { label: "Day 1 Retention", value: "68%", change: "+5.2%", trend: "up" },
-        { label: "Day 7 Retention", value: "42%", change: "+3.8%", trend: "up" },
-        { label: "Day 30 Retention", value: "28%", change: "+2.1%", trend: "up" },
-        { label: "Churn Rate", value: "4.2%", change: "-0.8%", trend: "down" }
-      ]
-    }
+        { label: 'Day 1 Retention', value: '68%', change: '+5.2%', trend: 'up' },
+        { label: 'Day 7 Retention', value: '42%', change: '+3.8%', trend: 'up' },
+        { label: 'Day 30 Retention', value: '28%', change: '+2.1%', trend: 'up' },
+        { label: 'Churn Rate', value: '4.2%', change: '-0.8%', trend: 'down' },
+      ],
+    },
   }
 
   const chartData = {
     userGrowth: [1200, 1300, 1250, 1400, 1600, 1800, 2000, 2200, 2100, 2300, 2400, 2500],
     engagement: [65, 68, 72, 70, 75, 78, 80, 82, 85, 83, 87, 90],
-    revenue: [8500, 9200, 8800, 9500, 11000, 12500, 13200, 14000, 13800, 14500, 15200, 16000]
+    revenue: [8500, 9200, 8800, 9500, 11000, 12500, 13200, 14000, 13800, 14500, 15200, 16000],
   }
 
   const currentMetric = metrics[activeMetric]
@@ -57,7 +57,7 @@ const Analytics = () => {
         <div className="flex space-x-3 mt-4 lg:mt-0">
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
+            onChange={e => setDateRange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="7days">Last 7 days</option>
@@ -96,14 +96,16 @@ const Analytics = () => {
             <p className="text-sm font-medium text-gray-600 mb-2">{item.label}</p>
             <div className="flex items-baseline justify-between">
               <p className="text-2xl font-bold text-gray-900">{item.value}</p>
-              <span className={`text-sm font-medium ${
-                item.trend === 'up' ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  item.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {item.change}
               </span>
             </div>
             <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-              <div 
+              <div
                 className={`h-2 rounded-full ${
                   item.trend === 'up' ? 'bg-green-500' : 'bg-red-500'
                 }`}
@@ -123,7 +125,7 @@ const Analytics = () => {
             <div className="flex items-end justify-between h-48 space-x-1">
               {chartData.userGrowth.map((value, index) => (
                 <div key={index} className="flex flex-col items-center flex-1">
-                  <div 
+                  <div
                     className="w-full bg-gradient-to-t from-primary-500 to-primary-600 rounded-t-lg transition-all duration-500 hover:from-primary-600 hover:to-primary-700"
                     style={{ height: `${(value / 3000) * 100}%` }}
                   />
@@ -147,7 +149,7 @@ const Analytics = () => {
             <div className="flex items-end justify-between h-48 space-x-1">
               {chartData.engagement.map((value, index) => (
                 <div key={index} className="flex flex-col items-center flex-1">
-                  <div 
+                  <div
                     className="w-full bg-gradient-to-t from-green-500 to-green-600 rounded-t-lg transition-all duration-500 hover:from-green-600 hover:to-green-700"
                     style={{ height: `${value}%` }}
                   />
@@ -176,7 +178,7 @@ const Analytics = () => {
               { source: 'Organic Search', percentage: 30, color: 'bg-green-500' },
               { source: 'Social Media', percentage: 15, color: 'bg-purple-500' },
               { source: 'Referral', percentage: 8, color: 'bg-orange-500' },
-              { source: 'Email', percentage: 2, color: 'bg-red-500' }
+              { source: 'Email', percentage: 2, color: 'bg-red-500' },
             ].map((item, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -184,7 +186,7 @@ const Analytics = () => {
                   <span className="text-gray-600">{item.percentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${item.color} transition-all duration-1000`}
                     style={{ width: `${item.percentage}%` }}
                   />
@@ -201,7 +203,7 @@ const Analytics = () => {
             {[
               { device: 'Desktop', percentage: 58, color: 'bg-indigo-500' },
               { device: 'Mobile', percentage: 35, color: 'bg-pink-500' },
-              { device: 'Tablet', percentage: 7, color: 'bg-yellow-500' }
+              { device: 'Tablet', percentage: 7, color: 'bg-yellow-500' },
             ].map((item, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -209,7 +211,7 @@ const Analytics = () => {
                   <span className="text-gray-600">{item.percentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full ${item.color} transition-all duration-1000`}
                     style={{ width: `${item.percentage}%` }}
                   />
@@ -228,7 +230,7 @@ const Analytics = () => {
               { country: 'India', users: 987, percentage: 25 },
               { country: 'United Kingdom', users: 654, percentage: 17 },
               { country: 'Germany', users: 432, percentage: 11 },
-              { country: 'Others', users: 682, percentage: 15 }
+              { country: 'Others', users: 682, percentage: 15 },
             ].map((item, index) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-gray-700">{item.country}</span>
@@ -250,14 +252,14 @@ const Analytics = () => {
             { metric: 'Page Load Time', value: '1.2s', target: '<2s', status: 'good' },
             { metric: 'API Response Time', value: '180ms', target: '<200ms', status: 'good' },
             { metric: 'Uptime', value: '99.9%', target: '>99.5%', status: 'good' },
-            { metric: 'Error Rate', value: '0.2%', target: '<0.5%', status: 'good' }
+            { metric: 'Error Rate', value: '0.2%', target: '<0.5%', status: 'good' },
           ].map((item, index) => (
             <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-600 mb-1">{item.metric}</p>
               <p className="text-xl font-bold text-gray-900 mb-1">{item.value}</p>
-              <p className={`text-xs ${
-                item.status === 'good' ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <p
+                className={`text-xs ${item.status === 'good' ? 'text-green-600' : 'text-red-600'}`}
+              >
                 Target: {item.target}
               </p>
             </div>

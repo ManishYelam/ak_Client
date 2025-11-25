@@ -1,6 +1,6 @@
-import DashboardLayout from "../layouts/DashboardLayout";
-import Card from "../components/Card";
-import { useState } from "react";
+import DashboardLayout from '../layouts/DashboardLayout'
+import Card from '../components/Card'
+import { useState } from 'react'
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([
@@ -11,7 +11,7 @@ const Notifications = () => {
       message: 'You have been assigned to Case #12345',
       time: '2024-01-15T10:30:00Z',
       read: false,
-      priority: 'high'
+      priority: 'high',
     },
     {
       id: 2,
@@ -20,25 +20,21 @@ const Notifications = () => {
       message: 'Payment of ₹50,000 received for Case #12345',
       time: '2024-01-14T15:45:00Z',
       read: true,
-      priority: 'medium'
-    }
-  ]);
+      priority: 'medium',
+    },
+  ])
 
-  const markAsRead = (id) => {
+  const markAsRead = id => {
     setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
+      prev.map(notif => (notif.id === id ? { ...notif, read: true } : notif))
+    )
+  }
 
   const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+  }
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length
 
   return (
     <DashboardLayout>
@@ -73,9 +69,7 @@ const Notifications = () => {
                 <div
                   key={notification.id}
                   className={`p-4 border-l-4 rounded-lg ${
-                    notification.read
-                      ? 'bg-gray-50 border-gray-300'
-                      : 'bg-blue-50 border-blue-500'
+                    notification.read ? 'bg-gray-50 border-gray-300' : 'bg-blue-50 border-blue-500'
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -102,7 +96,7 @@ const Notifications = () => {
         </Card>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default Notifications;
+export default Notifications

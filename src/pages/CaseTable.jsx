@@ -1,59 +1,86 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { getAllCases, deleteCase, getDocumentByCaseId } from "../services/casesService";
-import Application from "./Application"; // Import the Application form
-import { FaArrowLeft, FaFilePdf, FaPlus, FaCheck, FaTimes, FaDownload,FaEdit,FaEye,FaPrint,FaTrash,FaEllipsisV , FaExternalLinkAlt } from "react-icons/fa";
-import { FiTrash2, FiEdit, FiEye, FiPrinter, FiMoreVertical, FiRefreshCcw } from "react-icons/fi";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { getAllCases, deleteCase, getDocumentByCaseId } from '../services/casesService'
+import Application from './Application' // Import the Application form
+import {
+  FaArrowLeft,
+  FaFilePdf,
+  FaPlus,
+  FaCheck,
+  FaTimes,
+  FaDownload,
+  FaEdit,
+  FaEye,
+  FaPrint,
+  FaTrash,
+  FaEllipsisV,
+  FaExternalLinkAlt,
+} from 'react-icons/fa'
+import { FiTrash2, FiEdit, FiEye, FiPrinter, FiMoreVertical, FiRefreshCcw } from 'react-icons/fi'
 
 // Custom hook for debounce
 const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+  const [debouncedValue, setDebouncedValue] = useState(value)
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
+      setDebouncedValue(value)
+    }, delay)
 
     return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
+      clearTimeout(handler)
+    }
+  }, [value, delay])
 
-  return debouncedValue;
-};
+  return debouncedValue
+}
 
 // Token validation utility
-const isTokenExpired = (token) => {
-  if (!token) return true;
+const isTokenExpired = token => {
+  if (!token) return true
   try {
-    const decodedToken = JSON.parse(atob(token.split(".")[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
-    return decodedToken.exp < currentTime;
+    const decodedToken = JSON.parse(atob(token.split('.')[1]))
+    const currentTime = Math.floor(Date.now() / 1000)
+    return decodedToken.exp < currentTime
   } catch (error) {
-    return true;
+    return true
   }
-};
+}
 
 // Filter configurations
 const filterConfigs = {
-  globalSearch: (caseItem, value) => !value || Object.values(caseItem).some(val =>
-    val?.toString().toLowerCase().includes(value.toLowerCase())
-  ),
-  searchField: (caseItem, value, filters) => 
-    !filters.searchField || !filters.searchValue || caseItem[filters.searchField]?.toString()
-      .toLowerCase().includes(filters.searchValue.toLowerCase()),
+  globalSearch: (caseItem, value) =>
+    !value ||
+    Object.values(caseItem).some(val =>
+      val?.toString().toLowerCase().includes(value.toLowerCase())
+    ),
+  searchField: (caseItem, value, filters) =>
+    !filters.searchField ||
+    !filters.searchValue ||
+    caseItem[filters.searchField]
+      ?.toString()
+      .toLowerCase()
+      .includes(filters.searchValue.toLowerCase()),
   status: (caseItem, value) => !value || caseItem.status?.toLowerCase() === value.toLowerCase(),
   priority: (caseItem, value) => !value || caseItem.priority?.toLowerCase() === value.toLowerCase(),
   verified: (caseItem, value) => {
-    if (value === "") return true;
-    if (value === "true") return caseItem.verified === true;
-    if (value === "false") return caseItem.verified === false;
-    return true;
-  }
-};
+    if (value === '') return true
+    if (value === 'true') return caseItem.verified === true
+    if (value === 'false') return caseItem.verified === false
+    return true
+  },
+}
 
 // Custom Confirmation Modal Component
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Delete", cancelText = "Cancel" }) => {
-  if (!isOpen) return null;
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
+}) => {
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -76,302 +103,329 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
-  const [cases, setCases] = useState([]);
-  const [expandedCaseIds, setExpandedCaseIds] = useState([]);
+  const [cases, setCases] = useState([])
+  const [expandedCaseIds, setExpandedCaseIds] = useState([])
   const [filters, setFilters] = useState({
-    globalSearch: "",
-    searchField: "",
-    searchValue: "",
-    status: "",
-    priority: "",
-    verified: "",
-  });
-  const [selectedCaseIds, setSelectedCaseIds] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [userRole, setUserRole] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [selectedRowId, setSelectedRowId] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [documentLoading, setDocumentLoading] = useState(null);
+    globalSearch: '',
+    searchField: '',
+    searchValue: '',
+    status: '',
+    priority: '',
+    verified: '',
+  })
+  const [selectedCaseIds, setSelectedCaseIds] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [pagination, setPagination] = useState({ page: 1, limit: 10 })
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [exportLoading, setExportLoading] = useState(false)
+  const [userRole, setUserRole] = useState(null)
+  const [userId, setUserId] = useState(null)
+  const [selectedRowId, setSelectedRowId] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [documentLoading, setDocumentLoading] = useState(null)
 
   // New state for edit/view mode
-  const [currentView, setCurrentView] = useState('table'); // 'table', 'edit', 'view'
-  const [selectedCase, setSelectedCase] = useState(null);
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [currentView, setCurrentView] = useState('table') // 'table', 'edit', 'view'
+  const [selectedCase, setSelectedCase] = useState(null)
+  const [selectedCaseId, setSelectedCaseId] = useState(null)
 
   // Delete confirmation modal state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [casesToDelete, setCasesToDelete] = useState([]);
-  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [casesToDelete, setCasesToDelete] = useState([])
+  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState('')
 
   // Use debounce for global search
-  const debouncedGlobalSearch = useDebounce(filters.globalSearch, 500);
+  const debouncedGlobalSearch = useDebounce(filters.globalSearch, 500)
 
   // Initialize user data from localStorage
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    const user = localStorage.getItem('user')
     if (user) {
       try {
-        const parsedUser = JSON.parse(user);
-        setUserRole(parsedUser?.role || 'client');
-        setUserId(parsedUser?.id);
+        const parsedUser = JSON.parse(user)
+        setUserRole(parsedUser?.role || 'client')
+        setUserId(parsedUser?.id)
       } catch (error) {
-        setUserRole('client');
+        setUserRole('client')
       }
     }
-  }, []);
+  }, [])
 
   // ✅ FIXED: Document View Handler with proper document path handling
-  const handleViewDocument = useCallback(async (filePath) => {
+  const handleViewDocument = useCallback(async filePath => {
     if (!filePath) {
-      setError("No document path available");
-      return;
+      setError('No document path available')
+      return
     }
 
-    setDocumentLoading(filePath);
+    setDocumentLoading(filePath)
 
     try {
-      const response = await getDocumentByCaseId(filePath);
+      const response = await getDocumentByCaseId(filePath)
       const blob = new Blob([response.data], {
-        type: response.headers['content-type'] || 'application/pdf'
-      });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      window.open(blobUrl, "_blank");
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        type: response.headers['content-type'] || 'application/pdf',
+      })
+      const blobUrl = URL.createObjectURL(blob)
 
+      window.open(blobUrl, '_blank')
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
     } catch (err) {
-      if (err.response?.status === 401) setError("Authentication failed. Please login again.");
-      else if (err.response?.status === 403) setError("You don't have permission to access this document.");
-      else if (err.response?.status === 404) setError("Document not found on server.");
-      else setError(`Failed to open document: ${err.message}`);
+      if (err.response?.status === 401) setError('Authentication failed. Please login again.')
+      else if (err.response?.status === 403)
+        setError("You don't have permission to access this document.")
+      else if (err.response?.status === 404) setError('Document not found on server.')
+      else setError(`Failed to open document: ${err.message}`)
     } finally {
-      setDocumentLoading(null);
+      setDocumentLoading(null)
     }
-  }, []);
+  }, [])
 
   // ✅ Get document path from document object/string
-  const getDocumentPath = useCallback((doc) => {
-    if (typeof doc === 'string') return doc;
+  const getDocumentPath = useCallback(doc => {
+    if (typeof doc === 'string') return doc
     if (doc && typeof doc === 'object') {
-      return doc.path || doc.filePath || doc.url || doc.document_path || '';
+      return doc.path || doc.filePath || doc.url || doc.document_path || ''
     }
-    return '';
-  }, []);
+    return ''
+  }, [])
 
   // ✅ Get document name from document object/string
-  const getDocumentName = useCallback((doc) => {
-    const path = getDocumentPath(doc);
-    if (!path) return "document.pdf";
-    
-    // Handle both forward and backward slashes
-    const fileName = path.split(/[\\/]/).pop() || "document.pdf";
-    return fileName;
-  }, [getDocumentPath]);
+  const getDocumentName = useCallback(
+    doc => {
+      const path = getDocumentPath(doc)
+      if (!path) return 'document.pdf'
+
+      // Handle both forward and backward slashes
+      const fileName = path.split(/[\\/]/).pop() || 'document.pdf'
+      return fileName
+    },
+    [getDocumentPath]
+  )
 
   // ✅ Ultra-fast Payment Status Computation
-  const getCasePaymentStatus = useCallback((caseItem) => {
-    const payments = caseItem.payments || [];
-    if (payments.length === 0) return "Pending";
-    
-    const statuses = payments.map(p => p.status?.toLowerCase());
-    if (statuses.every(s => s === "paid")) return "Paid";
-    if (statuses.every(s => s === "failed")) return "Failed";
-    if (statuses.includes("pending")) return "Pending";
-    return "Partial";
-  }, []);
+  const getCasePaymentStatus = useCallback(caseItem => {
+    const payments = caseItem.payments || []
+    if (payments.length === 0) return 'Pending'
+
+    const statuses = payments.map(p => p.status?.toLowerCase())
+    if (statuses.every(s => s === 'paid')) return 'Paid'
+    if (statuses.every(s => s === 'failed')) return 'Failed'
+    if (statuses.includes('pending')) return 'Pending'
+    return 'Partial'
+  }, [])
 
   // ✅ Ultra-optimized Fetch Cases
-  const fetchCases = useCallback(async (retryCount = 0) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const user = localStorage.getItem("user");
-      if (!user) throw new Error("User not logged in");
+  const fetchCases = useCallback(
+    async (retryCount = 0) => {
+      setLoading(true)
+      setError(null)
 
-      const parsedUser = JSON.parse(user);
-      const token = parsedUser?.token;
-      const currentUserRole = parsedUser?.role || 'client';
-      const currentUserId = parsedUser?.id;
+      try {
+        const user = localStorage.getItem('user')
+        if (!user) throw new Error('User not logged in')
 
-      if (!token || isTokenExpired(token)) {
-        throw new Error("Token expired. Please login again.");
+        const parsedUser = JSON.parse(user)
+        const token = parsedUser?.token
+        const currentUserRole = parsedUser?.role || 'client'
+        const currentUserId = parsedUser?.id
+
+        if (!token || isTokenExpired(token)) {
+          throw new Error('Token expired. Please login again.')
+        }
+
+        // Direct payload construction
+        const payload = {
+          page: pagination.page,
+          limit: pagination.limit,
+          searchFields: '',
+          search: debouncedGlobalSearch || '',
+          filters: {
+            status: filters.status || undefined,
+            priority: filters.priority || undefined,
+            verified:
+              filters.verified === 'true' ? true : filters.verified === 'false' ? false : undefined,
+            ...(currentUserRole === 'client' && currentUserId && { client_id: currentUserId }),
+            ...(currentUserRole === 'advocate' && currentUserId && { advocate_id: currentUserId }),
+          },
+        }
+
+        const response = await getAllCases(payload)
+
+        // Direct array transformation
+        const transformedCases = (response.data.data || []).map(caseItem => ({
+          ...caseItem,
+          payments: Array.isArray(caseItem.payments)
+            ? caseItem.payments
+            : caseItem.payment
+              ? [caseItem.payment]
+              : [],
+        }))
+
+        setCases(transformedCases)
+        setTotalRecords(response.data.totalRecords || 0)
+
+        if (!userRole) {
+          setUserRole(currentUserRole)
+          setUserId(currentUserId)
+        }
+      } catch (err) {
+        if (err.message.includes('Token expired') && retryCount < 2) {
+          setTimeout(() => fetchCases(retryCount + 1), 1000)
+        } else {
+          setError(`Failed to fetch cases: ${err.message}`)
+        }
+      } finally {
+        setLoading(false)
       }
-
-      // Direct payload construction
-      const payload = {
-        page: pagination.page,
-        limit: pagination.limit,
-        searchFields: "",
-        search: debouncedGlobalSearch || "",
-        filters: {
-          status: filters.status || undefined,
-          priority: filters.priority || undefined,
-          verified: filters.verified === "true" ? true : filters.verified === "false" ? false : undefined,
-          ...(currentUserRole === 'client' && currentUserId && { client_id: currentUserId }),
-          ...(currentUserRole === 'advocate' && currentUserId && { advocate_id: currentUserId })
-        },
-      };
-
-      const response = await getAllCases(payload);
-
-      // Direct array transformation
-      const transformedCases = (response.data.data || []).map(caseItem => ({
-        ...caseItem,
-        payments: Array.isArray(caseItem.payments) ? caseItem.payments : caseItem.payment ? [caseItem.payment] : []
-      }));
-
-      setCases(transformedCases);
-      setTotalRecords(response.data.totalRecords || 0);
-
-      if (!userRole) {
-        setUserRole(currentUserRole);
-        setUserId(currentUserId);
-      }
-    } catch (err) {
-      if (err.message.includes('Token expired') && retryCount < 2) {
-        setTimeout(() => fetchCases(retryCount + 1), 1000);
-      } else {
-        setError(`Failed to fetch cases: ${err.message}`);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedGlobalSearch, filters.status, filters.priority, filters.verified, pagination.page, pagination.limit, userRole]);
+    },
+    [
+      debouncedGlobalSearch,
+      filters.status,
+      filters.priority,
+      filters.verified,
+      pagination.page,
+      pagination.limit,
+      userRole,
+    ]
+  )
 
   // ✅ Auto-fetch on dependencies change
   useEffect(() => {
-    fetchCases();
-  }, [fetchCases]);
+    fetchCases()
+  }, [fetchCases])
 
   // ✅ Ultra-fast filtered cases computation
-  const filteredCases = useMemo(() => 
-    cases.filter(caseItem => 
-      Object.entries(filters).every(([key, value]) => {
-        if (key === "searchField") return filterConfigs.searchField(caseItem, value, filters);
-        if (key === "globalSearch") return true;
-        return filterConfigs[key] ? filterConfigs[key](caseItem, value) : true;
-      })
-    ), 
-  [cases, filters]);
+  const filteredCases = useMemo(
+    () =>
+      cases.filter(caseItem =>
+        Object.entries(filters).every(([key, value]) => {
+          if (key === 'searchField') return filterConfigs.searchField(caseItem, value, filters)
+          if (key === 'globalSearch') return true
+          return filterConfigs[key] ? filterConfigs[key](caseItem, value) : true
+        })
+      ),
+    [cases, filters]
+  )
 
   // ✅ Ultra-fast Delete Confirmation
-  const showDeleteConfirmation = useCallback((caseIds) => {
+  const showDeleteConfirmation = useCallback(caseIds => {
     if (!caseIds || caseIds.length === 0) {
-      setError("No cases selected for deletion");
-      return;
+      setError('No cases selected for deletion')
+      return
     }
 
-    setCasesToDelete(caseIds);
+    setCasesToDelete(caseIds)
     setDeleteConfirmMessage(
       caseIds.length === 1
         ? `Are you sure you want to delete case #${caseIds[0]}? This action cannot be undone.`
         : `Are you sure you want to delete ${caseIds.length} selected cases? This action cannot be undone.`
-    );
-    setShowDeleteConfirm(true);
-  }, []);
+    )
+    setShowDeleteConfirm(true)
+  }, [])
 
   // ✅ Ultra-optimized DELETE CASE
   const handleDeleteCase = useCallback(async () => {
-    setDeleteLoading(true);
-    setError(null);
+    setDeleteLoading(true)
+    setError(null)
 
     try {
-      const user = localStorage.getItem("user");
-      if (!user) throw new Error("User not logged in");
+      const user = localStorage.getItem('user')
+      if (!user) throw new Error('User not logged in')
 
-      const parsedUser = JSON.parse(user);
-      const token = parsedUser?.token;
+      const parsedUser = JSON.parse(user)
+      const token = parsedUser?.token
 
       if (!token || isTokenExpired(token)) {
-        throw new Error("Token expired. Please login again.");
+        throw new Error('Token expired. Please login again.')
       }
 
       // Direct parallel deletion
-      await Promise.all(casesToDelete.map(id => deleteCase(id)));
+      await Promise.all(casesToDelete.map(id => deleteCase(id)))
 
       // Direct state updates
-      setShowDeleteConfirm(false);
-      setCasesToDelete([]);
-      await fetchCases();
-      setSelectedCaseIds([]);
-      setSelectedRowId(null);
+      setShowDeleteConfirm(false)
+      setCasesToDelete([])
+      await fetchCases()
+      setSelectedCaseIds([])
+      setSelectedRowId(null)
 
-      setError(casesToDelete.length === 1
-        ? `Case #${casesToDelete[0]} deleted successfully`
-        : `${casesToDelete.length} cases deleted successfully`
-      );
-
+      setError(
+        casesToDelete.length === 1
+          ? `Case #${casesToDelete[0]} deleted successfully`
+          : `${casesToDelete.length} cases deleted successfully`
+      )
     } catch (err) {
-      setError(`Failed to delete cases: ${err.message}`);
-      setShowDeleteConfirm(false);
-      setCasesToDelete([]);
+      setError(`Failed to delete cases: ${err.message}`)
+      setShowDeleteConfirm(false)
+      setCasesToDelete([])
     } finally {
-      setDeleteLoading(false);
+      setDeleteLoading(false)
     }
-  }, [casesToDelete, fetchCases]);
+  }, [casesToDelete, fetchCases])
 
   // ✅ Ultra-fast Single Case Delete
-  const handleDeleteSingleCase = useCallback((caseItem, e) => {
-    e.stopPropagation();
-    showDeleteConfirmation([caseItem.id]);
-  }, [showDeleteConfirmation]);
+  const handleDeleteSingleCase = useCallback(
+    (caseItem, e) => {
+      e.stopPropagation()
+      showDeleteConfirmation([caseItem.id])
+    },
+    [showDeleteConfirmation]
+  )
 
   // ✅ Fast Cancel Delete
   const handleCancelDelete = useCallback(() => {
-    setShowDeleteConfirm(false);
-    setCasesToDelete([]);
-    setDeleteConfirmMessage("");
-  }, []);
+    setShowDeleteConfirm(false)
+    setCasesToDelete([])
+    setDeleteConfirmMessage('')
+  }, [])
 
   // ✅ Handle Edit Case
   const handleEditCase = useCallback((caseItem, e) => {
-    e.stopPropagation();
-    setSelectedCase(caseItem);
-    setSelectedCaseId(caseItem.id);
-    setCurrentView('edit');
-  }, []);
+    e.stopPropagation()
+    setSelectedCase(caseItem)
+    setSelectedCaseId(caseItem.id)
+    setCurrentView('edit')
+  }, [])
 
   // ✅ Handle View Case
   const handleViewCase = useCallback((caseItem, e) => {
-    e.stopPropagation();
-    setSelectedCase(caseItem);
-    setSelectedCaseId(caseItem.id);
-    setCurrentView('view');
-  }, []);
+    e.stopPropagation()
+    setSelectedCase(caseItem)
+    setSelectedCaseId(caseItem.id)
+    setCurrentView('view')
+  }, [])
 
   // ✅ Handle Back from Application Form
   const handleBackFromForm = useCallback(() => {
-    setCurrentView('table');
-    setSelectedCase(null);
-    setSelectedCaseId(null);
+    setCurrentView('table')
+    setSelectedCase(null)
+    setSelectedCaseId(null)
     // Refresh cases to get updated data
-    fetchCases();
-  }, [fetchCases]);
+    fetchCases()
+  }, [fetchCases])
 
   // ✅ Handle Save from Application Form
-  const handleSaveFromForm = useCallback((updatedCase) => {
-    setCurrentView('table');
-    setSelectedCase(null);
-    setSelectedCaseId(null);
-    // Refresh cases to get updated data
-    fetchCases();
-    // Show success message
-    setError(`Case #${updatedCase.id} updated successfully`);
-  }, [fetchCases]);
+  const handleSaveFromForm = useCallback(
+    updatedCase => {
+      setCurrentView('table')
+      setSelectedCase(null)
+      setSelectedCaseId(null)
+      // Refresh cases to get updated data
+      fetchCases()
+      // Show success message
+      setError(`Case #${updatedCase.id} updated successfully`)
+    },
+    [fetchCases]
+  )
 
   // ✅ Ultra-optimized Payment Details Component
   const PaymentDetailsRow = useCallback(({ caseItem }) => {
-    const payments = caseItem.payments || [];
+    const payments = caseItem.payments || []
 
     if (payments.length === 0) {
       return (
@@ -382,7 +436,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
             </div>
           </td>
         </tr>
-      );
+      )
     }
 
     return (
@@ -429,21 +483,22 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                       </td>
                       <td className="border px-1 py-1">{payment.currency || 'INR'}</td>
                       <td className="border px-1 py-1">
-                        <span className={`px-1 py-0.5 rounded text-white ${
-                          payment.status === 'paid' || payment.status === 'Paid' ? 'bg-green-500' :
-                          payment.status === 'failed' || payment.status === 'Failed' ? 'bg-red-500' : 'bg-yellow-500'
-                        }`}>
+                        <span
+                          className={`px-1 py-0.5 rounded text-white ${
+                            payment.status === 'paid' || payment.status === 'Paid'
+                              ? 'bg-green-500'
+                              : payment.status === 'failed' || payment.status === 'Failed'
+                                ? 'bg-red-500'
+                                : 'bg-yellow-500'
+                          }`}
+                        >
                           {payment.status || 'Pending'}
                         </span>
                       </td>
-                      <td className="border px-1 py-1 capitalize">
-                        {payment.method || 'N/A'}
-                      </td>
+                      <td className="border px-1 py-1 capitalize">{payment.method || 'N/A'}</td>
+                      <td className="border px-1 py-1">{payment.receipt || 'N/A'}</td>
                       <td className="border px-1 py-1">
-                        {payment.receipt || 'N/A'}
-                      </td>
-                      <td className="border px-1 py-1">
-                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : "-"}
+                        {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
                       </td>
                     </tr>
                   ))}
@@ -453,194 +508,227 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
           </div>
         </td>
       </tr>
-    );
-  }, []);
+    )
+  }, [])
 
   // ✅ Ultra-fast Filter Change Handlers
-  const handleFilterChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
+  const handleFilterChange = useCallback(e => {
+    const { name, value, type, checked } = e.target
     setFilters(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-    setPagination(prev => ({ ...prev, page: 1 }));
-  }, []);
+      [name]: type === 'checkbox' ? checked : value,
+    }))
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }, [])
 
-  const handleSearchChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
-    if (name !== "globalSearch") {
-      setPagination(prev => ({ ...prev, page: 1 }));
+  const handleSearchChange = useCallback(e => {
+    const { name, value } = e.target
+    setFilters(prev => ({ ...prev, [name]: value }))
+    if (name !== 'globalSearch') {
+      setPagination(prev => ({ ...prev, page: 1 }))
     }
-  }, []);
+  }, [])
 
   // ✅ Ultra-fast Expand Toggle
   const toggleExpandCase = useCallback((id, e) => {
-    if (e) e.stopPropagation();
-    setExpandedCaseIds(prev =>
-      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
-    );
-  }, []);
+    if (e) e.stopPropagation()
+    setExpandedCaseIds(prev => (prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]))
+  }, [])
 
   // ✅ Ultra-fast Row Click Handler
-  const handleRowClick = useCallback((caseId, e) => {
-    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input')) {
-      return;
-    }
-    setSelectedRowId(caseId === selectedRowId ? null : caseId);
-  }, [selectedRowId]);
+  const handleRowClick = useCallback(
+    (caseId, e) => {
+      if (
+        e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'INPUT' ||
+        e.target.closest('button') ||
+        e.target.closest('input')
+      ) {
+        return
+      }
+      setSelectedRowId(caseId === selectedRowId ? null : caseId)
+    },
+    [selectedRowId]
+  )
 
   // ✅ Ultra-fast Row Background Color
-  const getRowBackgroundColor = useCallback((caseId) => 
-    caseId === selectedRowId ? 'bg-blue-200 border-l-4 border-blue-500' : 'bg-white hover:bg-pink-100',
-  [selectedRowId]);
+  const getRowBackgroundColor = useCallback(
+    caseId =>
+      caseId === selectedRowId
+        ? 'bg-blue-200 border-l-4 border-blue-500'
+        : 'bg-white hover:bg-pink-100',
+    [selectedRowId]
+  )
 
   // ✅ Ultra-optimized Pagination Calculations
-  const paginationInfo = useMemo(() => ({
-    totalPages: Math.ceil(totalRecords / pagination.limit),
-    startIndex: (pagination.page - 1) * pagination.limit + 1,
-    endIndex: Math.min(pagination.page * pagination.limit, totalRecords)
-  }), [pagination, totalRecords]);
+  const paginationInfo = useMemo(
+    () => ({
+      totalPages: Math.ceil(totalRecords / pagination.limit),
+      startIndex: (pagination.page - 1) * pagination.limit + 1,
+      endIndex: Math.min(pagination.page * pagination.limit, totalRecords),
+    }),
+    [pagination, totalRecords]
+  )
 
   const getPageNumbers = useCallback(() => {
-    const delta = 2;
-    const range = [];
-    const { totalPages } = paginationInfo;
+    const delta = 2
+    const range = []
+    const { totalPages } = paginationInfo
 
-    for (let i = Math.max(1, pagination.page - delta); i <= Math.min(totalPages, pagination.page + delta); i++) {
-      range.push(i);
+    for (
+      let i = Math.max(1, pagination.page - delta);
+      i <= Math.min(totalPages, pagination.page + delta);
+      i++
+    ) {
+      range.push(i)
     }
 
-    if (range[0] > 2) range.unshift("...");
-    if (range[0] !== 1) range.unshift(1);
-    if (range[range.length - 1] < totalPages - 1) range.push("...");
-    if (range[range.length - 1] !== totalPages) range.push(totalPages);
+    if (range[0] > 2) range.unshift('...')
+    if (range[0] !== 1) range.unshift(1)
+    if (range[range.length - 1] < totalPages - 1) range.push('...')
+    if (range[range.length - 1] !== totalPages) range.push(totalPages)
 
-    return range;
-  }, [paginationInfo, pagination.page]);
+    return range
+  }, [paginationInfo, pagination.page])
 
   // ✅ Ultra-fast Selection Handlers
-  const toggleSelectAll = useCallback((e) => {
-    setSelectedCaseIds(e.target.checked ? cases.map(c => c.id) : []);
-  }, [cases]);
+  const toggleSelectAll = useCallback(
+    e => {
+      setSelectedCaseIds(e.target.checked ? cases.map(c => c.id) : [])
+    },
+    [cases]
+  )
 
   const toggleSelectOne = useCallback((id, e) => {
-    if (e) e.stopPropagation();
-    setSelectedCaseIds(prev =>
-      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
-    );
-  }, []);
+    if (e) e.stopPropagation()
+    setSelectedCaseIds(prev => (prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]))
+  }, [])
 
   // ✅ Ultra-optimized Export
   const handleExport = useCallback(async () => {
-    setExportLoading(true);
+    setExportLoading(true)
     try {
       const csvHeaders = [
-        'ID', 'Deposit Type', 'Status', 'Priority', 'Verified',
-        'Payment Status', 'FD Total', 'Savings Total', 'Created At'
-      ].join(',');
+        'ID',
+        'Deposit Type',
+        'Status',
+        'Priority',
+        'Verified',
+        'Payment Status',
+        'FD Total',
+        'Savings Total',
+        'Created At',
+      ].join(',')
 
-      const csvRows = filteredCases.map(caseItem => [
-        caseItem.id,
-        `"${caseItem.deposit_type}"`,
-        caseItem.status,
-        caseItem.priority,
-        caseItem.verified ? 'Yes' : 'No',
-        getCasePaymentStatus(caseItem),
-        caseItem.fixed_deposit_total_amount,
-        caseItem.saving_account_total_amount,
-        caseItem.createdAt ? new Date(caseItem.createdAt).toLocaleDateString() : '-'
-      ].join(','));
+      const csvRows = filteredCases.map(caseItem =>
+        [
+          caseItem.id,
+          `"${caseItem.deposit_type}"`,
+          caseItem.status,
+          caseItem.priority,
+          caseItem.verified ? 'Yes' : 'No',
+          getCasePaymentStatus(caseItem),
+          caseItem.fixed_deposit_total_amount,
+          caseItem.saving_account_total_amount,
+          caseItem.createdAt ? new Date(caseItem.createdAt).toLocaleDateString() : '-',
+        ].join(',')
+      )
 
-      const csvContent = [csvHeaders, ...csvRows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `cases-export-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const csvContent = [csvHeaders, ...csvRows].join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `cases-export-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
     } catch (err) {
-      setError(`Export failed: ${err.message}`);
+      setError(`Export failed: ${err.message}`)
     } finally {
-      setExportLoading(false);
+      setExportLoading(false)
     }
-  }, [filteredCases, getCasePaymentStatus]);
+  }, [filteredCases, getCasePaymentStatus])
 
   // ✅ Ultra-fast Reset Filters
   const handleResetFilters = useCallback(() => {
     setFilters({
-      globalSearch: "",
-      searchField: "",
-      searchValue: "",
-      status: "",
-      priority: "",
-      verified: "",
-    });
-    setPagination({ page: 1, limit: 10 });
-    setSelectedRowId(null);
-    fetchCases();
-  }, [fetchCases]);
+      globalSearch: '',
+      searchField: '',
+      searchValue: '',
+      status: '',
+      priority: '',
+      verified: '',
+    })
+    setPagination({ page: 1, limit: 10 })
+    setSelectedRowId(null)
+    fetchCases()
+  }, [fetchCases])
 
   // ✅ ULTRA-FAST Action Button Handler (No Switch)
-  const handleActionButtonClick = useCallback((action, caseItem, e) => {
-    e.stopPropagation();
-    
-    // Direct if-else chain - Fastest execution
-    if (action === 'view') handleViewCase(caseItem, e);
-    else if (action === 'edit') handleEditCase(caseItem, e);
-    else if (action === 'print') onPrint?.(caseItem);
-    else if (action === 'delete') handleDeleteSingleCase(caseItem, e);
-    else if (action === 'more') onMore?.(caseItem);
-  }, [handleViewCase, handleEditCase, onPrint, onMore, handleDeleteSingleCase]);
+  const handleActionButtonClick = useCallback(
+    (action, caseItem, e) => {
+      e.stopPropagation()
+
+      // Direct if-else chain - Fastest execution
+      if (action === 'view') handleViewCase(caseItem, e)
+      else if (action === 'edit') handleEditCase(caseItem, e)
+      else if (action === 'print') onPrint?.(caseItem)
+      else if (action === 'delete') handleDeleteSingleCase(caseItem, e)
+      else if (action === 'more') onMore?.(caseItem)
+    },
+    [handleViewCase, handleEditCase, onPrint, onMore, handleDeleteSingleCase]
+  )
 
   // ✅ FIXED: Safe document rendering
-  const renderDocuments = useCallback((caseItem) => {
-    const documents = caseItem.documents;
-    
-    if (!documents || documents.length === 0) {
-      return "N/A";
-    }
+  const renderDocuments = useCallback(
+    caseItem => {
+      const documents = caseItem.documents
 
-    // Handle both array and single document cases
-    const docArray = Array.isArray(documents) ? documents : [documents];
-
-    return docArray.map((doc, i) => {
-      const documentPath = getDocumentPath(doc);
-      const documentName = getDocumentName(doc);
-      const isLoading = documentLoading === documentPath;
-
-      if (!documentPath) {
-        return (
-          <span key={i} className="text-gray-400 text-[8px]" title="Invalid document path">
-            N/A
-          </span>
-        );
+      if (!documents || documents.length === 0) {
+        return 'N/A'
       }
 
-      return (
-        <button
-          key={i}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleViewDocument(documentPath);
-          }}
-          disabled={isLoading}
-          className={`mx-0.5 ${isLoading ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-blue-800'} transition-colors`}
-          title={isLoading ? "Loading..." : `View ${documentName}`}
-          aria-label={`View document ${documentName}`}
-        >
-          {isLoading ? (
-            <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-red-600 mx-auto"></div>
-          ) : (
-            <FaFilePdf className="inline-block" size={12} />
-          )}
-        </button>
-      );
-    });
-  }, [getDocumentPath, getDocumentName, documentLoading, handleViewDocument]);
+      // Handle both array and single document cases
+      const docArray = Array.isArray(documents) ? documents : [documents]
+
+      return docArray.map((doc, i) => {
+        const documentPath = getDocumentPath(doc)
+        const documentName = getDocumentName(doc)
+        const isLoading = documentLoading === documentPath
+
+        if (!documentPath) {
+          return (
+            <span key={i} className="text-gray-400 text-[8px]" title="Invalid document path">
+              N/A
+            </span>
+          )
+        }
+
+        return (
+          <button
+            key={i}
+            onClick={e => {
+              e.stopPropagation()
+              handleViewDocument(documentPath)
+            }}
+            disabled={isLoading}
+            className={`mx-0.5 ${isLoading ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-blue-800'} transition-colors`}
+            title={isLoading ? 'Loading...' : `View ${documentName}`}
+            aria-label={`View document ${documentName}`}
+          >
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-red-600 mx-auto"></div>
+            ) : (
+              <FaFilePdf className="inline-block" size={12} />
+            )}
+          </button>
+        )
+      })
+    },
+    [getDocumentPath, getDocumentName, documentLoading, handleViewDocument]
+  )
 
   // ✅ Render Application Form for Edit/View
   if (currentView === 'edit' || currentView === 'view') {
@@ -652,7 +740,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
         onBack={handleBackFromForm}
         onSave={handleSaveFromForm}
       />
-    );
+    )
   }
 
   // ✅ Render Case Table
@@ -665,7 +753,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
         onConfirm={handleDeleteCase}
         title="Confirm Deletion"
         message={deleteConfirmMessage}
-        confirmText={deleteLoading ? "Deleting..." : "Delete"}
+        confirmText={deleteLoading ? 'Deleting...' : 'Delete'}
         cancelText="Cancel"
       />
 
@@ -673,9 +761,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
       <div className="mb-3 flex justify-between items-center">
         <div className="text-xs font-semibold text-gray-700">
           Viewing cases for: <span className="capitalize text-green-700">{userRole}</span>
-          {userRole !== 'admin' && (
-            <span className="text-gray-600 ml-2">(Your cases only)</span>
-          )}
+          {userRole !== 'admin' && <span className="text-gray-600 ml-2">(Your cases only)</span>}
         </div>
         {selectedRowId && (
           <div className="text-xs font-medium text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
@@ -688,13 +774,16 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
       {(loading || deleteLoading) && (
         <div className="flex items-center justify-center py-4" aria-live="polite">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          <span className="ml-2">{deleteLoading ? "Deleting cases..." : "Loading cases..."}</span>
+          <span className="ml-2">{deleteLoading ? 'Deleting cases...' : 'Loading cases...'}</span>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className={`px-3 py-2 rounded mb-3 ${error.includes('successfully') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`} role="alert">
+        <div
+          className={`px-3 py-2 rounded mb-3 ${error.includes('successfully') ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}
+          role="alert"
+        >
           {error}
         </div>
       )}
@@ -747,9 +836,9 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
             placeholder={
               filters.searchField
                 ? `${filters.searchField
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (char) => char.toUpperCase())}`
-                : "Search by Field"
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, char => char.toUpperCase())}`
+                : 'Search by Field'
             }
             className="px-2 py-1 border rounded text-[9px] hover:border-green-500 focus:border-green-500 focus:outline-none"
             aria-label="Search value for selected field"
@@ -789,11 +878,11 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
               <input
                 type="checkbox"
                 name="verified"
-                checked={filters.verified === "true"}
+                checked={filters.verified === 'true'}
                 onChange={() =>
-                  setFilters((prev) => ({
+                  setFilters(prev => ({
                     ...prev,
-                    verified: prev.verified === "true" ? "" : "true",
+                    verified: prev.verified === 'true' ? '' : 'true',
                   }))
                 }
                 className="scale-75 cursor-pointer"
@@ -806,11 +895,11 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
               <input
                 type="checkbox"
                 name="unverified"
-                checked={filters.verified === "false"}
+                checked={filters.verified === 'false'}
                 onChange={() =>
-                  setFilters((prev) => ({
+                  setFilters(prev => ({
                     ...prev,
-                    verified: prev.verified === "false" ? "" : "false",
+                    verified: prev.verified === 'false' ? '' : 'false',
                   }))
                 }
                 className="scale-75 cursor-pointer"
@@ -869,7 +958,10 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
 
       {/* Table Section */}
       <div className="overflow-x-auto border border-gray-200 rounded shadow">
-        <table className="min-w-full table-fixed border-collapse text-[9px]" aria-label="Cases table">
+        <table
+          className="min-w-full table-fixed border-collapse text-[9px]"
+          aria-label="Cases table"
+        >
           <thead>
             <tr className="bg-green-700 text-white sticky top-0">
               {userRole === 'admin' && (
@@ -909,16 +1001,15 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
           <tbody className="bg-white">
             {filteredCases.length === 0 && !loading ? (
               <tr>
-                <td colSpan={userRole === 'admin' ? "20" : "19"} className="text-center py-8">
+                <td colSpan={userRole === 'admin' ? '20' : '19'} className="text-center py-8">
                   <div className="text-gray-400 text-4xl mb-2">📊</div>
                   <h3 className="text-lg font-medium text-gray-900 mb-1">No cases found</h3>
                   <p className="text-gray-500 text-sm">
                     {Object.values(filters).some(f => f)
-                      ? "Try adjusting your filters to see more results."
+                      ? 'Try adjusting your filters to see more results.'
                       : userRole !== 'admin'
                         ? "You don't have any cases yet."
-                        : "Get started by creating your first case."
-                    }
+                        : 'Get started by creating your first case.'}
                   </p>
                 </td>
               </tr>
@@ -927,7 +1018,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                 <React.Fragment key={c.id ?? idx}>
                   <tr
                     className={`cursor-pointer transition-all duration-200 ${getRowBackgroundColor(c.id)}`}
-                    onClick={(e) => handleRowClick(c.id, e)}
+                    onClick={e => handleRowClick(c.id, e)}
                   >
                     {userRole === 'admin' && (
                       <td className="px-1 py-1 text-center">
@@ -935,7 +1026,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                           type="checkbox"
                           aria-label={`Select case ${c.id}`}
                           checked={selectedCaseIds.includes(c.id)}
-                          onChange={(e) => toggleSelectOne(c.id, e)}
+                          onChange={e => toggleSelectOne(c.id, e)}
                           className="scale-75 cursor-pointer"
                         />
                       </td>
@@ -944,24 +1035,33 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                     <td className="px-2 py-1 text-center">
                       <div className="flex gap-2 justify-center items-center">
                         <button
-                          className={`text-green-600 hover:text-green-700 ${(c.payments && c.payments.length > 0) ? '' : 'opacity-30 cursor-not-allowed'
-                            }`}
-                          onClick={(e) => (c.payments && c.payments.length > 0) && toggleExpandCase(c.id, e)}
+                          className={`text-green-600 hover:text-green-700 ${
+                            c.payments && c.payments.length > 0
+                              ? ''
+                              : 'opacity-30 cursor-not-allowed'
+                          }`}
+                          onClick={e =>
+                            c.payments && c.payments.length > 0 && toggleExpandCase(c.id, e)
+                          }
                           disabled={!c.payments || c.payments.length === 0}
                           title={
-                            (c.payments && c.payments.length > 0)
+                            c.payments && c.payments.length > 0
                               ? `Toggle ${expandedCaseIds.includes(c.id) ? 'Collapse' : 'Expand'} Payments`
                               : 'No payments available'
                           }
                         >
                           <FaPlus
                             size={12}
-                            className={expandedCaseIds.includes(c.id) ? 'transform rotate-45 transition-transform' : ''}
+                            className={
+                              expandedCaseIds.includes(c.id)
+                                ? 'transform rotate-45 transition-transform'
+                                : ''
+                            }
                           />
                         </button>
                         <button
                           className="text-green-600 hover:text-green-700"
-                          onClick={(e) => handleActionButtonClick('view', c, e)}
+                          onClick={e => handleActionButtonClick('view', c, e)}
                           title="View"
                           aria-label={`View case ${c.id}`}
                         >
@@ -970,7 +1070,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                         {/* Show edit button for all roles */}
                         <button
                           className="text-blue-600 hover:text-blue-700"
-                          onClick={(e) => handleActionButtonClick('edit', c, e)}
+                          onClick={e => handleActionButtonClick('edit', c, e)}
                           title="Edit"
                           aria-label={`Edit case ${c.id}`}
                         >
@@ -980,7 +1080,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                         {userRole === 'admin' && (
                           <button
                             className="text-red-600 hover:text-red-700"
-                            onClick={(e) => handleActionButtonClick('delete', c, e)}
+                            onClick={e => handleActionButtonClick('delete', c, e)}
                             title="Delete"
                             aria-label={`Delete case ${c.id}`}
                             disabled={deleteLoading}
@@ -990,7 +1090,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                         )}
                         <button
                           className="text-gray-600 hover:text-gray-700"
-                          onClick={(e) => handleActionButtonClick('print', c, e)}
+                          onClick={e => handleActionButtonClick('print', c, e)}
                           title="Print"
                           aria-label={`Print case ${c.id}`}
                         >
@@ -998,11 +1098,11 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                         </button>
                         <button
                           className="text-gray-600 hover:text-gray-700"
-                          onClick={(e) => handleActionButtonClick('more', c, e)}
+                          onClick={e => handleActionButtonClick('more', c, e)}
                           title="More Options"
                           aria-label={`More options for case ${c.id}`}
                         >
-                          <FaEllipsisV  size={12} />
+                          <FaEllipsisV size={12} />
                         </button>
                       </div>
                     </td>
@@ -1015,42 +1115,64 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                     <td className="px-1 py-1 text-center">{c.interest_rate_saving}</td>
                     <td className="px-1 py-1 text-center">{c.recurring_deposit_total_amount}</td>
                     <td className="px-1 py-1 text-center">{c.interest_rate_recurring}</td>
-                    <td className="px-1 py-1 text-center">{c.dnyanrudha_investment_total_amount}</td>
+                    <td className="px-1 py-1 text-center">
+                      {c.dnyanrudha_investment_total_amount}
+                    </td>
                     <td className="px-1 py-1 text-center">{c.dynadhara_rate}</td>
                     <td className="px-1 py-1 text-center">
-                      {c.verified ?
-                        <FaCheck className="text-green-600 mx-auto" size={10} aria-label="Verified" /> :
-                        <FaTimes className="text-red-600 mx-auto" size={10} aria-label="Not verified" />
-                      }
+                      {c.verified ? (
+                        <FaCheck
+                          className="text-green-600 mx-auto"
+                          size={10}
+                          aria-label="Verified"
+                        />
+                      ) : (
+                        <FaTimes
+                          className="text-red-600 mx-auto"
+                          size={10}
+                          aria-label="Not verified"
+                        />
+                      )}
                     </td>
                     <td className="px-1 py-1 text-center">
-                      <span className={`px-1 py-0.5 rounded text-white text-[8px] ${c.status === 'Running' ? 'bg-green-500' :
-                        c.status === 'Closed' ? 'bg-red-500' :
-                          'bg-yellow-500'
-                        }`}>
+                      <span
+                        className={`px-1 py-0.5 rounded text-white text-[8px] ${
+                          c.status === 'Running'
+                            ? 'bg-green-500'
+                            : c.status === 'Closed'
+                              ? 'bg-red-500'
+                              : 'bg-yellow-500'
+                        }`}
+                      >
                         {c.status}
                       </span>
                     </td>
                     <td className="px-1 py-1 text-center font-semibold">
-                      <span className={`px-1 py-0.5 rounded text-white text-[8px] ${getCasePaymentStatus(c) === 'Paid' ? 'bg-green-500' :
-                        getCasePaymentStatus(c) === 'Failed' ? 'bg-red-500' :
-                          getCasePaymentStatus(c) === 'Partial' ? 'bg-blue-500' :
-                            'bg-yellow-500'
-                        }`}>
+                      <span
+                        className={`px-1 py-0.5 rounded text-white text-[8px] ${
+                          getCasePaymentStatus(c) === 'Paid'
+                            ? 'bg-green-500'
+                            : getCasePaymentStatus(c) === 'Failed'
+                              ? 'bg-red-500'
+                              : getCasePaymentStatus(c) === 'Partial'
+                                ? 'bg-blue-500'
+                                : 'bg-yellow-500'
+                        }`}
+                      >
                         {getCasePaymentStatus(c)}
                       </span>
                     </td>
-                    <td className="px-1 py-1 text-center">{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "-"}</td>
-                    <td className="px-1 py-1 text-center">{c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : "-"}</td>
                     <td className="px-1 py-1 text-center">
-                      {renderDocuments(c)}
+                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '-'}
                     </td>
+                    <td className="px-1 py-1 text-center">
+                      {c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="px-1 py-1 text-center">{renderDocuments(c)}</td>
                   </tr>
 
                   {/* Hierarchical payment row */}
-                  {expandedCaseIds.includes(c.id) && (
-                    <PaymentDetailsRow caseItem={c} />
-                  )}
+                  {expandedCaseIds.includes(c.id) && <PaymentDetailsRow caseItem={c} />}
                 </React.Fragment>
               ))
             )}
@@ -1062,14 +1184,10 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
       {filteredCases.length > 0 && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-3 gap-2 text-[9px]">
           <div>
-            Showing{" "}
-            <span className="font-medium">{paginationInfo.startIndex}</span>{" "}
-            to{" "}
-            <span className="font-medium">{paginationInfo.endIndex}</span>{" "}
-            of <span className="font-medium">{totalRecords}</span> cases
-            {userRole !== 'admin' && (
-              <span className="text-gray-600 ml-2">(Your cases)</span>
-            )}
+            Showing <span className="font-medium">{paginationInfo.startIndex}</span> to{' '}
+            <span className="font-medium">{paginationInfo.endIndex}</span> of{' '}
+            <span className="font-medium">{totalRecords}</span> cases
+            {userRole !== 'admin' && <span className="text-gray-600 ml-2">(Your cases)</span>}
           </div>
 
           <div className="flex items-center gap-1 flex-wrap">
@@ -1077,8 +1195,8 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
               <span>Show</span>
               <select
                 value={pagination.limit}
-                onChange={(e) =>
-                  setPagination((prev) => ({
+                onChange={e =>
+                  setPagination(prev => ({
                     ...prev,
                     limit: parseInt(e.target.value),
                     page: 1,
@@ -1087,7 +1205,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                 className="px-2 py-1 border rounded text-[9px] focus:outline-none focus:border-green-500"
                 aria-label="Items per page"
               >
-                {[5, 10, 20, 50].map((num) => (
+                {[5, 10, 20, 50].map(num => (
                   <option key={num} value={num}>
                     {num}
                   </option>
@@ -1114,7 +1232,7 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
             </button>
 
             {getPageNumbers().map((p, i) =>
-              p === "..." ? (
+              p === '...' ? (
                 <span key={i} className="px-2 py-1 text-gray-500">
                   ...
                 </span>
@@ -1122,10 +1240,11 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
                 <button
                   key={i}
                   onClick={() => setPagination({ ...pagination, page: p })}
-                  className={`px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${pagination.page === p
-                    ? "bg-green-800 text-white"
-                    : "bg-white border border-gray-300 hover:bg-green-100"
-                    }`}
+                  className={`px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                    pagination.page === p
+                      ? 'bg-green-800 text-white'
+                      : 'bg-white border border-gray-300 hover:bg-green-100'
+                  }`}
                   aria-label={`Go to page ${p}`}
                   aria-current={pagination.page === p ? 'page' : undefined}
                 >
@@ -1159,27 +1278,52 @@ const CaseTable = ({ onSave, onBack, onView, onPrint, onMore }) => {
         <h3 className="font-semibold text-green-800 mb-1">Notes:</h3>
         <ul className="list-disc list-inside space-y-1">
           <li>
-            You are viewing cases as: <span className="font-medium text-green-700 capitalize">{userRole}</span>
+            You are viewing cases as:{' '}
+            <span className="font-medium text-green-700 capitalize">{userRole}</span>
             {userRole !== 'admin' && ' (only your cases)'}
           </li>
-          <li>Click anywhere on a row to <span className="font-medium text-blue-700">highlight and select</span> it.</li>
-          <li>Use <span className="font-medium text-green-700">Global Search</span> for quick keyword search across all fields.</li>
+          <li>
+            Click anywhere on a row to{' '}
+            <span className="font-medium text-blue-700">highlight and select</span> it.
+          </li>
+          <li>
+            Use <span className="font-medium text-green-700">Global Search</span> for quick keyword
+            search across all fields.
+          </li>
           <li>Apply specific filters using the dropdowns and checkboxes above.</li>
-          <li>Click the <span className="font-medium text-green-700">+ button</span> to view payment details for each case.</li>
-          <li>Use the <span className="font-medium text-green-700">Export button</span> to download cases as CSV.</li>
-          <li>Click the <span className="font-medium text-red-700">document icon</span> to view case documents in a new tab.</li>
-          <li>Click the <span className="font-medium text-blue-700">View button</span> to view case details in read-only mode.</li>
-          <li>Click the <span className="font-medium text-yellow-700">Edit button</span> to modify case information.</li>
+          <li>
+            Click the <span className="font-medium text-green-700">+ button</span> to view payment
+            details for each case.
+          </li>
+          <li>
+            Use the <span className="font-medium text-green-700">Export button</span> to download
+            cases as CSV.
+          </li>
+          <li>
+            Click the <span className="font-medium text-red-700">document icon</span> to view case
+            documents in a new tab.
+          </li>
+          <li>
+            Click the <span className="font-medium text-blue-700">View button</span> to view case
+            details in read-only mode.
+          </li>
+          <li>
+            Click the <span className="font-medium text-yellow-700">Edit button</span> to modify
+            case information.
+          </li>
           {userRole === 'admin' && (
             <>
               <li>Select multiple cases using checkboxes for bulk actions.</li>
-              <li>Use the <span className="font-medium text-red-700">Delete button</span> to remove individual cases or bulk delete selected cases.</li>
+              <li>
+                Use the <span className="font-medium text-red-700">Delete button</span> to remove
+                individual cases or bulk delete selected cases.
+              </li>
             </>
           )}
         </ul>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CaseTable;
+export default CaseTable

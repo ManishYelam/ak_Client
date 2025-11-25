@@ -1,4 +1,4 @@
-const Input = ({ label, type = "text", value, onChange, placeholder, className = "" }) => {
+const Input = ({ label, type = 'text', value, onChange, placeholder, className = '' }) => {
   return (
     <div className="flex flex-col mb-4">
       {label && <label className="mb-1 font-medium">{label}</label>}
@@ -10,7 +10,7 @@ const Input = ({ label, type = "text", value, onChange, placeholder, className =
         className={`border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${className}`}
       />
     </div>
-  );
-};
+  )
+}
 
-export default Input;
+export default Input

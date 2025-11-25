@@ -9,83 +9,82 @@ const StudentsManagement = () => {
   const students = [
     {
       id: 1,
-      name: "Rahul Sharma",
-      email: "rahul.sharma@example.com",
+      name: 'Rahul Sharma',
+      email: 'rahul.sharma@example.com',
       enrolledCourses: 3,
       completedCourses: 1,
-      joinDate: "2024-01-15",
-      lastActive: "2024-02-15",
-      status: "active",
+      joinDate: '2024-01-15',
+      lastActive: '2024-02-15',
+      status: 'active',
       progress: 75,
-      country: "India",
-      timezone: "IST"
+      country: 'India',
+      timezone: 'IST',
     },
     {
       id: 2,
-      name: "Priya Patel",
-      email: "priya.patel@example.com",
+      name: 'Priya Patel',
+      email: 'priya.patel@example.com',
       enrolledCourses: 2,
       completedCourses: 0,
-      joinDate: "2024-01-20",
-      lastActive: "2024-02-14",
-      status: "active",
+      joinDate: '2024-01-20',
+      lastActive: '2024-02-14',
+      status: 'active',
       progress: 60,
-      country: "India",
-      timezone: "IST"
+      country: 'India',
+      timezone: 'IST',
     },
     {
       id: 3,
-      name: "Amit Kumar",
-      email: "amit.kumar@example.com",
+      name: 'Amit Kumar',
+      email: 'amit.kumar@example.com',
       enrolledCourses: 1,
       completedCourses: 0,
-      joinDate: "2024-02-01",
-      lastActive: "2024-02-10",
-      status: "inactive",
+      joinDate: '2024-02-01',
+      lastActive: '2024-02-10',
+      status: 'inactive',
       progress: 20,
-      country: "USA",
-      timezone: "EST"
+      country: 'USA',
+      timezone: 'EST',
     },
     {
       id: 4,
-      name: "Sneha Gupta",
-      email: "sneha.gupta@example.com",
+      name: 'Sneha Gupta',
+      email: 'sneha.gupta@example.com',
       enrolledCourses: 4,
       completedCourses: 2,
-      joinDate: "2024-01-10",
-      lastActive: "2024-02-15",
-      status: "active",
+      joinDate: '2024-01-10',
+      lastActive: '2024-02-15',
+      status: 'active',
       progress: 85,
-      country: "UK",
-      timezone: "GMT"
+      country: 'UK',
+      timezone: 'GMT',
     },
     {
       id: 5,
-      name: "Rajesh Singh",
-      email: "rajesh.singh@example.com",
+      name: 'Rajesh Singh',
+      email: 'rajesh.singh@example.com',
       enrolledCourses: 2,
       completedCourses: 1,
-      joinDate: "2024-02-05",
-      lastActive: "2024-02-12",
-      status: "pending",
+      joinDate: '2024-02-05',
+      lastActive: '2024-02-12',
+      status: 'pending',
       progress: 45,
-      country: "Canada",
-      timezone: "PST"
-    }
+      country: 'Canada',
+      timezone: 'PST',
+    },
   ]
 
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter
     return matchesSearch && matchesStatus
   })
 
-  const toggleStudentSelection = (studentId) => {
+  const toggleStudentSelection = studentId => {
     setSelectedStudents(prev =>
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
+      prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]
     )
   }
 
@@ -97,12 +96,16 @@ const StudentsManagement = () => {
     )
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800'
-      case 'inactive': return 'bg-gray-100 text-gray-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'active':
+        return 'bg-green-100 text-green-800'
+      case 'inactive':
+        return 'bg-gray-100 text-gray-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -157,19 +160,29 @@ const StudentsManagement = () => {
                 type="text"
                 placeholder="Search students..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-64"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </div>
             </div>
 
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={e => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="all">All Status</option>
@@ -180,9 +193,7 @@ const StudentsManagement = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
-              {selectedStudents.length} selected
-            </span>
+            <span className="text-sm text-gray-600">{selectedStudents.length} selected</span>
             {selectedStudents.length > 0 && (
               <button className="text-red-600 hover:text-red-700 text-sm font-medium">
                 Delete Selected
@@ -201,7 +212,10 @@ const StudentsManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <input
                     type="checkbox"
-                    checked={selectedStudents.length === filteredStudents.length && filteredStudents.length > 0}
+                    checked={
+                      selectedStudents.length === filteredStudents.length &&
+                      filteredStudents.length > 0
+                    }
                     onChange={toggleSelectAll}
                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
@@ -250,9 +264,7 @@ const StudentsManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {student.enrolledCourses} enrolled
-                    </div>
+                    <div className="text-sm text-gray-900">{student.enrolledCourses} enrolled</div>
                     <div className="text-sm text-gray-500">
                       {student.completedCourses} completed
                     </div>
@@ -260,7 +272,7 @@ const StudentsManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-primary-600 h-2 rounded-full transition-all duration-500"
                           style={{ width: `${student.progress}%` }}
                         />
@@ -269,7 +281,9 @@ const StudentsManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(student.status)}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusColor(student.status)}`}
+                    >
                       {student.status}
                     </span>
                   </td>
@@ -277,15 +291,9 @@ const StudentsManagement = () => {
                     {new Date(student.lastActive).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-primary-600 hover:text-primary-900 mr-3">
-                      View
-                    </button>
-                    <button className="text-gray-600 hover:text-gray-900 mr-3">
-                      Edit
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      Delete
-                    </button>
+                    <button className="text-primary-600 hover:text-primary-900 mr-3">View</button>
+                    <button className="text-gray-600 hover:text-gray-900 mr-3">Edit</button>
+                    <button className="text-red-600 hover:text-red-900">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -297,8 +305,9 @@ const StudentsManagement = () => {
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to <span className="font-medium">5</span> of{' '}
-              <span className="font-medium">156</span> students
+              Showing <span className="font-medium">1</span> to{' '}
+              <span className="font-medium">5</span> of <span className="font-medium">156</span>{' '}
+              students
             </div>
             <div className="flex space-x-2">
               <button className="px-3 py-1 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">

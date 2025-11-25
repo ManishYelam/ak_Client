@@ -1,30 +1,30 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import DashboardLayout from "../layouts/DashboardLayout";
-import Card from "../components/Card";
-import Button from "../components/Button";
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import DashboardLayout from '../layouts/DashboardLayout'
+import Card from '../components/Card'
+import Button from '../components/Button'
 
 const CaseEdit = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    deposit_type: "",
-    status: "",
-    priority: "",
+    deposit_type: '',
+    status: '',
+    priority: '',
     verified: false,
-    saving_account_start_date: "",
-    deposit_duration_years: "",
-    fixed_deposit_total_amount: "",
-    interest_rate_fd: "",
-    saving_account_total_amount: "",
-    interest_rate_saving: "",
-    recurring_deposit_total_amount: "",
-    interest_rate_recurring: "",
-    dnyanrudha_investment_total_amount: "",
-    dynadhara_rate: ""
-  });
+    saving_account_start_date: '',
+    deposit_duration_years: '',
+    fixed_deposit_total_amount: '',
+    interest_rate_fd: '',
+    saving_account_total_amount: '',
+    interest_rate_saving: '',
+    recurring_deposit_total_amount: '',
+    interest_rate_recurring: '',
+    dnyanrudha_investment_total_amount: '',
+    dynadhara_rate: '',
+  })
 
   useEffect(() => {
     // Fetch case data for editing
@@ -33,11 +33,11 @@ const CaseEdit = () => {
         // Simulate API call
         setTimeout(() => {
           setFormData({
-            deposit_type: "Fixed Deposit",
-            status: "Running",
-            priority: "High",
+            deposit_type: 'Fixed Deposit',
+            status: 'Running',
+            priority: 'High',
             verified: true,
-            saving_account_start_date: "2024-01-15",
+            saving_account_start_date: '2024-01-15',
             deposit_duration_years: 5,
             fixed_deposit_total_amount: 500000,
             interest_rate_fd: 7.5,
@@ -46,42 +46,42 @@ const CaseEdit = () => {
             recurring_deposit_total_amount: 200000,
             interest_rate_recurring: 6.5,
             dnyanrudha_investment_total_amount: 100000,
-            dynadhara_rate: 8.0
-          });
-          setLoading(false);
-        }, 1000);
+            dynadhara_rate: 8.0,
+          })
+          setLoading(false)
+        }, 1000)
       } catch (error) {
-        console.error("Error fetching case data:", error);
-        setLoading(false);
+        console.error('Error fetching case data:', error)
+        setLoading(false)
       }
-    };
+    }
 
-    fetchCaseData();
-  }, [id]);
+    fetchCaseData()
+  }, [id])
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = e => {
+    const { name, value, type, checked } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+      [name]: type === 'checkbox' ? checked : value,
+    }))
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setSaving(true)
+
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log("Case updated:", formData);
-      navigate(`/cases/${id}`);
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log('Case updated:', formData)
+      navigate(`/cases/${id}`)
     } catch (error) {
-      console.error("Error updating case:", error);
+      console.error('Error updating case:', error)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -90,7 +90,7 @@ const CaseEdit = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
       </DashboardLayout>
-    );
+    )
   }
 
   return (
@@ -132,9 +132,7 @@ const CaseEdit = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <select
                     name="status"
                     value={formData.status}
@@ -150,9 +148,7 @@ const CaseEdit = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
                   <select
                     name="priority"
                     value={formData.priority}
@@ -175,9 +171,7 @@ const CaseEdit = () => {
                     onChange={handleInputChange}
                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
-                  <label className="ml-2 block text-sm text-gray-700">
-                    Verified
-                  </label>
+                  <label className="ml-2 block text-sm text-gray-700">Verified</label>
                 </div>
               </div>
             </Card>
@@ -186,9 +180,7 @@ const CaseEdit = () => {
             <Card title="Financial Details">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Date
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                   <input
                     type="date"
                     name="saving_account_start_date"
@@ -349,21 +341,17 @@ const CaseEdit = () => {
 
           {/* Form Actions */}
           <div className="mt-6 flex justify-end space-x-3">
-            <Button
-              type="button"
-              onClick={() => navigate(`/cases/${id}`)}
-              variant="outline"
-            >
+            <Button type="button" onClick={() => navigate(`/cases/${id}`)} variant="outline">
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default CaseEdit;
+export default CaseEdit

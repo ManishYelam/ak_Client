@@ -1,13 +1,17 @@
-import { useState, useEffect } from "react";
-import DashboardLayout from "../layouts/DashboardLayout";
-import Card from "../components/Card";
-import Button from "../components/Button";
-import { changePasswordWithOtp, oldChangePasswordService, resendVerification } from "../services/authService";
-import Application from "./Application";
-import AdminFeedbackManagement from "../components/AdminFeedbackManagement";
-import FeedbackHistory from "../components/FeedbackHistory";
-import ContactManagement from "../components/ContactManagement";
-import UserContacts from "../components/UserContacts";
+import { useState, useEffect } from 'react'
+import DashboardLayout from '../layouts/DashboardLayout'
+import Card from '../components/Card'
+import Button from '../components/Button'
+import {
+  changePasswordWithOtp,
+  oldChangePasswordService,
+  resendVerification,
+} from '../services/authService'
+import Application from './Application'
+import AdminFeedbackManagement from '../components/AdminFeedbackManagement'
+import FeedbackHistory from '../components/FeedbackHistory'
+import ContactManagement from '../components/ContactManagement'
+import UserContacts from '../components/UserContacts'
 import {
   FaFolderOpen,
   FaPlus,
@@ -24,154 +28,159 @@ import {
   FaTimes,
   FaArrowLeft,
   FaAddressBook,
-  FaUserPlus
-} from "react-icons/fa";
+  FaUserPlus,
+} from 'react-icons/fa'
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState("profile");
-  const [isLoading, setIsLoading] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
-  const [resendVerificationLoading, setResendVerificationLoading] = useState(false);
-  const [passwordChangeMethod, setPasswordChangeMethod] = useState("current");
+  const [activeTab, setActiveTab] = useState('profile')
+  const [isLoading, setIsLoading] = useState(false)
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [verifyOtpLoading, setVerifyOtpLoading] = useState(false)
+  const [resendVerificationLoading, setResendVerificationLoading] = useState(false)
+  const [passwordChangeMethod, setPasswordChangeMethod] = useState('current')
   const [otpData, setOtpData] = useState({
-    otp: "",
+    otp: '',
     sent: false,
     verified: false,
     countdown: 0,
-    attempts: 0
-  });
+    attempts: 0,
+  })
 
   // User data from localStorage with safe parsing
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState({})
 
   useEffect(() => {
     try {
-      const userData = localStorage.getItem("user");
+      const userData = localStorage.getItem('user')
       if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
         setProfileData({
-          full_name: parsedUser.full_name || "",
-          email: parsedUser.email || "",
-          phone: parsedUser.phone_number || "",
-          address: parsedUser.address || "",
-          occupation: parsedUser.occupation || "",
-          bio: parsedUser.bio || ""
-        });
+          full_name: parsedUser.full_name || '',
+          email: parsedUser.email || '',
+          phone: parsedUser.phone_number || '',
+          address: parsedUser.address || '',
+          occupation: parsedUser.occupation || '',
+          bio: parsedUser.bio || '',
+        })
       }
     } catch (error) {
-      console.error("Error parsing user data:", error);
-      setUser({});
+      console.error('Error parsing user data:', error)
+      setUser({})
     }
-  }, []);
+  }, [])
 
   // Form states
   const [profileData, setProfileData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    occupation: "",
-    bio: ""
-  });
+    full_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    occupation: '',
+    bio: '',
+  })
 
   const [securityData, setSecurityData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
 
   const [preferences, setPreferences] = useState({
-    language: "english",
-    theme: "light",
+    language: 'english',
+    theme: 'light',
     notifications: {
       email: true,
       push: true,
-      sms: false
+      sms: false,
     },
     autoSave: true,
-    twoFactorAuth: false
-  });
+    twoFactorAuth: false,
+  })
 
   // Check if user is admin
-  const isAdmin = user.role === 'admin' || user.role === 'Admin';
+  const isAdmin = user.role === 'admin' || user.role === 'Admin'
 
   // Tabs configuration
   const userTabs = [
-    { id: "profile", label: "Profile", icon: FaUser },
-    { id: "security", label: "Security", icon: FaShieldAlt },
-    { id: "preferences", label: "Preferences", icon: FaPalette },
-    { id: "notifications", label: "Notifications", icon: FaBell },
-    { id: "my-contacts", label: "My Contacts", icon: FaAddressBook },
-    { id: "feedback-history", label: "My Feedback", icon: FaHistory },
-  ];
+    { id: 'profile', label: 'Profile', icon: FaUser },
+    { id: 'security', label: 'Security', icon: FaShieldAlt },
+    { id: 'preferences', label: 'Preferences', icon: FaPalette },
+    { id: 'notifications', label: 'Notifications', icon: FaBell },
+    { id: 'my-contacts', label: 'My Contacts', icon: FaAddressBook },
+    { id: 'feedback-history', label: 'My Feedback', icon: FaHistory },
+  ]
 
   const adminTabs = [
-    { id: "profile", label: "Profile", icon: FaUser },
-    { id: "security", label: "Security", icon: FaShieldAlt },
-    { id: "preferences", label: "Preferences", icon: FaPalette },
-    { id: "notifications", label: "Notifications", icon: FaBell },
-    { id: "contact-management", label: "Contact Management", icon: FaAddressBook },
-    { id: "feedback-history", label: "My Feedback", icon: FaHistory },
-    { id: "cases", label: "Case Management", icon: FaFolderOpen },
-    { id: "add-case", label: "Add New Case", icon: FaPlus },
-    { id: "feedback-management", label: "Feedback Management", icon: FaComments },
-  ];
+    { id: 'profile', label: 'Profile', icon: FaUser },
+    { id: 'security', label: 'Security', icon: FaShieldAlt },
+    { id: 'preferences', label: 'Preferences', icon: FaPalette },
+    { id: 'notifications', label: 'Notifications', icon: FaBell },
+    { id: 'contact-management', label: 'Contact Management', icon: FaAddressBook },
+    { id: 'feedback-history', label: 'My Feedback', icon: FaHistory },
+    { id: 'cases', label: 'Case Management', icon: FaFolderOpen },
+    { id: 'add-case', label: 'Add New Case', icon: FaPlus },
+    { id: 'feedback-management', label: 'Feedback Management', icon: FaComments },
+  ]
 
-  const tabs = isAdmin ? adminTabs : userTabs;
+  const tabs = isAdmin ? adminTabs : userTabs
 
   // Countdown timer for OTP resend
   useEffect(() => {
-    let interval;
+    let interval
     if (otpData.countdown > 0) {
       interval = setInterval(() => {
         setOtpData(prev => ({
           ...prev,
-          countdown: prev.countdown - 1
-        }));
-      }, 1000);
+          countdown: prev.countdown - 1,
+        }))
+      }, 1000)
     }
-    return () => clearInterval(interval);
-  }, [otpData.countdown]);
+    return () => clearInterval(interval)
+  }, [otpData.countdown])
 
   // Password strength validation function
-  const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+  const validatePassword = password => {
+    const minLength = 8
+    const hasUpperCase = /[A-Z]/.test(password)
+    const hasLowerCase = /[a-z]/.test(password)
+    const hasNumbers = /\d/.test(password)
+    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
 
     return {
-      isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
+      isValid:
+        password.length >= minLength &&
+        hasUpperCase &&
+        hasLowerCase &&
+        hasNumbers &&
+        hasSpecialChar,
       requirements: {
         minLength: password.length >= minLength,
         hasUpperCase,
         hasLowerCase,
         hasNumbers,
-        hasSpecialChar
-      }
-    };
-  };
+        hasSpecialChar,
+      },
+    }
+  }
 
   // Send OTP function
   const handleSendOtp = async () => {
     if (otpData.countdown > 0) {
-      alert(`Please wait ${otpData.countdown} seconds before requesting a new OTP`);
-      return;
+      alert(`Please wait ${otpData.countdown} seconds before requesting a new OTP`)
+      return
     }
 
     if (otpData.attempts >= 5) {
-      alert("Too many OTP attempts. Please try again after 30 minutes.");
-      return;
+      alert('Too many OTP attempts. Please try again after 30 minutes.')
+      return
     }
 
-    setOtpLoading(true);
+    setOtpLoading(true)
 
     try {
       // Simulate API call to send OTP
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       setOtpData(prev => ({
         ...prev,
@@ -179,233 +188,232 @@ const Settings = () => {
         countdown: 60, // 60 seconds countdown
         attempts: prev.attempts + 1,
         verified: false,
-        otp: "" // Clear previous OTP
-      }));
+        otp: '', // Clear previous OTP
+      }))
 
-      alert(`OTP sent successfully to your registered email/phone!`);
+      alert(`OTP sent successfully to your registered email/phone!`)
     } catch (error) {
-      alert("Failed to send OTP. Please try again.");
+      alert('Failed to send OTP. Please try again.')
     } finally {
-      setOtpLoading(false);
+      setOtpLoading(false)
     }
-  };
+  }
 
   // Verify OTP function
   const handleVerifyOtp = async () => {
     if (!otpData.otp || otpData.otp.length !== 6) {
-      alert("Please enter a valid 6-digit OTP");
-      return;
+      alert('Please enter a valid 6-digit OTP')
+      return
     }
 
-    setVerifyOtpLoading(true);
+    setVerifyOtpLoading(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // Demo OTP for testing - in real app, verify with backend
-      const isValid = otpData.otp === "123456";
+      const isValid = otpData.otp === '123456'
 
       if (isValid) {
         setOtpData(prev => ({
           ...prev,
-          verified: true
-        }));
-        alert("OTP verified successfully! You can now set your new password.");
+          verified: true,
+        }))
+        alert('OTP verified successfully! You can now set your new password.')
       } else {
-        alert("Invalid OTP. Please try again.");
+        alert('Invalid OTP. Please try again.')
         setOtpData(prev => ({
           ...prev,
-          otp: ""
-        }));
+          otp: '',
+        }))
       }
     } catch (error) {
-      alert("Failed to verify OTP. Please try again.");
+      alert('Failed to verify OTP. Please try again.')
     } finally {
-      setVerifyOtpLoading(false);
+      setVerifyOtpLoading(false)
     }
-  };
+  }
 
   // Reset OTP state
   const resetOtpState = () => {
     setOtpData({
-      otp: "",
+      otp: '',
       sent: false,
       verified: false,
       countdown: 0,
-      attempts: 0
-    });
-  };
+      attempts: 0,
+    })
+  }
 
   // Reset security form
   const resetSecurityForm = () => {
     setSecurityData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    });
-  };
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    })
+  }
 
   // Handle resend verification email
   const handleResendVerification = async () => {
     if (!user.id) {
-      alert("User not found. Please log in again.");
-      return;
+      alert('User not found. Please log in again.')
+      return
     }
 
-    setResendVerificationLoading(true);
+    setResendVerificationLoading(true)
 
     try {
-      const response = await resendVerification(user.id);
+      const response = await resendVerification(user.id)
 
       if (response.data?.success) {
-        alert("Verification email sent successfully! Please check your inbox.");
+        alert('Verification email sent successfully! Please check your inbox.')
       } else {
-        alert(response.data?.message || "Failed to send verification email");
+        alert(response.data?.message || 'Failed to send verification email')
       }
     } catch (error) {
-      console.error("Resend verification failed:", error);
-      alert(error.response?.data?.message || "Network error. Please try again.");
+      console.error('Resend verification failed:', error)
+      alert(error.response?.data?.message || 'Network error. Please try again.')
     } finally {
-      setResendVerificationLoading(false);
+      setResendVerificationLoading(false)
     }
-  };
+  }
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
+  const handleProfileUpdate = async e => {
+    e.preventDefault()
 
     // Basic validation
     if (!profileData.full_name.trim()) {
-      alert("Full name is required!");
-      return;
+      alert('Full name is required!')
+      return
     }
 
     if (!profileData.email.trim()) {
-      alert("Email is required!");
-      return;
+      alert('Email is required!')
+      return
     }
 
     // Check if email was changed
-    const emailChanged = profileData.email !== user.email;
+    const emailChanged = profileData.email !== user.email
     if (emailChanged) {
       // Reset verification status if email changed
       const updatedUser = {
         ...user,
         ...profileData,
-        email_verified: false
-      };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      alert("Profile updated! Please verify your new email address.");
+        email_verified: false,
+      }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      alert('Profile updated! Please verify your new email address.')
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // Update localStorage
-      const updatedUser = { ...user, ...profileData };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      const updatedUser = { ...user, ...profileData }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setUser(updatedUser)
 
-      alert("Profile updated successfully!");
+      alert('Profile updated successfully!')
     } catch (error) {
-      alert("Failed to update profile. Please try again.");
+      alert('Failed to update profile. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handleSecurityUpdate = async (e) => {
-    e.preventDefault();
+  const handleSecurityUpdate = async e => {
+    e.preventDefault()
 
     // Method-specific validation
-    if (passwordChangeMethod === "current") {
+    if (passwordChangeMethod === 'current') {
       if (!securityData.currentPassword) {
-        alert("Please enter your current password!");
-        return;
+        alert('Please enter your current password!')
+        return
       }
     } else {
       if (!otpData.verified) {
-        alert("Please verify OTP first!");
-        return;
+        alert('Please verify OTP first!')
+        return
       }
     }
 
     // Password confirmation validation
     if (securityData.newPassword !== securityData.confirmPassword) {
-      alert("New passwords don't match!");
-      return;
+      alert("New passwords don't match!")
+      return
     }
 
     // Password strength validation
-    const passwordValidation = validatePassword(securityData.newPassword);
+    const passwordValidation = validatePassword(securityData.newPassword)
     if (!passwordValidation.isValid) {
-      alert("Password does not meet the strength requirements!");
-      return;
+      alert('Password does not meet the strength requirements!')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       // In real app, you would call:
-      if (passwordChangeMethod === "current") {
-        await oldChangePasswordService(
-          securityData.currentPassword,
-          securityData.newPassword
-        );
+      if (passwordChangeMethod === 'current') {
+        await oldChangePasswordService(securityData.currentPassword, securityData.newPassword)
       } else {
         await changePasswordWithOtp({
           otp: otpData.otp,
-          new_password: securityData.newPassword
-        });
+          new_password: securityData.newPassword,
+        })
       }
 
       // Reset all forms
-      resetSecurityForm();
-      resetOtpState();
+      resetSecurityForm()
+      resetOtpState()
 
-      alert("Password updated successfully!");
+      alert('Password updated successfully!')
     } catch (error) {
-      alert(error.message || "Failed to update password. Please try again.");
+      alert(error.message || 'Failed to update password. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handlePreferenceChange = (key, value) => {
     setPreferences(prev => ({
       ...prev,
-      [key]: value
-    }));
-  };
+      [key]: value,
+    }))
+  }
 
   const handleNotificationChange = (type, value) => {
     setPreferences(prev => ({
       ...prev,
       notifications: {
         ...prev.notifications,
-        [type]: value
-      }
-    }));
-  };
+        [type]: value,
+      },
+    }))
+  }
 
   // Get password requirements status
-  const passwordValidation = securityData.newPassword ? validatePassword(securityData.newPassword) : null;
+  const passwordValidation = securityData.newPassword
+    ? validatePassword(securityData.newPassword)
+    : null
 
   // Render back button for nested views
   const renderBackButton = () => (
     <button
-      onClick={() => setActiveTab("profile")}
+      onClick={() => setActiveTab('profile')}
       className="mb-4 flex items-center gap-2 text-gray-800 hover:text-gray-600 transition px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md"
     >
       <FaArrowLeft size={16} /> Back to Settings
     </button>
-  );
+  )
 
   return (
     <DashboardLayout>
@@ -426,29 +434,27 @@ const Settings = () => {
                   )}
                 </div>
                 <p className="text-gray-600 text-xs">
-                  {isAdmin
-                    ? "Account & system administration"
-                    : "Manage your account preferences"
-                  }
+                  {isAdmin ? 'Account & system administration' : 'Manage your account preferences'}
                 </p>
               </div>
 
               <nav className="space-y-1">
                 {tabs.map(tab => {
-                  const Icon = tab.icon;
+                  const Icon = tab.icon
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activeTab === tab.id
-                        ? "bg-green-100 text-green-700 border border-green-200"
-                        : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                        activeTab === tab.id
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                     >
                       <Icon size={16} />
                       <span className="font-medium">{tab.label}</span>
                     </button>
-                  );
+                  )
                 })}
               </nav>
 
@@ -482,7 +488,7 @@ const Settings = () => {
           {/* Main Content */}
           <div className="flex-1">
             {/* Profile Settings */}
-            {activeTab === "profile" && (
+            {activeTab === 'profile' && (
               <Card>
                 <h2 className="text-xl font-semibold text-gray-800 mb-6">Profile Settings</h2>
 
@@ -490,14 +496,20 @@ const Settings = () => {
                 <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-blue-800">
-                        Email Verification Status
-                      </p>
+                      <p className="text-sm font-medium text-blue-800">Email Verification Status</p>
                       <p className="text-sm text-blue-600 mt-1">
                         {user.email_verified ? (
                           <span className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4 text-green-600"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             Your email is verified
                           </span>
@@ -527,7 +539,9 @@ const Settings = () => {
                       <input
                         type="text"
                         value={profileData.full_name}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
+                        onChange={e =>
+                          setProfileData(prev => ({ ...prev, full_name: e.target.value }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter your full name"
                         required
@@ -541,7 +555,7 @@ const Settings = () => {
                       <input
                         type="email"
                         value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={e => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter your email"
                         required
@@ -560,7 +574,7 @@ const Settings = () => {
                       <input
                         type="tel"
                         value={profileData.phone}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        onChange={e => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter your phone number"
                       />
@@ -573,7 +587,9 @@ const Settings = () => {
                       <input
                         type="text"
                         value={profileData.occupation}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, occupation: e.target.value }))}
+                        onChange={e =>
+                          setProfileData(prev => ({ ...prev, occupation: e.target.value }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter your occupation"
                       />
@@ -581,12 +597,10 @@ const Settings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                     <textarea
                       value={profileData.address}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={e => setProfileData(prev => ({ ...prev, address: e.target.value }))}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Enter your address"
@@ -594,12 +608,10 @@ const Settings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bio
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                     <textarea
                       value={profileData.bio}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                      onChange={e => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
                       rows={4}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       placeholder="Tell us about yourself..."
@@ -608,7 +620,7 @@ const Settings = () => {
 
                   <div className="flex justify-end">
                     <Button type="submit" disabled={isLoading}>
-                      {isLoading ? "Updating..." : "Update Profile"}
+                      {isLoading ? 'Updating...' : 'Update Profile'}
                     </Button>
                   </div>
                 </form>
@@ -616,7 +628,7 @@ const Settings = () => {
             )}
 
             {/* Security Settings */}
-            {activeTab === "security" && (
+            {activeTab === 'security' && (
               <Card>
                 <h2 className="text-xl font-semibold text-gray-800 mb-6">Security Settings</h2>
 
@@ -625,26 +637,28 @@ const Settings = () => {
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                     <button
                       onClick={() => {
-                        setPasswordChangeMethod("current");
-                        resetOtpState();
-                        resetSecurityForm();
+                        setPasswordChangeMethod('current')
+                        resetOtpState()
+                        resetSecurityForm()
                       }}
-                      className={`flex-1 py-2 text-sm font-medium transition-colors ${passwordChangeMethod === "current"
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                        passwordChangeMethod === 'current'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                     >
                       Use Current Password
                     </button>
                     <button
                       onClick={() => {
-                        setPasswordChangeMethod("otp");
-                        resetSecurityForm();
+                        setPasswordChangeMethod('otp')
+                        resetSecurityForm()
                       }}
-                      className={`flex-1 py-2 text-sm font-medium transition-colors ${passwordChangeMethod === "otp"
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                        passwordChangeMethod === 'otp'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                     >
                       Use OTP Verification
                     </button>
@@ -653,7 +667,7 @@ const Settings = () => {
 
                 <form onSubmit={handleSecurityUpdate} className="space-y-6">
                   {/* Current Password Method */}
-                  {passwordChangeMethod === "current" && (
+                  {passwordChangeMethod === 'current' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current Password
@@ -661,7 +675,9 @@ const Settings = () => {
                       <input
                         type="password"
                         value={securityData.currentPassword}
-                        onChange={(e) => setSecurityData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        onChange={e =>
+                          setSecurityData(prev => ({ ...prev, currentPassword: e.target.value }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter current password"
                         required
@@ -670,7 +686,7 @@ const Settings = () => {
                   )}
 
                   {/* OTP Method */}
-                  {passwordChangeMethod === "otp" && (
+                  {passwordChangeMethod === 'otp' && (
                     <div className="space-y-4">
                       {/* OTP Send Section */}
                       {!otpData.sent && (
@@ -690,7 +706,11 @@ const Settings = () => {
                               disabled={otpLoading || otpData.countdown > 0}
                               className="bg-blue-600 hover:bg-blue-700"
                             >
-                              {otpLoading ? "Sending..." : otpData.countdown > 0 ? `Resend in ${otpData.countdown}s` : "Send OTP"}
+                              {otpLoading
+                                ? 'Sending...'
+                                : otpData.countdown > 0
+                                  ? `Resend in ${otpData.countdown}s`
+                                  : 'Send OTP'}
                             </Button>
                           </div>
                         </div>
@@ -707,7 +727,12 @@ const Settings = () => {
                               type="text"
                               maxLength={6}
                               value={otpData.otp}
-                              onChange={(e) => setOtpData(prev => ({ ...prev, otp: e.target.value.replace(/\D/g, '') }))}
+                              onChange={e =>
+                                setOtpData(prev => ({
+                                  ...prev,
+                                  otp: e.target.value.replace(/\D/g, ''),
+                                }))
+                              }
                               className="flex-1 px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-center text-lg font-mono"
                               placeholder="123456"
                             />
@@ -717,7 +742,7 @@ const Settings = () => {
                               disabled={verifyOtpLoading || otpData.otp.length !== 6}
                               className="bg-yellow-600 hover:bg-yellow-700"
                             >
-                              {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
+                              {verifyOtpLoading ? 'Verifying...' : 'Verify OTP'}
                             </Button>
                           </div>
                           <div className="flex justify-between items-center mt-2">
@@ -730,7 +755,9 @@ const Settings = () => {
                               disabled={otpData.countdown > 0}
                               className="text-xs text-yellow-700 hover:text-yellow-800 underline disabled:opacity-50"
                             >
-                              {otpData.countdown > 0 ? `Resend in ${otpData.countdown}s` : "Resend OTP"}
+                              {otpData.countdown > 0
+                                ? `Resend in ${otpData.countdown}s`
+                                : 'Resend OTP'}
                             </button>
                           </div>
                         </div>
@@ -740,8 +767,16 @@ const Settings = () => {
                       {otpData.verified && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                           <div className="flex items-center gap-2">
-                            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-5 h-5 text-green-600"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             <p className="text-sm font-medium text-green-800">
                               OTP verified successfully
@@ -761,7 +796,9 @@ const Settings = () => {
                       <input
                         type="password"
                         value={securityData.newPassword}
-                        onChange={(e) => setSecurityData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        onChange={e =>
+                          setSecurityData(prev => ({ ...prev, newPassword: e.target.value }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Enter new password"
                         required
@@ -775,7 +812,9 @@ const Settings = () => {
                       <input
                         type="password"
                         value={securityData.confirmPassword}
-                        onChange={(e) => setSecurityData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        onChange={e =>
+                          setSecurityData(prev => ({ ...prev, confirmPassword: e.target.value }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         placeholder="Confirm new password"
                         required
@@ -785,25 +824,37 @@ const Settings = () => {
 
                   {/* Password Requirements */}
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-yellow-800 mb-2">Password Requirements</h3>
+                    <h3 className="text-sm font-medium text-yellow-800 mb-2">
+                      Password Requirements
+                    </h3>
                     <ul className="text-sm text-yellow-700 space-y-1">
-                      <li className={`flex items-center gap-2 ${passwordValidation?.requirements.minLength ? 'text-green-600' : ''}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordValidation?.requirements.minLength ? 'text-green-600' : ''}`}
+                      >
                         <span>{passwordValidation?.requirements.minLength ? '✓' : '•'}</span>
                         Minimum 8 characters
                       </li>
-                      <li className={`flex items-center gap-2 ${passwordValidation?.requirements.hasUpperCase ? 'text-green-600' : ''}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordValidation?.requirements.hasUpperCase ? 'text-green-600' : ''}`}
+                      >
                         <span>{passwordValidation?.requirements.hasUpperCase ? '✓' : '•'}</span>
                         At least one uppercase letter
                       </li>
-                      <li className={`flex items-center gap-2 ${passwordValidation?.requirements.hasLowerCase ? 'text-green-600' : ''}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordValidation?.requirements.hasLowerCase ? 'text-green-600' : ''}`}
+                      >
                         <span>{passwordValidation?.requirements.hasLowerCase ? '✓' : '•'}</span>
                         At least one lowercase letter
                       </li>
-                      <li className={`flex items-center gap-2 ${passwordValidation?.requirements.hasNumbers ? 'text-green-600' : ''}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordValidation?.requirements.hasNumbers ? 'text-green-600' : ''}`}
+                      >
                         <span>{passwordValidation?.requirements.hasNumbers ? '✓' : '•'}</span>
                         At least one number
                       </li>
-                      <li className={`flex items-center gap-2 ${passwordValidation?.requirements.hasSpecialChar ? 'text-green-600' : ''}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordValidation?.requirements.hasSpecialChar ? 'text-green-600' : ''}`}
+                      >
                         <span>{passwordValidation?.requirements.hasSpecialChar ? '✓' : '•'}</span>
                         At least one special character
                       </li>
@@ -811,7 +862,7 @@ const Settings = () => {
                   </div>
 
                   {/* Demo Note for OTP */}
-                  {passwordChangeMethod === "otp" && (
+                  {passwordChangeMethod === 'otp' && (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <p className="text-sm text-purple-700">
                         <strong>Demo Note:</strong> Use "123456" as OTP for testing purposes.
@@ -822,16 +873,18 @@ const Settings = () => {
                   <div className="flex justify-end">
                     <Button
                       type="submit"
-                      disabled={isLoading || (passwordChangeMethod === "otp" && !otpData.verified)}
+                      disabled={isLoading || (passwordChangeMethod === 'otp' && !otpData.verified)}
                     >
-                      {isLoading ? "Updating..." : "Update Password"}
+                      {isLoading ? 'Updating...' : 'Update Password'}
                     </Button>
                   </div>
                 </form>
 
                 {/* Two-Factor Authentication */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Two-Factor Authentication</h3>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">
+                    Two-Factor Authentication
+                  </h3>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">
@@ -842,7 +895,7 @@ const Settings = () => {
                       <input
                         type="checkbox"
                         checked={preferences.twoFactorAuth}
-                        onChange={(e) => handlePreferenceChange("twoFactorAuth", e.target.checked)}
+                        onChange={e => handlePreferenceChange('twoFactorAuth', e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -853,9 +906,11 @@ const Settings = () => {
             )}
 
             {/* Preferences */}
-            {activeTab === "preferences" && (
+            {activeTab === 'preferences' && (
               <Card>
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Application Preferences</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                  Application Preferences
+                </h2>
 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -865,7 +920,7 @@ const Settings = () => {
                       </label>
                       <select
                         value={preferences.language}
-                        onChange={(e) => handlePreferenceChange("language", e.target.value)}
+                        onChange={e => handlePreferenceChange('language', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       >
                         <option value="english">English</option>
@@ -876,12 +931,10 @@ const Settings = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Theme
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
                       <select
                         value={preferences.theme}
-                        onChange={(e) => handlePreferenceChange("theme", e.target.value)}
+                        onChange={e => handlePreferenceChange('theme', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       >
                         <option value="light">Light</option>
@@ -900,7 +953,7 @@ const Settings = () => {
                       <input
                         type="checkbox"
                         checked={preferences.autoSave}
-                        onChange={(e) => handlePreferenceChange("autoSave", e.target.checked)}
+                        onChange={e => handlePreferenceChange('autoSave', e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -911,9 +964,11 @@ const Settings = () => {
             )}
 
             {/* Notifications */}
-            {activeTab === "notifications" && (
+            {activeTab === 'notifications' && (
               <Card>
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Notification Preferences</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                  Notification Preferences
+                </h2>
 
                 <div className="space-y-6">
                   <div className="flex items-center justify-between py-3">
@@ -925,7 +980,7 @@ const Settings = () => {
                       <input
                         type="checkbox"
                         checked={preferences.notifications.email}
-                        onChange={(e) => handleNotificationChange("email", e.target.checked)}
+                        onChange={e => handleNotificationChange('email', e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -941,7 +996,7 @@ const Settings = () => {
                       <input
                         type="checkbox"
                         checked={preferences.notifications.push}
-                        onChange={(e) => handleNotificationChange("push", e.target.checked)}
+                        onChange={e => handleNotificationChange('push', e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -957,7 +1012,7 @@ const Settings = () => {
                       <input
                         type="checkbox"
                         checked={preferences.notifications.sms}
-                        onChange={(e) => handleNotificationChange("sms", e.target.checked)}
+                        onChange={e => handleNotificationChange('sms', e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -970,20 +1025,47 @@ const Settings = () => {
                   <h3 className="text-lg font-medium text-gray-800 mb-4">Notification Types</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="case-updates" defaultChecked className="rounded text-green-600" />
-                      <label htmlFor="case-updates" className="text-sm text-gray-700">Case updates and hearings</label>
+                      <input
+                        type="checkbox"
+                        id="case-updates"
+                        defaultChecked
+                        className="rounded text-green-600"
+                      />
+                      <label htmlFor="case-updates" className="text-sm text-gray-700">
+                        Case updates and hearings
+                      </label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="document-changes" defaultChecked className="rounded text-green-600" />
-                      <label htmlFor="document-changes" className="text-sm text-gray-700">Document changes and approvals</label>
+                      <input
+                        type="checkbox"
+                        id="document-changes"
+                        defaultChecked
+                        className="rounded text-green-600"
+                      />
+                      <label htmlFor="document-changes" className="text-sm text-gray-700">
+                        Document changes and approvals
+                      </label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="payment-updates" defaultChecked className="rounded text-green-600" />
-                      <label htmlFor="payment-updates" className="text-sm text-gray-700">Payment updates and receipts</label>
+                      <input
+                        type="checkbox"
+                        id="payment-updates"
+                        defaultChecked
+                        className="rounded text-green-600"
+                      />
+                      <label htmlFor="payment-updates" className="text-sm text-gray-700">
+                        Payment updates and receipts
+                      </label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="system-alerts" className="rounded text-green-600" />
-                      <label htmlFor="system-alerts" className="text-sm text-gray-700">System alerts and maintenance</label>
+                      <input
+                        type="checkbox"
+                        id="system-alerts"
+                        className="rounded text-green-600"
+                      />
+                      <label htmlFor="system-alerts" className="text-sm text-gray-700">
+                        System alerts and maintenance
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -991,7 +1073,7 @@ const Settings = () => {
             )}
 
             {/* My Contacts - For Regular Users */}
-            {activeTab === "my-contacts" && (
+            {activeTab === 'my-contacts' && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
@@ -1001,7 +1083,7 @@ const Settings = () => {
             )}
 
             {/* Contact Management - For Admins */}
-            {activeTab === "contact-management" && isAdmin && (
+            {activeTab === 'contact-management' && isAdmin && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
@@ -1011,7 +1093,7 @@ const Settings = () => {
             )}
 
             {/* Feedback History */}
-            {activeTab === "feedback-history" && (
+            {activeTab === 'feedback-history' && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
@@ -1021,7 +1103,7 @@ const Settings = () => {
             )}
 
             {/* Case Management (Admin Only) */}
-            {activeTab === "cases" && isAdmin && (
+            {activeTab === 'cases' && isAdmin && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
@@ -1038,17 +1120,17 @@ const Settings = () => {
             )}
 
             {/* Add New Case (Admin Only) */}
-            {activeTab === "add-case" && isAdmin && (
+            {activeTab === 'add-case' && isAdmin && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
-                  <Application onAdd={(newCase) => console.log('Add case:', newCase)} />
+                  <Application onAdd={newCase => console.log('Add case:', newCase)} />
                 </div>
               </Card>
             )}
 
             {/* Feedback Management (Admin Only) */}
-            {activeTab === "feedback-management" && isAdmin && (
+            {activeTab === 'feedback-management' && isAdmin && (
               <Card>
                 <div className="p-6">
                   {renderBackButton()}
@@ -1060,7 +1142,7 @@ const Settings = () => {
         </div>
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings

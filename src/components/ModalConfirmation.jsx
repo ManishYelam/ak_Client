@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react'
 
 const ModalConfirmation = ({ isOpen, title, message, onConfirm, onCancel }) => {
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -24,7 +24,7 @@ const ModalConfirmation = ({ isOpen, title, message, onConfirm, onCancel }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ModalConfirmation;
+export default ModalConfirmation

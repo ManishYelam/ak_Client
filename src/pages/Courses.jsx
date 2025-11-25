@@ -1,11 +1,11 @@
 // src/pages/Courses.jsx
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react'
-import { 
-  Search, 
-  Filter, 
-  Grid, 
-  List, 
-  X, 
+import {
+  Search,
+  Filter,
+  Grid,
+  List,
+  X,
   SlidersHorizontal,
   Sparkles,
   TrendingUp,
@@ -14,7 +14,7 @@ import {
   ChevronDown,
   RotateCcw,
   Zap,
-  Target
+  Target,
 } from 'lucide-react'
 import { coursesAPI } from '../services/api'
 
@@ -28,7 +28,7 @@ const Courses = () => {
     mode: '',
     featured: '',
     sortBy: 'created_at',
-    sortOrder: 'DESC'
+    sortOrder: 'DESC',
   })
   const [viewMode, setViewMode] = useState('grid')
   const [courses, setCourses] = useState([])
@@ -39,45 +39,81 @@ const Courses = () => {
     page: 1,
     limit: 12,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   })
 
   // Memoized filter options
-  const levels = useMemo(() => [
-    { value: '', label: 'All Levels', icon: BookOpen, count: 0, color: 'text-gray-600' },
-    { value: 'beginner', label: 'Beginner', icon: BookOpen, color: 'text-emerald-500', count: 8 },
-    { value: 'intermediate', label: 'Intermediate', icon: TrendingUp, color: 'text-blue-500', count: 12 },
-    { value: 'advanced', label: 'Advanced', icon: Zap, color: 'text-purple-500', count: 6 }
-  ], [])
+  const levels = useMemo(
+    () => [
+      { value: '', label: 'All Levels', icon: BookOpen, count: 0, color: 'text-gray-600' },
+      { value: 'beginner', label: 'Beginner', icon: BookOpen, color: 'text-emerald-500', count: 8 },
+      {
+        value: 'intermediate',
+        label: 'Intermediate',
+        icon: TrendingUp,
+        color: 'text-blue-500',
+        count: 12,
+      },
+      { value: 'advanced', label: 'Advanced', icon: Zap, color: 'text-purple-500', count: 6 },
+    ],
+    []
+  )
 
-  const modes = useMemo(() => [
-    { value: '', label: 'All Modes', icon: Clock, count: 0, color: 'text-gray-600' },
-    { value: 'online_live', label: 'Live Online', icon: Clock, color: 'text-orange-500', count: 15 },
-    { value: 'online_self_paced', label: 'Self Paced', icon: BookOpen, color: 'text-green-500', count: 8 },
-    { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal, color: 'text-blue-500', count: 3 }
-  ], [])
+  const modes = useMemo(
+    () => [
+      { value: '', label: 'All Modes', icon: Clock, count: 0, color: 'text-gray-600' },
+      {
+        value: 'online_live',
+        label: 'Live Online',
+        icon: Clock,
+        color: 'text-orange-500',
+        count: 15,
+      },
+      {
+        value: 'online_self_paced',
+        label: 'Self Paced',
+        icon: BookOpen,
+        color: 'text-green-500',
+        count: 8,
+      },
+      {
+        value: 'hybrid',
+        label: 'Hybrid',
+        icon: SlidersHorizontal,
+        color: 'text-blue-500',
+        count: 3,
+      },
+    ],
+    []
+  )
 
-  const featuredOptions = useMemo(() => [
-    { value: '', label: 'All Courses', count: 0 },
-    { value: 'true', label: 'Featured', icon: Sparkles, color: 'text-yellow-500', count: 5 },
-    { value: 'false', label: 'Regular', count: 21 }
-  ], [])
+  const featuredOptions = useMemo(
+    () => [
+      { value: '', label: 'All Courses', count: 0 },
+      { value: 'true', label: 'Featured', icon: Sparkles, color: 'text-yellow-500', count: 5 },
+      { value: 'false', label: 'Regular', count: 21 },
+    ],
+    []
+  )
 
-  const sortOptions = useMemo(() => [
-    { value: 'created_at:DESC', label: 'Newest', field: 'created_at', order: 'DESC' },
-    { value: 'created_at:ASC', label: 'Oldest', field: 'created_at', order: 'ASC' },
-    { value: 'fee:ASC', label: 'Price: Low to High', field: 'fee', order: 'ASC' },
-    { value: 'fee:DESC', label: 'Price: High to Low', field: 'fee', order: 'DESC' },
-    { value: 'title:ASC', label: 'Title: A-Z', field: 'title', order: 'ASC' },
-    { value: 'title:DESC', label: 'Title: Z-A', field: 'title', order: 'DESC' },
-    { value: 'view_count:DESC', label: 'Most Popular', field: 'view_count', order: 'DESC' }
-  ], [])
+  const sortOptions = useMemo(
+    () => [
+      { value: 'created_at:DESC', label: 'Newest', field: 'created_at', order: 'DESC' },
+      { value: 'created_at:ASC', label: 'Oldest', field: 'created_at', order: 'ASC' },
+      { value: 'fee:ASC', label: 'Price: Low to High', field: 'fee', order: 'ASC' },
+      { value: 'fee:DESC', label: 'Price: High to Low', field: 'fee', order: 'DESC' },
+      { value: 'title:ASC', label: 'Title: A-Z', field: 'title', order: 'ASC' },
+      { value: 'title:DESC', label: 'Title: Z-A', field: 'title', order: 'DESC' },
+      { value: 'view_count:DESC', label: 'Most Popular', field: 'view_count', order: 'DESC' },
+    ],
+    []
+  )
 
   const buildApiPayload = useCallback(() => {
     const payload = {
       page: pagination.page,
       limit: pagination.limit,
-      filters: {}
+      filters: {},
     }
 
     if (filters.search.trim()) {
@@ -101,18 +137,18 @@ const Courses = () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       const payload = buildApiPayload()
       const response = await coursesAPI.getAll(payload)
-      
+
       const responseData = response.data?.data || response.data
-      
+
       if (Array.isArray(responseData)) {
         setCourses(responseData)
         setPagination(prev => ({
           ...prev,
           total: responseData.length,
-          totalPages: 1
+          totalPages: 1,
         }))
       } else if (responseData?.courses) {
         setCourses(responseData.courses)
@@ -120,7 +156,7 @@ const Courses = () => {
           page: responseData.currentPage || 1,
           limit: responseData.limit || 12,
           total: responseData.total || 0,
-          totalPages: responseData.totalPages || 1
+          totalPages: responseData.totalPages || 1,
         })
       } else {
         setCourses(responseData || [])
@@ -136,7 +172,14 @@ const Courses = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }))
-  }, [filters.search, filters.level, filters.mode, filters.featured, filters.sortBy, filters.sortOrder])
+  }, [
+    filters.search,
+    filters.level,
+    filters.mode,
+    filters.featured,
+    filters.sortBy,
+    filters.sortOrder,
+  ])
 
   // Debounced search
   useEffect(() => {
@@ -151,7 +194,7 @@ const Courses = () => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }, [])
 
-  const handleSortChange = useCallback((value) => {
+  const handleSortChange = useCallback(value => {
     const [sortBy, sortOrder] = value.split(':')
     setFilters(prev => ({ ...prev, sortBy, sortOrder }))
   }, [])
@@ -163,20 +206,28 @@ const Courses = () => {
       mode: '',
       featured: '',
       sortBy: 'created_at',
-      sortOrder: 'DESC'
+      sortOrder: 'DESC',
     })
   }, [])
 
   const hasActiveFilters = useMemo(() => {
-    return filters.search || filters.level || filters.mode || filters.featured || filters.sortBy !== 'created_at'
+    return (
+      filters.search ||
+      filters.level ||
+      filters.mode ||
+      filters.featured ||
+      filters.sortBy !== 'created_at'
+    )
   }, [filters])
 
   const LoadingSkeleton = () => (
-    <div className={
-      viewMode === 'grid' 
-        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-        : "space-y-4"
-    }>
+    <div
+      className={
+        viewMode === 'grid'
+          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+          : 'space-y-4'
+      }
+    >
       {Array.from({ length: 8 }).map((_, index) => (
         <div
           key={index}
@@ -228,7 +279,7 @@ const Courses = () => {
                   type="text"
                   placeholder="Search courses..."
                   value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  onChange={e => handleFilterChange('search', e.target.value)}
                   className="w-full pl-10 pr-8 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
                 />
                 {filters.search && (
@@ -248,7 +299,7 @@ const Courses = () => {
               <div className="relative">
                 <select
                   value={`${filters.sortBy}:${filters.sortOrder}`}
-                  onChange={(e) => handleSortChange(e.target.value)}
+                  onChange={e => handleSortChange(e.target.value)}
                   className="pl-8 pr-6 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none cursor-pointer min-w-[140px]"
                 >
                   {sortOptions.map(option => (
@@ -269,7 +320,10 @@ const Courses = () => {
                 Filters
                 {hasActiveFilters && (
                   <span className="bg-primary-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {Object.values(filters).filter(v => v && v !== 'created_at' && v !== 'DESC').length}
+                    {
+                      Object.values(filters).filter(v => v && v !== 'created_at' && v !== 'DESC')
+                        .length
+                    }
                   </span>
                 )}
               </button>
@@ -279,8 +333,8 @@ const Courses = () => {
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 transition-all duration-200 ${
-                    viewMode === 'grid' 
-                      ? 'bg-primary-500 text-white' 
+                    viewMode === 'grid'
+                      ? 'bg-primary-500 text-white'
                       : 'bg-white text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                   title="Grid View"
@@ -290,8 +344,8 @@ const Courses = () => {
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-2 transition-all duration-200 ${
-                    viewMode === 'list' 
-                      ? 'bg-primary-500 text-white' 
+                    viewMode === 'list'
+                      ? 'bg-primary-500 text-white'
                       : 'bg-white text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                   title="List View"
@@ -469,10 +523,9 @@ const Courses = () => {
                 {courses.length} Course{courses.length !== 1 ? 's' : ''} Found
               </h2>
               <p className="text-xs text-gray-600 mt-0.5">
-                {hasActiveFilters 
+                {hasActiveFilters
                   ? 'Filtered results based on your selection'
-                  : 'Browse all available courses'
-                }
+                  : 'Browse all available courses'}
               </p>
             </div>
             {hasActiveFilters && (
@@ -498,13 +551,13 @@ const Courses = () => {
             <h3 className="text-lg font-bold text-gray-900 mb-2">Unable to Load Courses</h3>
             <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
             <div className="flex gap-3 justify-center">
-              <button 
+              <button
                 onClick={fetchCourses}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
               >
                 Try Again
               </button>
-              <button 
+              <button
                 onClick={clearFilters}
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
               >
@@ -515,15 +568,17 @@ const Courses = () => {
         ) : (
           <>
             {courses.length > 0 ? (
-              <div className={
-                viewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-                  : "space-y-4"
-              }>
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                    : 'space-y-4'
+                }
+              >
                 <Suspense fallback={<LoadingSkeleton />}>
-                  {courses.map((course) => (
-                    <CourseCard 
-                      key={course.course_id || course.id} 
+                  {courses.map(course => (
+                    <CourseCard
+                      key={course.course_id || course.id}
                       course={course}
                       viewMode={viewMode}
                     />
@@ -537,13 +592,12 @@ const Courses = () => {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">No Courses Found</h3>
                 <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
-                  {hasActiveFilters 
-                    ? "No courses match your current filters. Try adjusting your search criteria." 
-                    : "No courses available at the moment. Please check back later."
-                  }
+                  {hasActiveFilters
+                    ? 'No courses match your current filters. Try adjusting your search criteria.'
+                    : 'No courses available at the moment. Please check back later.'}
                 </p>
                 {hasActiveFilters && (
-                  <button 
+                  <button
                     onClick={clearFilters}
                     className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
                   >

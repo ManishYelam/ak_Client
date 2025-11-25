@@ -1,9 +1,17 @@
 // src/pages/dashboard/components/CourseModal.jsx
 import React, { useState, useEffect } from 'react'
-import { 
-  X, Save, Send, FileArchive, BookOpen, Clock,
-  BookOpen as BookIcon, SlidersHorizontal,
-  Sparkles, Zap, TrendingUp
+import {
+  X,
+  Save,
+  Send,
+  FileArchive,
+  BookOpen,
+  Clock,
+  BookOpen as BookIcon,
+  SlidersHorizontal,
+  Sparkles,
+  Zap,
+  TrendingUp,
 } from 'lucide-react'
 import { coursesAPI } from '../../services/api'
 
@@ -21,19 +29,19 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
     featured: false,
     seats_available: '',
     thumbnail_image: '',
-    status: 'draft'
+    status: 'draft',
   })
 
   const levels = [
     { value: 'beginner', label: 'Beginner', icon: BookOpen },
     { value: 'intermediate', label: 'Intermediate', icon: TrendingUp },
-    { value: 'advanced', label: 'Advanced', icon: Zap }
+    { value: 'advanced', label: 'Advanced', icon: Zap },
   ]
 
   const modes = [
     { value: 'online_live', label: 'Live Online', icon: Clock },
     { value: 'online_self_paced', label: 'Self Paced', icon: BookIcon },
-    { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal }
+    { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal },
   ]
 
   useEffect(() => {
@@ -50,7 +58,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
         featured: course.featured || false,
         seats_available: course.seats_available || '',
         thumbnail_image: course.thumbnail_image || '',
-        status: course.status || 'draft'
+        status: course.status || 'draft',
       })
     } else {
       setFormData({
@@ -65,7 +73,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
         featured: false,
         seats_available: '',
         thumbnail_image: '',
-        status: 'draft'
+        status: 'draft',
       })
     }
   }, [course])
@@ -74,7 +82,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSaveCourse = async (action) => {
+  const handleSaveCourse = async action => {
     try {
       setSaveLoading(true)
 
@@ -89,7 +97,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
         level: formData.level,
         featured: formData.featured,
         seats_available: formData.seats_available ? parseInt(formData.seats_available) : null,
-        status: action
+        status: action,
       }
 
       if (formData.thumbnail_image) {
@@ -120,7 +128,6 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-2 z-50">
       <div className="bg-white rounded-md max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-lg text-sm">
-        
         {/* Header - More Compact */}
         <div className="flex items-center justify-between p-3 border-b">
           <div>
@@ -142,14 +149,13 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
 
         {/* Form - More Compact */}
         <div className="p-3 space-y-3">
-
           {/* Title */}
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1 block">Course Title *</label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
+              onChange={e => handleInputChange('title', e.target.value)}
               className="w-full px-2 py-1 border rounded text-sm"
               placeholder="Enter course title"
             />
@@ -157,11 +163,13 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
 
           {/* Short Description */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Short Description</label>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Short Description
+            </label>
             <textarea
               rows="2"
               value={formData.short_description}
-              onChange={(e) => handleInputChange('short_description', e.target.value)}
+              onChange={e => handleInputChange('short_description', e.target.value)}
               className="w-full px-2 py-1 border rounded text-sm"
               placeholder="Brief description for course cards"
             />
@@ -169,11 +177,13 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
 
           {/* Full Description */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Full Description *</label>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Full Description *
+            </label>
             <textarea
               rows="2"
               value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              onChange={e => handleInputChange('description', e.target.value)}
               className="w-full px-2 py-1 border rounded text-sm"
               placeholder="Detailed course description"
             />
@@ -186,7 +196,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
               <input
                 type="text"
                 value={formData.duration}
-                onChange={(e) => handleInputChange('duration', e.target.value)}
+                onChange={e => handleInputChange('duration', e.target.value)}
                 className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="e.g., 8 weeks, 3 months"
               />
@@ -197,7 +207,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
               <input
                 type="text"
                 value={formData.thumbnail_image}
-                onChange={(e) => handleInputChange('thumbnail_image', e.target.value)}
+                onChange={e => handleInputChange('thumbnail_image', e.target.value)}
                 className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="https://example.com/image.jpg"
               />
@@ -211,7 +221,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
               <input
                 type="number"
                 value={formData.fee}
-                onChange={(e) => handleInputChange('fee', e.target.value)}
+                onChange={e => handleInputChange('fee', e.target.value)}
                 className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="0.00"
                 min="0"
@@ -224,7 +234,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
               <input
                 type="number"
                 value={formData.original_fee}
-                onChange={(e) => handleInputChange('original_fee', e.target.value)}
+                onChange={e => handleInputChange('original_fee', e.target.value)}
                 className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="0.00"
                 min="0"
@@ -237,7 +247,7 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
               <input
                 type="number"
                 value={formData.seats_available}
-                onChange={(e) => handleInputChange('seats_available', e.target.value)}
+                onChange={e => handleInputChange('seats_available', e.target.value)}
                 className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="Available seats"
                 min="0"
@@ -247,7 +257,6 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
 
           {/* Level + Mode + Featured */}
           <div className="grid grid-cols-3 gap-3">
-
             {/* Level */}
             <div>
               <label className="text-xs font-medium text-gray-700 mb-1 block">Level *</label>
@@ -313,7 +322,9 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
         {/* Footer Buttons - More Compact */}
         <div className="flex items-center justify-between p-3 border-t bg-gray-50">
           <p className="text-xs text-gray-500">
-            {course ? `Last updated: ${course.updatedAt ? new Date(course.updatedAt).toLocaleDateString() : 'Unknown'}` : 'New course'}
+            {course
+              ? `Last updated: ${course.updatedAt ? new Date(course.updatedAt).toLocaleDateString() : 'Unknown'}`
+              : 'New course'}
           </p>
 
           <div className="flex gap-1">
@@ -353,7 +364,6 @@ const CourseModal = ({ show, course, onClose, onSaved }) => {
             </button>
           </div>
         </div>
-
       </div>
     </div>
   )

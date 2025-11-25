@@ -1,10 +1,10 @@
 // src/pages/About.jsx
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  GraduationCap, 
-  Award, 
-  Users, 
+import {
+  GraduationCap,
+  Award,
+  Users,
   Target,
   CheckCircle,
   Star,
@@ -13,7 +13,7 @@ import {
   Shield,
   Clock,
   BookOpen,
-  Heart
+  Heart,
 } from 'lucide-react'
 
 const About = () => {
@@ -22,42 +22,42 @@ const About = () => {
       icon: GraduationCap,
       title: 'Expert Training',
       description: 'Learn from industry experts with 10+ years of SAP experience',
-      color: 'from-blue-500 to-cyan-500'
+      color: 'from-blue-500 to-cyan-500',
     },
     {
       icon: Award,
       title: 'Certification Ready',
       description: 'Curriculum designed to prepare you for SAP certifications',
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-green-500 to-emerald-500',
     },
     {
       icon: Users,
       title: 'Community Support',
       description: 'Join a community of 1000+ learners and professionals',
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-purple-500 to-pink-500',
     },
     {
       icon: Target,
       title: 'Career Focused',
       description: 'Training programs designed for job placement and career growth',
-      color: 'from-orange-500 to-red-500'
-    }
+      color: 'from-orange-500 to-red-500',
+    },
   ]
 
   const stats = [
     { number: '1000+', label: 'Students Trained', icon: Users, color: 'text-blue-400' },
     { number: '95%', label: 'Success Rate', icon: TrendingUp, color: 'text-green-400' },
     { number: '50+', label: 'Corporate Clients', icon: Shield, color: 'text-purple-400' },
-    { number: '10+', label: 'Years Experience', icon: Clock, color: 'text-orange-400' }
+    { number: '10+', label: 'Years Experience', icon: Clock, color: 'text-orange-400' },
   ]
 
   const instructorHighlights = [
-    "10+ years in SAP ABAP development",
-    "Trained 1000+ professionals worldwide",
-    "Worked with Fortune 500 companies",
-    "SAP certification specialist",
-    "Corporate training expert",
-    "Real-world project experience"
+    '10+ years in SAP ABAP development',
+    'Trained 1000+ professionals worldwide',
+    'Worked with Fortune 500 companies',
+    'SAP certification specialist',
+    'Corporate training expert',
+    'Real-world project experience',
   ]
 
   return (
@@ -70,7 +70,7 @@ const About = () => {
           <div className="absolute top-20 -right-10 w-64 h-64 bg-primary-400/20 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-20 left-1/4 w-56 h-56 bg-accent-500/30 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20 mb-6">
@@ -81,7 +81,8 @@ const About = () => {
               Learn SAP ABAP
             </h1>
             <p className="text-base lg:text-lg text-primary-100 max-w-2xl mx-auto leading-relaxed">
-              Transforming careers through comprehensive SAP ABAP training and industry-focused mentorship
+              Transforming careers through comprehensive SAP ABAP training and industry-focused
+              mentorship
             </p>
           </div>
         </div>
@@ -100,16 +101,16 @@ const About = () => {
                 Empowering Future SAP Experts
               </h2>
               <p className="text-base text-gray-600 leading-relaxed">
-                To empower aspiring SAP professionals with industry-relevant skills, 
-                practical knowledge, and career guidance that bridges the gap between 
-                learning and employment in the competitive tech landscape.
+                To empower aspiring SAP professionals with industry-relevant skills, practical
+                knowledge, and career guidance that bridges the gap between learning and employment
+                in the competitive tech landscape.
               </p>
               <div className="space-y-3">
                 {[
-                  "Industry-aligned curriculum",
-                  "Hands-on project experience", 
-                  "1:1 mentorship support",
-                  "Job placement assistance"
+                  'Industry-aligned curriculum',
+                  'Hands-on project experience',
+                  '1:1 mentorship support',
+                  'Job placement assistance',
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-3 group">
                     <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -122,7 +123,7 @@ const About = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Enhanced Stats Card */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
               <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
@@ -130,8 +131,8 @@ const About = () => {
                 Why We Excel
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                We combine traditional teaching methods with modern technology to 
-                deliver the most effective SAP ABAP training experience.
+                We combine traditional teaching methods with modern technology to deliver the most
+                effective SAP ABAP training experience.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {stats.map((stat, index) => {
@@ -139,7 +140,9 @@ const About = () => {
                   return (
                     <div key={index} className="text-center group cursor-pointer">
                       <div className="inline-flex items-center justify-center w-10 h-10 bg-gray-50 rounded-xl mb-2 group-hover:scale-110 transition-transform duration-300 border border-gray-200">
-                        <IconComponent className={`w-4 h-4 ${stat.color} group-hover:scale-110 transition-transform`} />
+                        <IconComponent
+                          className={`w-4 h-4 ${stat.color} group-hover:scale-110 transition-transform`}
+                        />
                       </div>
                       <div className="text-lg font-black text-gray-900 group-hover:text-primary-600 transition-colors">
                         {stat.number}
@@ -174,11 +177,13 @@ const About = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {features.map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="group relative bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-white/50 hover:border-primary-300/50 transition-all duration-500 hover:shadow-lg transform hover:-translate-y-1"
               >
-                <div className={`relative inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r ${feature.color} rounded-lg mb-3 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-md`}>
+                <div
+                  className={`relative inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r ${feature.color} rounded-lg mb-3 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-md`}
+                >
                   <feature.icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="text-base font-black text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
@@ -187,7 +192,7 @@ const About = () => {
                 <p className="text-sm text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
                   {feature.description}
                 </p>
-                
+
                 {/* Hover Effect */}
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-primary-500 to-transparent group-hover:w-3/4 transition-all duration-500 rounded-full"></div>
               </div>
@@ -225,15 +230,15 @@ const About = () => {
                   </div>
                 ))}
               </div>
-              <Link 
-                to="/courses" 
+              <Link
+                to="/courses"
                 className="group inline-flex items-center justify-center px-6 py-2.5 text-sm font-black text-primary-600 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
               >
                 <BookOpen className="w-3.5 h-3.5 mr-2 group-hover:scale-110 transition-transform" />
                 Explore Courses
               </Link>
             </div>
-            
+
             {/* Enhanced Avatar */}
             <div className="flex justify-center">
               <div className="relative">
@@ -265,14 +270,15 @@ const About = () => {
             <Target className="w-4 h-4 text-accent-300" />
             <span className="text-xs font-semibold text-white">Start Your Journey</span>
           </div>
-          
+
           <h2 className="text-2xl lg:text-3xl font-black text-white mb-4">
             Ready to Master SAP ABAP?
           </h2>
           <p className="text-base text-primary-100 mb-6 max-w-xl mx-auto leading-relaxed">
-            Join thousands of successful professionals who transformed their careers with our industry-leading training program.
+            Join thousands of successful professionals who transformed their careers with our
+            industry-leading training program.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/courses"

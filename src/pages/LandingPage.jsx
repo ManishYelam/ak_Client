@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   FaFacebookF,
   FaTwitter,
@@ -14,149 +14,156 @@ import {
   FaUserFriends,
   FaShieldAlt,
   FaClock,
-  FaEnvelope
-} from "react-icons/fa";
-import { useForm } from "react-hook-form";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { submitContactForm } from "../services/contactService"; // Import your contact service
+  FaEnvelope,
+} from 'react-icons/fa'
+import { useForm } from 'react-hook-form'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { submitContactForm } from '../services/contactService' // Import your contact service
 
 const LandingPage = () => {
-  const [loading, setLoading] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [loading, setLoading] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm();
+  } = useForm()
 
   // Show scroll to top button
   useEffect(() => {
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+      setShowScrollTop(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Scroll to top function
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-  const onSubmit = async (data) => {
-    setLoading(true);
+  const onSubmit = async data => {
+    setLoading(true)
     try {
       // Prepare the data for API submission
       const contactData = {
         name: data.name,
         email: data.email,
         message: data.message,
-        phone: data.phone || "", // Optional field
-        subject: "Landing Page Contact Form Submission" // Default subject
-      };
+        phone: data.phone || '', // Optional field
+        subject: 'Landing Page Contact Form Submission', // Default subject
+      }
 
       // Submit to your backend API
-      const response = await submitContactForm(contactData);
+      const response = await submitContactForm(contactData)
 
       // Check if the submission was successful
       if (response.data && response.data.success) {
-        toast.success("🎉 Message sent successfully! We'll get back to you soon.");
-        reset();
+        toast.success("🎉 Message sent successfully! We'll get back to you soon.")
+        reset()
       } else {
-        throw new Error(response.data?.message || "Failed to send message");
+        throw new Error(response.data?.message || 'Failed to send message')
       }
     } catch (error) {
-      console.error("Contact form submission error:", error);
+      console.error('Contact form submission error:', error)
 
       // Handle different error scenarios
       if (error.response) {
         // Server responded with error status
-        const errorMessage = error.response.data?.message || "Server error occurred";
-        toast.error(`❌ ${errorMessage}`);
+        const errorMessage = error.response.data?.message || 'Server error occurred'
+        toast.error(`❌ ${errorMessage}`)
       } else if (error.request) {
         // Network error
-        toast.error("❌ Network error. Please check your connection and try again.");
+        toast.error('❌ Network error. Please check your connection and try again.')
       } else {
         // Other errors
-        toast.error("❌ Failed to send message. Please try again later.");
+        toast.error('❌ Failed to send message. Please try again later.')
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const features = [
     {
       icon: FaFileAlt,
-      title: "Easy Application Process",
-      description: "Simple and straightforward application form that takes just minutes to complete.",
-      benefits: ["Quick Submission", "User-Friendly Interface", "Instant Confirmation"]
+      title: 'Easy Application Process',
+      description:
+        'Simple and straightforward application form that takes just minutes to complete.',
+      benefits: ['Quick Submission', 'User-Friendly Interface', 'Instant Confirmation'],
     },
     {
       icon: FaUserFriends,
-      title: "Expert Legal Assistance",
-      description: "Get guidance from experienced legal professionals throughout your application.",
-      benefits: ["Legal Expertise", "Personal Support", "Case Evaluation"]
+      title: 'Expert Legal Assistance',
+      description: 'Get guidance from experienced legal professionals throughout your application.',
+      benefits: ['Legal Expertise', 'Personal Support', 'Case Evaluation'],
     },
     {
       icon: FaShieldAlt,
-      title: "Secure & Confidential",
-      description: "Your information is protected with bank-level security and complete confidentiality.",
-      benefits: ["Data Encryption", "Privacy Protected", "Secure Processing"]
+      title: 'Secure & Confidential',
+      description:
+        'Your information is protected with bank-level security and complete confidentiality.',
+      benefits: ['Data Encryption', 'Privacy Protected', 'Secure Processing'],
     },
     {
       icon: FaClock,
-      title: "Quick Processing",
-      description: "Fast application review and processing to get you the help you need promptly.",
-      benefits: ["Rapid Review", "Timely Updates", "Efficient Service"]
-    }
-  ];
+      title: 'Quick Processing',
+      description: 'Fast application review and processing to get you the help you need promptly.',
+      benefits: ['Rapid Review', 'Timely Updates', 'Efficient Service'],
+    },
+  ]
 
   const processSteps = [
     {
-      step: "01",
-      title: "Fill Application Form",
-      description: "Complete our simple online application form with your details and case information."
+      step: '01',
+      title: 'Fill Application Form',
+      description:
+        'Complete our simple online application form with your details and case information.',
     },
     {
-      step: "02",
-      description: "Our legal team reviews your application and assesses your case requirements."
+      step: '02',
+      description: 'Our legal team reviews your application and assesses your case requirements.',
     },
     {
-      step: "03",
-      title: "Get Expert Assistance",
-      description: "Receive professional legal guidance and support tailored to your specific situation."
+      step: '03',
+      title: 'Get Expert Assistance',
+      description:
+        'Receive professional legal guidance and support tailored to your specific situation.',
     },
     {
-      step: "04",
-      title: "Case Progress Tracking",
-      description: "Monitor your application status and case progress through our secure portal."
-    }
-  ];
+      step: '04',
+      title: 'Case Progress Tracking',
+      description: 'Monitor your application status and case progress through our secure portal.',
+    },
+  ]
 
   const testimonials = [
     {
-      name: "Rajesh Kumar",
-      role: "Client",
-      content: "The application process was incredibly smooth. I got the legal help I needed within hours of submitting my form!",
-      rating: 5
+      name: 'Rajesh Kumar',
+      role: 'Client',
+      content:
+        'The application process was incredibly smooth. I got the legal help I needed within hours of submitting my form!',
+      rating: 5,
     },
     {
-      name: "Priya Sharma",
-      role: "Applicant",
-      content: "Very professional and efficient service. The team guided me through every step of the process.",
-      rating: 5
+      name: 'Priya Sharma',
+      role: 'Applicant',
+      content:
+        'Very professional and efficient service. The team guided me through every step of the process.',
+      rating: 5,
     },
     {
-      name: "Amit Patel",
-      role: "Client",
-      content: "I was nervous about the legal process, but the simple application form made everything easy to understand.",
-      rating: 5
-    }
-  ];
+      name: 'Amit Patel',
+      role: 'Client',
+      content:
+        'I was nervous about the legal process, but the simple application form made everything easy to understand.',
+      rating: 5,
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50">
@@ -180,13 +187,22 @@ const LandingPage = () => {
               <Link to="/" className="text-sm font-medium hover:text-green-200 transition-colors">
                 Home
               </Link>
-              <Link to="/about" className="text-sm font-medium hover:text-green-200 transition-colors">
+              <Link
+                to="/about"
+                className="text-sm font-medium hover:text-green-200 transition-colors"
+              >
                 About
               </Link>
-              <Link to="/apply" className="text-sm font-medium hover:text-green-200 transition-colors">
+              <Link
+                to="/apply"
+                className="text-sm font-medium hover:text-green-200 transition-colors"
+              >
                 Apply Now
               </Link>
-              <Link to="/contact" className="text-sm font-medium hover:text-green-200 transition-colors">
+              <Link
+                to="/contact"
+                className="text-sm font-medium hover:text-green-200 transition-colors"
+              >
                 Contact
               </Link>
             </div>
@@ -226,8 +242,8 @@ const LandingPage = () => {
             </h1>
 
             <p className="text-xl lg:text-2xl text-green-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Start your journey to justice with our easy-to-use application form.
-              Get expert legal guidance in just a few simple steps.
+              Start your journey to justice with our easy-to-use application form. Get expert legal
+              guidance in just a few simple steps.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -294,12 +310,8 @@ const LandingPage = () => {
                 <div className="bg-green-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
                   <feature.icon className="text-green-700 text-2xl" />
                 </div>
-                <h3 className="text-xl font-bold text-green-900 mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  {feature.description}
-                </p>
+                <h3 className="text-xl font-bold text-green-900 mb-4">{feature.title}</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">{feature.description}</p>
                 <ul className="space-y-2 text-left">
                   {feature.benefits.map((benefit, benefitIndex) => (
                     <li key={benefitIndex} className="flex items-center text-sm text-green-700">
@@ -318,12 +330,8 @@ const LandingPage = () => {
       <section id="process" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-green-900 mb-4">
-              Simple 4-Step Process
-            </h2>
-            <p className="text-xl text-gray-600">
-              Getting legal assistance has never been easier
-            </p>
+            <h2 className="text-4xl font-bold text-green-900 mb-4">Simple 4-Step Process</h2>
+            <p className="text-xl text-gray-600">Getting legal assistance has never been easier</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -335,9 +343,7 @@ const LandingPage = () => {
                 <h3 className="text-xl font-bold text-green-900 mb-3">
                   {step.title || `Step ${step.step}`}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
+                <p className="text-gray-600 leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
@@ -358,9 +364,7 @@ const LandingPage = () => {
       <section className="py-20 bg-gradient-to-br from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-green-900 mb-4">
-              Success Stories
-            </h2>
+            <h2 className="text-4xl font-bold text-green-900 mb-4">Success Stories</h2>
             <p className="text-xl text-gray-600">
               Hear from people who found legal solutions through our application process
             </p>
@@ -374,16 +378,10 @@ const LandingPage = () => {
                     <FaAward key={i} className="text-lg" />
                   ))}
                 </div>
-                <p className="text-gray-600 mb-6 italic">
-                  "{testimonial.content}"
-                </p>
+                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
                 <div>
-                  <div className="font-semibold text-green-900">
-                    {testimonial.name}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {testimonial.role}
-                  </div>
+                  <div className="font-semibold text-green-900">{testimonial.name}</div>
+                  <div className="text-sm text-gray-500">{testimonial.role}</div>
                 </div>
               </div>
             ))}
@@ -394,11 +392,10 @@ const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-green-600 to-green-800 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold mb-6">
-            Ready to Get Started?
-          </h2>
+          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-green-100 mb-8">
-            Don't wait to get the legal assistance you need. Our simple application process is designed to help you quickly and efficiently.
+            Don't wait to get the legal assistance you need. Our simple application process is
+            designed to help you quickly and efficiently.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -438,12 +435,12 @@ const LandingPage = () => {
                     type="text"
                     placeholder="Your Name *"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
-                    {...register("name", {
-                      required: "Name is required",
+                    {...register('name', {
+                      required: 'Name is required',
                       minLength: {
                         value: 2,
-                        message: "Name must be at least 2 characters"
-                      }
+                        message: 'Name must be at least 2 characters',
+                      },
                     })}
                   />
                   {errors.name && (
@@ -456,12 +453,12 @@ const LandingPage = () => {
                     type="email"
                     placeholder="Your Email *"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
-                    {...register("email", {
-                      required: "Email is required",
+                    {...register('email', {
+                      required: 'Email is required',
                       pattern: {
                         value: /^\S+@\S+$/i,
-                        message: "Invalid email address"
-                      }
+                        message: 'Invalid email address',
+                      },
                     })}
                   />
                   {errors.email && (
@@ -476,11 +473,11 @@ const LandingPage = () => {
                     type="tel"
                     placeholder="Your Phone Number (Optional)"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
-                    {...register("phone", {
+                    {...register('phone', {
                       pattern: {
                         value: /^[\+]?[0-9\s\-\(\)]{10,}$/,
-                        message: "Please enter a valid phone number"
-                      }
+                        message: 'Please enter a valid phone number',
+                      },
                     })}
                   />
                   {errors.phone && (
@@ -504,16 +501,16 @@ const LandingPage = () => {
                   placeholder="How can we help you with your application? *"
                   rows="5"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition-all resize-none"
-                  {...register("message", {
-                    required: "Message is required",
+                  {...register('message', {
+                    required: 'Message is required',
                     minLength: {
                       value: 10,
-                      message: "Message must be at least 10 characters"
+                      message: 'Message must be at least 10 characters',
                     },
                     maxLength: {
                       value: 1000,
-                      message: "Message must be less than 1000 characters"
-                    }
+                      message: 'Message must be less than 1000 characters',
+                    },
                   })}
                 />
                 {errors.message && (
@@ -527,10 +524,11 @@ const LandingPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-4 text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 ${loading
-                  ? "bg-green-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  }`}
+                className={`w-full py-4 text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 ${
+                  loading
+                    ? 'bg-green-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+                }`}
               >
                 {loading ? (
                   <>
@@ -564,7 +562,8 @@ const LandingPage = () => {
                 <span className="text-xl font-bold font-serif">Satyamev Jayate</span>
               </div>
               <p className="text-green-100 mb-6">
-                Making legal assistance accessible to everyone through our simple and secure application process.
+                Making legal assistance accessible to everyone through our simple and secure
+                application process.
               </p>
               <div className="flex space-x-4">
                 {[FaFacebookF, FaTwitter, FaInstagram, FaLinkedin].map((Icon, index) => (
@@ -583,10 +582,26 @@ const LandingPage = () => {
             <div>
               <h3 className="font-semibold text-lg mb-4">Quick Access</h3>
               <ul className="space-y-3 text-green-100">
-                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-                <li><Link to="/apply" className="hover:text-white transition-colors">Apply Now</Link></li>
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li>
+                  <Link to="/" className="hover:text-white transition-colors">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/apply" className="hover:text-white transition-colors">
+                    Apply Now
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className="hover:text-white transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-white transition-colors">
+                    Contact
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -655,7 +670,7 @@ const LandingPage = () => {
         theme="light"
       />
     </div>
-  );
-};
+  )
+}
 
-export default LandingPage;
+export default LandingPage

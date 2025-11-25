@@ -45,9 +45,13 @@ const AppRoutes = () => {
         />
 
         {/* Redirect old student dashboard URL */}
-        <Route 
-          path="/student/dashboard" 
-          element={<ProtectedRoute><Dashboard /></ProtectedRoute>} 
+        <Route
+          path="/student/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </AuthProvider>
