@@ -193,7 +193,7 @@ const CourseManagement = () => {
         'original_fee',
         'duration',
         'seats_available',
-        'enrolled_students',
+        'enroll_count',
       ],
       [
         'Introduction to React',
@@ -291,7 +291,7 @@ const CourseManagement = () => {
         'original_fee',
         'duration',
         'seats_available',
-        'enrolled_students',
+        'enroll_count',
       ]
 
       const missingHeaders = requiredHeaders.filter(header => !headers.includes(header))
@@ -328,7 +328,7 @@ const CourseManagement = () => {
           original_fee: parseFloat(courseData.original_fee) || 0,
           duration: courseData.duration,
           seats_available: parseInt(courseData.seats_available) || 0,
-          enrolled_students: parseInt(courseData.enrolled_students) || 0,
+          enroll_count: parseInt(courseData.enroll_count) || 0,
         }
 
         // Validate required fields
@@ -545,7 +545,7 @@ const CourseManagement = () => {
         course.original_fee || '0',
         course.duration || '',
         course.seats_available || '0',
-        course.enrolled_students || '0',
+        course.enroll_count || '0',
         course.createdAt ? new Date(course.createdAt).toISOString() : '',
         course.updatedAt ? new Date(course.updatedAt).toISOString() : '',
       ])
@@ -875,7 +875,7 @@ const CourseManagement = () => {
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
               <div className="h-3 bg-gray-200 rounded w-3"></div>
             </th>
-            {['Course', 'Level', 'Mode', 'Students', 'Price', 'Status', 'Created', 'Actions'].map(
+            {['Course', 'Level', 'Mode', 'Enrolled', 'Price', 'Status', 'Created', 'Actions'].map(
               header => (
                 <th
                   key={header}
@@ -1343,7 +1343,7 @@ const CourseManagement = () => {
                       Mode
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Students
+                      Enrolled
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
@@ -1364,6 +1364,12 @@ const CourseManagement = () => {
                     const modeData = getModeIcon(course.mode)
                     const ModeIcon = modeData.icon
                     const discount = calculateDiscount(course.fee, course.original_fee)
+                    const enrollmentCount = course.enroll_count || 0
+                    const seatsAvailable = course.seats_available || 0
+                    const enrollmentPercentage =
+                      seatsAvailable > 0
+                        ? Math.min(100, (enrollmentCount / seatsAvailable) * 100)
+                        : 0
 
                     return (
                       <tr key={course.course_id} className="hover:bg-gray-50 transition-colors">
@@ -1412,10 +1418,22 @@ const CourseManagement = () => {
                             {modes.find(m => m.value === course.mode)?.label}
                           </div>
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                          <div className="flex items-center gap-0.5">
-                            <Users className="w-3 h-3 text-gray-400" />
-                            {course.seats_available || 0}
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="text-xs text-gray-900">
+                            <div className="flex items-center gap-0.5">
+                              <Users className="w-3 h-3 text-gray-400" />
+                              <span className="font-medium">{enrollmentCount}</span>
+                              <span className="text-gray-400 mx-0.5">/</span>
+                              <span className="text-gray-500">{seatsAvailable}</span>
+                            </div>
+                            {seatsAvailable > 0 && (
+                              <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                                <div
+                                  className="bg-green-600 h-1 rounded-full"
+                                  style={{ width: `${enrollmentPercentage}%` }}
+                                ></div>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
