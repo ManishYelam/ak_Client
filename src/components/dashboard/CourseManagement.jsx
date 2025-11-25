@@ -956,7 +956,7 @@ const CourseManagement = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Course Management</h1>
+          {/* <h1 className="text-lg font-bold text-gray-900">Course Management</h1> */}
           <p className="text-xs text-gray-600">Manage and monitor all your courses</p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
