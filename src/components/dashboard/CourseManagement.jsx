@@ -7,7 +7,6 @@ import {
   BookOpen,
   Users,
   Star,
-  RotateCcw,
   Filter,
   X,
   Plus,
@@ -27,6 +26,7 @@ import {
   BookOpen as BookIcon,
   CheckCircle2,
   XCircle,
+  FileText,
 } from 'lucide-react'
 import { coursesAPI } from '../../services/api'
 import CourseModal from './CourseModal'
@@ -34,7 +34,7 @@ import CourseModal from './CourseModal'
 const CourseManagement = () => {
   const [activeTab, setActiveTab] = useState('all')
   const [courses, setCourses] = useState([])
-  const [allCourses, setAllCourses] = useState([]) // Store all courses for counting
+  const [allCourses, setAllCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedCourses, setSelectedCourses] = useState([])
@@ -43,7 +43,9 @@ const CourseManagement = () => {
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
+  const [importLoading, setImportLoading] = useState(false)
   const [toast, setToast] = useState(null)
+  const [showImportModal, setShowImportModal] = useState(false)
 
   // Advanced Filter States
   const [filters, setFilters] = useState({
@@ -176,7 +178,201 @@ const CourseManagement = () => {
     ]
   }, [allCourses])
 
-  // Fetch courses with advanced filtering - FIXED VERSION
+  // Generate sample CSV file
+  const generateSampleCSV = () => {
+    const sampleData = [
+      [
+        'title',
+        'description',
+        'short_description',
+        'level',
+        'mode',
+        'status',
+        'featured',
+        'fee',
+        'original_fee',
+        'duration',
+        'seats_available',
+        'enrolled_students',
+      ],
+      [
+        'Introduction to React',
+        'Learn React from scratch with hands-on projects',
+        'Beginner friendly React course',
+        'beginner',
+        'online_self_paced',
+        'draft',
+        'false',
+        '4999',
+        '5999',
+        '6 weeks',
+        '50',
+        '0',
+      ],
+      [
+        'Advanced JavaScript',
+        'Master advanced JavaScript concepts and patterns',
+        'Deep dive into JavaScript',
+        'advanced',
+        'online_live',
+        'published',
+        'true',
+        '7999',
+        '8999',
+        '8 weeks',
+        '30',
+        '15',
+      ],
+      [
+        'Full Stack Development',
+        'Become a full stack developer with MERN stack',
+        'Complete web development bootcamp',
+        'intermediate',
+        'hybrid',
+        'published',
+        'false',
+        '12999',
+        '14999',
+        '12 weeks',
+        '25',
+        '10',
+      ],
+    ]
+
+    const csvContent = sampleData.map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+
+    link.setAttribute('href', url)
+    link.setAttribute('download', 'course_import_template.csv')
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    showToast('Sample CSV template downloaded', 'info')
+  }
+
+  // CSV Import functionality
+  const handleFileUpload = async event => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // Check if file is CSV
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      showToast('Please upload a CSV file', 'error')
+      return
+    }
+
+    setImportLoading(true)
+
+    try {
+      const text = await file.text()
+      const lines = text.split('\n').filter(line => line.trim())
+
+      if (lines.length < 2) {
+        throw new Error('CSV file must contain header and at least one data row')
+      }
+
+      const headers = lines[0].split(',').map(header => header.replace(/"/g, '').trim())
+
+      // Validate headers
+      const requiredHeaders = [
+        'title',
+        'description',
+        'short_description',
+        'level',
+        'mode',
+        'status',
+        'featured',
+        'fee',
+        'original_fee',
+        'duration',
+        'seats_available',
+        'enrolled_students',
+      ]
+
+      const missingHeaders = requiredHeaders.filter(header => !headers.includes(header))
+
+      if (missingHeaders.length > 0) {
+        throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`)
+      }
+
+      const coursesToImport = []
+
+      // Process data rows
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(value => value.replace(/"/g, '').trim())
+
+        if (values.length !== headers.length) {
+          throw new Error(`Row ${i + 1} has incorrect number of columns`)
+        }
+
+        const courseData = {}
+        headers.forEach((header, index) => {
+          courseData[header] = values[index]
+        })
+
+        // Validate and transform data
+        const validatedCourse = {
+          title: courseData.title,
+          description: courseData.description,
+          short_description: courseData.short_description,
+          level: courseData.level,
+          mode: courseData.mode,
+          status: courseData.status,
+          featured: courseData.featured === 'true',
+          fee: parseFloat(courseData.fee) || 0,
+          original_fee: parseFloat(courseData.original_fee) || 0,
+          duration: courseData.duration,
+          seats_available: parseInt(courseData.seats_available) || 0,
+          enrolled_students: parseInt(courseData.enrolled_students) || 0,
+        }
+
+        // Validate required fields
+        if (!validatedCourse.title) {
+          throw new Error(`Row ${i + 1}: Title is required`)
+        }
+
+        if (!['beginner', 'intermediate', 'advanced'].includes(validatedCourse.level)) {
+          throw new Error(`Row ${i + 1}: Level must be beginner, intermediate, or advanced`)
+        }
+
+        if (!['online_live', 'online_self_paced', 'hybrid'].includes(validatedCourse.mode)) {
+          throw new Error(`Row ${i + 1}: Mode must be online_live, online_self_paced, or hybrid`)
+        }
+
+        if (!['draft', 'published', 'archived'].includes(validatedCourse.status)) {
+          throw new Error(`Row ${i + 1}: Status must be draft, published, or archived`)
+        }
+
+        coursesToImport.push(validatedCourse)
+      }
+
+      // Import courses via API
+      const importPromises = coursesToImport.map(course => coursesAPI.create(course))
+
+      await Promise.all(importPromises)
+
+      showToast(`Successfully imported ${coursesToImport.length} courses`, 'success')
+      setShowImportModal(false)
+
+      // Refresh the course list
+      fetchCourses()
+      fetchAllCourses()
+    } catch (err) {
+      console.error('Error importing courses:', err)
+      showToast(`Import failed: ${err.message}`, 'error')
+    } finally {
+      setImportLoading(false)
+      // Reset file input
+      event.target.value = ''
+    }
+  }
+
+  // Fetch courses with advanced filtering
   const fetchCourses = useCallback(async () => {
     try {
       setLoading(true)
@@ -207,7 +403,7 @@ const CourseManagement = () => {
       // Featured filter
       if (filters.featured !== 'all') filterConditions.featured = filters.featured === 'true'
 
-      // Status filter - FIXED: Only apply if not 'all'
+      // Status filter
       if (filters.status !== 'all') {
         filterConditions.status = filters.status
       }
@@ -249,7 +445,7 @@ const CourseManagement = () => {
   const fetchAllCourses = useCallback(async () => {
     try {
       const payload = {
-        limit: 10000, // Get all courses for counting
+        limit: 10000,
         sortBy: 'created_at',
         sortOrder: 'DESC',
       }
@@ -271,7 +467,7 @@ const CourseManagement = () => {
       const payload = {
         sortBy: 'created_at',
         sortOrder: 'DESC',
-        limit: 10000, // Large number to get all courses
+        limit: 10000,
       }
 
       // Add current filters to export
@@ -309,7 +505,6 @@ const CourseManagement = () => {
     try {
       setExportLoading(true)
 
-      // Fetch all courses based on current filters
       const allCourses = await fetchAllCoursesForExport()
 
       if (!allCourses || allCourses.length === 0) {
@@ -390,7 +585,6 @@ const CourseManagement = () => {
       link.click()
       document.body.removeChild(link)
 
-      // Show success toast
       showToast(`Successfully exported ${allCourses.length} courses to ${filename}`, 'success')
     } catch (err) {
       console.error('Error exporting courses:', err)
@@ -465,17 +659,17 @@ const CourseManagement = () => {
   const handleCourseSaved = () => {
     closeCourseModal()
     fetchCourses()
-    fetchAllCourses() // Refresh counts
+    fetchAllCourses()
     showToast('Course saved successfully!', 'success')
   }
 
-  // FIXED: Handle status change from tabs
+  // Handle status change from tabs
   const handleStatusChange = status => {
     setActiveTab(status)
     setFilters(prev => ({
       ...prev,
       status: status === 'all' ? 'all' : status,
-      page: 1, // Reset to first page when changing filters
+      page: 1,
     }))
   }
 
@@ -578,7 +772,7 @@ const CourseManagement = () => {
             setBulkAction('')
             setSelectedCourses([])
             fetchCourses()
-            fetchAllCourses() // Refresh counts
+            fetchAllCourses()
             showToast(`Successfully deleted ${selectedCourses.length} courses`, 'success')
           }
         )
@@ -587,7 +781,7 @@ const CourseManagement = () => {
         setBulkAction('')
         setSelectedCourses([])
         fetchCourses()
-        fetchAllCourses() // Refresh counts
+        fetchAllCourses()
         showToast(`Successfully updated ${selectedCourses.length} courses`, 'success')
       }
     } catch (err) {
@@ -601,7 +795,7 @@ const CourseManagement = () => {
     try {
       await coursesAPI.update(courseId, { status: newStatus })
       fetchCourses()
-      fetchAllCourses() // Refresh counts
+      fetchAllCourses()
       showToast('Course status updated successfully', 'success')
     } catch (err) {
       console.error('Error updating course status:', err)
@@ -619,7 +813,7 @@ const CourseManagement = () => {
         try {
           await coursesAPI.delete(courseId)
           fetchCourses()
-          fetchAllCourses() // Refresh counts
+          fetchAllCourses()
           showToast('Course deleted successfully', 'success')
         } catch (err) {
           console.error('Error deleting course:', err)
@@ -766,10 +960,24 @@ const CourseManagement = () => {
           <p className="text-xs text-gray-600">Manage and monitor all your courses</p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
-          <button className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors">
-            <Upload className="w-2.5 h-2.5" />
-            Import
-          </button>
+          {/* Import Button with Sample Download */}
+          <div className="flex gap-1">
+            <button
+              onClick={generateSampleCSV}
+              className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              title="Download Sample CSV Template"
+            >
+              <FileText className="w-2.5 h-2.5" />
+              Sample
+            </button>
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+            >
+              <Upload className="w-2.5 h-2.5" />
+              Import
+            </button>
+          </div>
 
           <button
             onClick={exportToCSV}
@@ -792,11 +1000,77 @@ const CourseManagement = () => {
         </div>
       </div>
 
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Import Courses</h3>
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">CSV Format Requirements:</h4>
+                <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+                  <li>File must be in CSV format</li>
+                  <li>Include all required columns (see sample)</li>
+                  <li>Level: beginner, intermediate, or advanced</li>
+                  <li>Mode: online_live, online_self_paced, or hybrid</li>
+                  <li>Status: draft, published, or archived</li>
+                  <li>Featured: true or false</li>
+                  <li>Fee values should be numbers only (no currency symbols)</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={generateSampleCSV}
+                  className="flex items-center gap-1 px-3 py-2 text-xs border border-primary-300 rounded text-primary-700 bg-primary-50 hover:bg-primary-100 font-medium transition-colors"
+                >
+                  <FileText className="w-3 h-3" />
+                  Download Sample Template
+                </button>
+              </div>
+
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  id="csv-upload"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <label htmlFor="csv-upload" className="cursor-pointer block">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-gray-900 mb-1">Upload CSV File</p>
+                  <p className="text-xs text-gray-500">Click to browse or drag and drop</p>
+                </label>
+              </div>
+
+              {importLoading && (
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                    Importing courses...
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs and Controls */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col min-h-0">
         <div className="p-3 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
-            {/* Tabs - FIXED */}
+            {/* Tabs */}
             <div className="flex space-x-0.5 bg-gray-100 p-0.5 rounded-md">
               {tabs.map(tab => {
                 const IconComponent = tab.icon
@@ -1221,7 +1495,7 @@ const CourseManagement = () => {
             </div>
           )}
 
-          {/* Pagination - Always visible at bottom */}
+          {/* Pagination */}
           {pagination.totalPages > 1 && (
             <div className="flex-shrink-0 border-t border-gray-200 bg-white">
               <div className="flex flex-col sm:flex-row items-center justify-between px-3 py-2 gap-2">
