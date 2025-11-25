@@ -12,9 +12,14 @@ export const authAPI = {
 
 export const coursesAPI = {
   getAll: (data) => api.post('/courses', data),
-  getById: (id) => api.get(`/courses/${id}`),
+  getFeatured: () => api.get('/courses/featured'),
   getBySlug: (slug) => api.get(`/courses/slug/${slug}`),
-}
+  getById: (id) => api.get(`/courses/${id}`),
+
+  create: (courseData) => api.post('/courses', courseData),
+  update: (id, courseData) => api.put(`/courses/${id}`, courseData),
+  delete: (id) => api.delete(`/courses/${id}`),
+};
 
 export const paymentsAPI = {
   createRazorpayOrder: (orderData) => api.post('/payments/create-order', orderData),

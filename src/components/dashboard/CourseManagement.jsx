@@ -1,259 +1,1290 @@
 // src/pages/dashboard/CourseManagement.jsx
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  Search,
+  Edit,
+  Trash2,
+  BookOpen,
+  Users,
+  Star,
+  RotateCcw,
+  Filter,
+  X,
+  Plus,
+  Download,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  SlidersHorizontal,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Archive,
+  Sparkles,
+  Clock,
+  BookOpen as BookIcon,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react'
+import { coursesAPI } from '../../services/api'
+import CourseModal from './CourseModal'
 
 const CourseManagement = () => {
   const [activeTab, setActiveTab] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [courses, setCourses] = useState([])
+  const [allCourses, setAllCourses] = useState([]) // Store all courses for counting
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [selectedCourses, setSelectedCourses] = useState([])
+  const [bulkAction, setBulkAction] = useState('')
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [showCourseModal, setShowCourseModal] = useState(false)
+  const [editingCourse, setEditingCourse] = useState(null)
+  const [exportLoading, setExportLoading] = useState(false)
+  const [toast, setToast] = useState(null)
 
-  const courses = [
-    {
-      id: 1,
-      title: "SAP ABAP Basics",
-      description: "Learn the fundamentals of SAP ABAP programming",
-      instructor: "Akshay Kumar",
-      category: "Programming",
-      level: "Beginner",
-      duration: "6 weeks",
-      students: 120,
-      rating: 4.8,
-      price: 99,
-      status: "published",
-      created: "2024-01-10",
-      thumbnail: "/images/course-placeholder.jpg"
-    },
-    {
-      id: 2,
-      title: "Advanced ABAP Programming",
-      description: "Master advanced ABAP concepts and techniques",
-      instructor: "Akshay Kumar",
-      category: "Programming",
-      level: "Intermediate",
-      duration: "8 weeks",
-      students: 85,
-      rating: 4.9,
-      price: 149,
-      status: "published",
-      created: "2024-01-15",
-      thumbnail: "/images/course-placeholder.jpg"
-    },
-    {
-      id: 3,
-      title: "SAP Fiori Development",
-      description: "Build modern SAP Fiori applications",
-      instructor: "Akshay Kumar",
-      category: "UI Development",
-      level: "Advanced",
-      duration: "10 weeks",
-      students: 65,
-      rating: 4.7,
-      price: 199,
-      status: "draft",
-      created: "2024-02-01",
-      thumbnail: "/images/course-placeholder.jpg"
-    },
-    {
-      id: 4,
-      title: "ABAP Object-Oriented Programming",
-      description: "Learn OOP concepts in ABAP",
-      instructor: "Akshay Kumar",
-      category: "Programming",
-      level: "Intermediate",
-      duration: "7 weeks",
-      students: 45,
-      rating: 4.6,
-      price: 129,
-      status: "published",
-      created: "2024-01-20",
-      thumbnail: "/images/course-placeholder.jpg"
-    }
-  ]
-
-  const tabs = [
-    { id: 'all', name: 'All Courses', count: courses.length },
-    { id: 'published', name: 'Published', count: courses.filter(c => c.status === 'published').length },
-    { id: 'draft', name: 'Drafts', count: courses.filter(c => c.status === 'draft').length },
-    { id: 'archived', name: 'Archived', count: 0 }
-  ]
-
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesTab = activeTab === 'all' || course.status === activeTab
-    return matchesSearch && matchesTab
+  // Advanced Filter States
+  const [filters, setFilters] = useState({
+    search: '',
+    level: 'all',
+    status: 'all',
+    mode: 'all',
+    featured: 'all',
+    page: 1,
+    limit: 5
   })
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800'
-      case 'draft': return 'bg-yellow-100 text-yellow-800'
-      case 'archived': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5,
+    totalItems: 0,
+    totalPages: 0
+  })
+
+  // Confirmation Modal State
+  const [confirmationModal, setConfirmationModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    type: '',
+    onConfirm: null,
+    data: null
+  })
+
+  // Show toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, id: Date.now() })
+    setTimeout(() => {
+      setToast(null)
+    }, 4000)
+  }
+
+  // Available filter options
+  const levels = useMemo(() => [
+    { value: 'beginner', label: 'Beginner', color: 'bg-blue-100 text-blue-800 border border-blue-200' },
+    { value: 'intermediate', label: 'Intermediate', color: 'bg-purple-100 text-purple-800 border border-purple-200' },
+    { value: 'advanced', label: 'Advanced', color: 'bg-red-100 text-red-800 border border-red-200' }
+  ], [])
+
+  const modes = useMemo(() => [
+    { value: 'online_live', label: 'Live Online', icon: Clock, color: 'text-blue-600' },
+    { value: 'online_self_paced', label: 'Self Paced', icon: BookIcon, color: 'text-green-600' },
+    { value: 'hybrid', label: 'Hybrid', icon: SlidersHorizontal, color: 'text-purple-600' }
+  ], [])
+
+  const statusOptions = useMemo(() => [
+    { value: 'draft', label: 'Draft', color: 'bg-gray-100 text-gray-700 border border-gray-300' },
+    { value: 'published', label: 'Published', color: 'bg-green-100 text-green-700 border border-green-300' },
+    { value: 'archived', label: 'Archived', color: 'bg-orange-100 text-orange-700 border border-orange-300' }
+  ], [])
+
+  // Calculate tab counts based on allCourses
+  const tabs = useMemo(() => {
+    if (!allCourses.length) return [
+      { id: 'all', name: 'All Courses', count: 0, icon: BookOpen, color: 'text-gray-600' },
+      { id: 'published', name: 'Published', count: 0, icon: CheckCircle, color: 'text-green-600' },
+      { id: 'draft', name: 'Drafts', count: 0, icon: AlertCircle, color: 'text-yellow-600' },
+      { id: 'archived', name: 'Archived', count: 0, icon: Archive, color: 'text-orange-600' }
+    ]
+
+    const allCount = allCourses.length
+    const publishedCount = allCourses.filter(course => course.status === 'published').length
+    const draftCount = allCourses.filter(course => course.status === 'draft').length
+    const archivedCount = allCourses.filter(course => course.status === 'archived').length
+
+    return [
+      { id: 'all', name: 'All Courses', count: allCount, icon: BookOpen, color: 'text-gray-600' },
+      { id: 'published', name: 'Published', count: publishedCount, icon: CheckCircle, color: 'text-green-600' },
+      { id: 'draft', name: 'Drafts', count: draftCount, icon: AlertCircle, color: 'text-yellow-600' },
+      { id: 'archived', name: 'Archived', count: archivedCount, icon: Archive, color: 'text-orange-600' }
+    ]
+  }, [allCourses])
+
+  // Fetch courses with advanced filtering - FIXED VERSION
+  const fetchCourses = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const payload = {
+        page: filters.page,
+        limit: filters.limit,
+        sortBy: 'created_at',
+        sortOrder: 'DESC'
+      }
+
+      // Add search
+      if (filters.search.trim()) {
+        payload.search = filters.search.trim()
+        payload.searchFields = 'title,description,short_description'
+      }
+
+      // Add filters based on your API fields
+      const filterConditions = {}
+      
+      // Level filter
+      if (filters.level !== 'all') filterConditions.level = filters.level
+      
+      // Mode filter
+      if (filters.mode !== 'all') filterConditions.mode = filters.mode
+      
+      // Featured filter
+      if (filters.featured !== 'all') filterConditions.featured = filters.featured === 'true'
+      
+      // Status filter - FIXED: Only apply if not 'all'
+      if (filters.status !== 'all') {
+        filterConditions.status = filters.status
+      }
+
+      if (Object.keys(filterConditions).length > 0) {
+        payload.filters = filterConditions
+      }
+
+      const response = await coursesAPI.getAll(payload)
+      const responseData = response.data
+
+      if (responseData && responseData.success) {
+        const coursesData = responseData.courses || []
+        setCourses(coursesData)
+
+        // Update pagination from API response
+        if (responseData.pagination) {
+          setPagination(responseData.pagination)
+        } else {
+          setPagination({
+            page: filters.page,
+            limit: filters.limit,
+            totalItems: coursesData.length,
+            totalPages: Math.ceil(coursesData.length / filters.limit)
+          })
+        }
+
+      } else {
+        throw new Error('Invalid response format')
+      }
+
+    } catch (err) {
+      setError('Failed to load courses. Please try again.')
+      console.error('Error fetching courses:', err)
+    } finally {
+      setLoading(false)
     }
+  }, [filters])
+
+  // Fetch all courses for counting and export
+  const fetchAllCourses = useCallback(async () => {
+    try {
+      const payload = {
+        limit: 10000, // Get all courses for counting
+        sortBy: 'created_at',
+        sortOrder: 'DESC'
+      }
+
+      const response = await coursesAPI.getAll(payload)
+      const responseData = response.data
+
+      if (responseData && responseData.success) {
+        setAllCourses(responseData.courses || [])
+      }
+    } catch (err) {
+      console.error('Error fetching all courses:', err)
+    }
+  }, [])
+
+  // Fetch all courses for export (without pagination)
+  const fetchAllCoursesForExport = async () => {
+    try {
+      const payload = {
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+        limit: 10000 // Large number to get all courses
+      }
+
+      // Add current filters to export
+      if (filters.search.trim()) {
+        payload.search = filters.search.trim()
+        payload.searchFields = 'title,description,short_description'
+      }
+
+      const filterConditions = {}
+      if (filters.level !== 'all') filterConditions.level = filters.level
+      if (filters.mode !== 'all') filterConditions.mode = filters.mode
+      if (filters.featured !== 'all') filterConditions.featured = filters.featured === 'true'
+      if (filters.status !== 'all') filterConditions.status = filters.status
+
+      if (Object.keys(filterConditions).length > 0) {
+        payload.filters = filterConditions
+      }
+
+      const response = await coursesAPI.getAll(payload)
+      const responseData = response.data
+
+      if (responseData && responseData.success) {
+        return responseData.courses || []
+      } else {
+        throw new Error('Invalid response format')
+      }
+    } catch (err) {
+      console.error('Error fetching courses for export:', err)
+      throw err
+    }
+  }
+
+  // Export to CSV functionality
+  const exportToCSV = async () => {
+    try {
+      setExportLoading(true)
+      
+      // Fetch all courses based on current filters
+      const allCourses = await fetchAllCoursesForExport()
+      
+      if (!allCourses || allCourses.length === 0) {
+        showToast('No courses found to export.', 'error')
+        return
+      }
+
+      // Define CSV headers
+      const headers = [
+        'Course ID',
+        'Title',
+        'Description',
+        'Short Description',
+        'Level',
+        'Mode',
+        'Status',
+        'Featured',
+        'Fee',
+        'Original Fee',
+        'Duration',
+        'Seats Available',
+        'Enrolled Students',
+        'Created At',
+        'Updated At'
+      ]
+
+      // Convert courses data to CSV rows
+      const csvRows = allCourses.map(course => [
+        course.course_id || '',
+        `"${(course.title || '').replace(/"/g, '""')}"`,
+        `"${(course.description || '').replace(/"/g, '""')}"`,
+        `"${(course.short_description || '').replace(/"/g, '""')}"`,
+        course.level || '',
+        course.mode || '',
+        course.status || '',
+        course.featured ? 'Yes' : 'No',
+        course.fee || '0',
+        course.original_fee || '0',
+        course.duration || '',
+        course.seats_available || '0',
+        course.enrolled_students || '0',
+        course.createdAt ? new Date(course.createdAt).toISOString() : '',
+        course.updatedAt ? new Date(course.updatedAt).toISOString() : ''
+      ])
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...csvRows.map(row => row.join(','))
+      ].join('\n')
+
+      // Create and download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      
+      // Generate filename with timestamp and filters
+      const timestamp = new Date().toISOString().split('T')[0]
+      let filename = `courses_export_${timestamp}`
+      
+      // Add filter info to filename if any filters are active
+      if (hasActiveFilters) {
+        const filterParts = []
+        if (filters.search) filterParts.push('search')
+        if (filters.level !== 'all') filterParts.push(filters.level)
+        if (filters.status !== 'all') filterParts.push(filters.status)
+        if (filters.mode !== 'all') filterParts.push(filters.mode)
+        if (filters.featured !== 'all') filterParts.push(`featured_${filters.featured}`)
+        
+        if (filterParts.length > 0) {
+          filename += `_${filterParts.join('_')}`
+        }
+      }
+      
+      filename += '.csv'
+
+      link.setAttribute('href', url)
+      link.setAttribute('download', filename)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Show success toast
+      showToast(`Successfully exported ${allCourses.length} courses to ${filename}`, 'success')
+      
+    } catch (err) {
+      console.error('Error exporting courses:', err)
+      showToast('Failed to export courses. Please try again.', 'error')
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  // Debounced search and filter changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchCourses()
+    }, 350)
+
+    return () => clearTimeout(timeoutId)
+  }, [fetchCourses])
+
+  // Fetch all courses for counting on component mount
+  useEffect(() => {
+    fetchAllCourses()
+  }, [fetchAllCourses])
+
+  // Refresh counts when courses change
+  useEffect(() => {
+    if (courses.length > 0) {
+      fetchAllCourses()
+    }
+  }, [courses.length])
+
+  // Confirmation Modal Functions
+  const showConfirmation = (title, message, type, onConfirm, data = null) => {
+    setConfirmationModal({
+      show: true,
+      title,
+      message,
+      type,
+      onConfirm,
+      data
+    })
+  }
+
+  const hideConfirmation = () => {
+    setConfirmationModal({
+      show: false,
+      title: '',
+      message: '',
+      type: '',
+      onConfirm: null,
+      data: null
+    })
+  }
+
+  const handleConfirm = () => {
+    if (confirmationModal.onConfirm) {
+      confirmationModal.onConfirm(confirmationModal.data)
+    }
+    hideConfirmation()
+  }
+
+  // Course Modal Functions
+  const openCourseModal = (course = null) => {
+    setEditingCourse(course)
+    setShowCourseModal(true)
+  }
+
+  const closeCourseModal = () => {
+    setShowCourseModal(false)
+    setEditingCourse(null)
+  }
+
+  const handleCourseSaved = () => {
+    closeCourseModal()
+    fetchCourses()
+    fetchAllCourses() // Refresh counts
+    showToast('Course saved successfully!', 'success')
+  }
+
+  // FIXED: Handle status change from tabs
+  const handleStatusChange = (status) => {
+    setActiveTab(status)
+    setFilters(prev => ({
+      ...prev,
+      status: status === 'all' ? 'all' : status,
+      page: 1 // Reset to first page when changing filters
+    }))
+  }
+
+  // Filter handlers
+  const handleSearchChange = (value) => {
+    setFilters(prev => ({
+      ...prev,
+      search: value,
+      page: 1
+    }))
+  }
+
+  const handleLevelChange = (level) => {
+    setFilters(prev => ({
+      ...prev,
+      level: level,
+      page: 1
+    }))
+  }
+
+  const handleModeChange = (mode) => {
+    setFilters(prev => ({
+      ...prev,
+      mode: mode,
+      page: 1
+    }))
+  }
+
+  const handleFeaturedChange = (featured) => {
+    setFilters(prev => ({
+      ...prev,
+      featured: featured,
+      page: 1
+    }))
+  }
+
+  const handleLimitChange = (newLimit) => {
+    setFilters(prev => ({
+      ...prev,
+      limit: parseInt(newLimit),
+      page: 1
+    }))
+  }
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setFilters(prev => ({ ...prev, page: newPage }))
+    }
+  }
+
+  const clearAllFilters = () => {
+    setFilters({
+      search: '',
+      level: 'all',
+      status: 'all',
+      mode: 'all',
+      featured: 'all',
+      page: 1,
+      limit: 5
+    })
+    setActiveTab('all')
+    showToast('All filters cleared', 'info')
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return filters.search !== '' ||
+      filters.level !== 'all' ||
+      filters.status !== 'all' ||
+      filters.mode !== 'all' ||
+      filters.featured !== 'all'
+  }, [filters])
+
+  // Course selection and bulk actions
+  const toggleCourseSelection = (courseId) => {
+    setSelectedCourses(prev =>
+      prev.includes(courseId)
+        ? prev.filter(id => id !== courseId)
+        : [...prev, courseId]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedCourses(
+      selectedCourses.length === courses.length
+        ? []
+        : courses.map(course => course.course_id)
+    )
+  }
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedCourses.length === 0) return
+
+    try {
+      if (bulkAction === 'delete') {
+        showConfirmation(
+          'Delete Courses',
+          `Are you sure you want to delete ${selectedCourses.length} selected course(s)? This action cannot be undone.`,
+          'bulkDelete',
+          async () => {
+            await Promise.all(selectedCourses.map(id => coursesAPI.delete(id)))
+            setBulkAction('')
+            setSelectedCourses([])
+            fetchCourses()
+            fetchAllCourses() // Refresh counts
+            showToast(`Successfully deleted ${selectedCourses.length} courses`, 'success')
+          }
+        )
+      } else {
+        await Promise.all(selectedCourses.map(id =>
+          coursesAPI.update(id, { status: bulkAction })
+        ))
+        setBulkAction('')
+        setSelectedCourses([])
+        fetchCourses()
+        fetchAllCourses() // Refresh counts
+        showToast(`Successfully updated ${selectedCourses.length} courses`, 'success')
+      }
+    } catch (err) {
+      console.error('Error performing bulk action:', err)
+      showToast('Failed to perform bulk action', 'error')
+    }
+  }
+
+  // Individual course actions
+  const handleStatusUpdate = async (courseId, newStatus) => {
+    try {
+      await coursesAPI.update(courseId, { status: newStatus })
+      fetchCourses()
+      fetchAllCourses() // Refresh counts
+      showToast('Course status updated successfully', 'success')
+    } catch (err) {
+      console.error('Error updating course status:', err)
+      showToast('Failed to update course status', 'error')
+    }
+  }
+
+  const handleDeleteCourse = (courseId) => {
+    const course = courses.find(c => c.course_id === courseId)
+    showConfirmation(
+      'Delete Course',
+      `Are you sure you want to delete the course "${course?.title}"? This action cannot be undone.`,
+      'delete',
+      async () => {
+        try {
+          await coursesAPI.delete(courseId)
+          fetchCourses()
+          fetchAllCourses() // Refresh counts
+          showToast('Course deleted successfully', 'success')
+        } catch (err) {
+          console.error('Error deleting course:', err)
+          showToast('Failed to delete course', 'error')
+        }
+      }
+    )
+  }
+
+  // Utility functions
+  const getStatusColor = (status) => {
+    const statusObj = statusOptions.find(s => s.value === status)
+    return statusObj ? statusObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
   const getLevelColor = (level) => {
-    switch (level) {
-      case 'Beginner': return 'bg-blue-100 text-blue-800'
-      case 'Intermediate': return 'bg-purple-100 text-purple-800'
-      case 'Advanced': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
+    const levelObj = levels.find(l => l.value === level)
+    return levelObj ? levelObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
+  const getModeIcon = (mode) => {
+    const modeObj = modes.find(m => m.value === mode)
+    return modeObj || { icon: Clock, color: 'text-gray-600' }
+  }
+
+  const formatLevel = (level) => {
+    return level ? level.charAt(0).toUpperCase() + level.slice(1) : 'Not Set'
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown'
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const formatPrice = (price) => {
+    const value = Number(price);
+    if (isNaN(value)) return "₹0.00";
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const calculateDiscount = (fee, originalFee) => {
+    if (!originalFee || parseFloat(originalFee) <= parseFloat(fee)) return 0
+    return Math.round(((parseFloat(originalFee) - parseFloat(fee)) / parseFloat(originalFee)) * 100)
+  }
+
+  const LoadingSkeleton = () => (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+              <div className="h-3 bg-gray-200 rounded w-3"></div>
+            </th>
+            {['Course', 'Level', 'Mode', 'Students', 'Price', 'Status', 'Created', 'Actions'].map((header) => (
+              <th key={header} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="h-3 bg-gray-200 rounded w-14"></div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <tr key={index} className="animate-pulse">
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-3 bg-gray-200 rounded w-3"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="flex items-center">
+                  <div className="h-6 w-6 bg-gray-200 rounded-md mr-1.5"></div>
+                  <div>
+                    <div className="h-3 bg-gray-200 rounded w-24 mb-0.5"></div>
+                    <div className="h-2 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-5 bg-gray-200 rounded w-14"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded w-10"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-3 bg-gray-200 rounded w-8"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-5 bg-gray-200 rounded w-14"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-3 bg-gray-200 rounded w-16"></div>
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                <div className="h-6 bg-gray-200 rounded w-12"></div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 p-3">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-green-50 text-green-800 border-green-200' 
+            : toast.type === 'error'
+            ? 'bg-red-50 text-red-800 border-red-200'
+            : 'bg-blue-50 text-blue-800 border-blue-200'
+        }`}>
+          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-600" />}
+          {toast.type === 'error' && <XCircle className="w-5 h-5 text-red-600" />}
+          {toast.type === 'info' && <AlertCircle className="w-5 h-5 text-blue-600" />}
+          <span className="text-sm font-medium">{toast.message}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Course Management</h1>
-          <p className="text-gray-600">Create, manage, and monitor all courses</p>
+          <h1 className="text-lg font-bold text-gray-900">Course Management</h1>
+          <p className="text-xs text-gray-600">Manage and monitor all your courses</p>
         </div>
-        <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium mt-4 lg:mt-0">
-          Create New Course
-        </button>
+        <div className="flex gap-1 mt-2 lg:mt-0">
+          <button className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors">
+            <Upload className="w-2.5 h-2.5" />
+            Import
+          </button>
+
+          <button 
+            onClick={exportToCSV}
+            disabled={exportLoading}
+            className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-2.5 h-2.5" />
+            {exportLoading ? 'Exporting...' : 'Export'}
+          </button>
+
+          <button
+            onClick={() => openCourseModal()}
+            className="flex items-center gap-0.5 px-2 py-0.5 bg-gradient-to-r from-primary-600 to-primary-700 
+               hover:from-primary-700 hover:to-primary-800 text-white rounded 
+               font-medium text-xs shadow-sm transition-all duration-200"
+          >
+            <Plus className="w-2.5 h-2.5" />
+            New Course
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm font-medium text-gray-600">Total Courses</p>
-          <p className="text-2xl font-bold text-gray-900">12</p>
-          <p className="text-sm text-green-600">+2 this month</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm font-medium text-gray-600">Total Students</p>
-          <p className="text-2xl font-bold text-gray-900">487</p>
-          <p className="text-sm text-blue-600">Active enrollments</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm font-medium text-gray-600">Avg Rating</p>
-          <p className="text-2xl font-bold text-gray-900">4.8</p>
-          <p className="text-sm text-yellow-600">Out of 5 stars</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm font-medium text-gray-600">Revenue</p>
-          <p className="text-2xl font-bold text-gray-900">$12.5K</p>
-          <p className="text-sm text-green-600">This month</p>
-        </div>
-      </div>
+      {/* Tabs and Controls */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="p-3 border-b border-gray-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
+            {/* Tabs - FIXED */}
+            <div className="flex space-x-0.5 bg-gray-100 p-0.5 rounded-md">
+              {tabs.map(tab => {
+                const IconComponent = tab.icon
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleStatusChange(tab.id)}
+                    className={`px-2 py-1 text-xs font-medium rounded-sm transition-all duration-200 flex items-center gap-1 ${
+                      activeTab === tab.id
+                        ? 'bg-white text-primary-600 shadow-xs border border-primary-200'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                    }`}
+                  >
+                    <IconComponent className={`w-3 h-3 ${activeTab === tab.id ? tab.color : ''}`} />
+                    {tab.name}
+                    <span
+                      className={`px-0.5 py-0.5 text-xs rounded-full min-w-4 flex items-center justify-center ${
+                        activeTab === tab.id
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
 
-      {/* Tabs and Search */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          {/* Tabs */}
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            {tabs.map(tab => (
+            {/* Search and Bulk Actions */}
+            <div className="flex flex-col sm:flex-row gap-1.5">
+              {/* Bulk Actions */}
+              {selectedCourses.length > 0 && (
+                <div className="flex items-center gap-1.5 bg-primary-50 rounded-md">
+                  <select
+                    value={bulkAction}
+                    onChange={(e) => setBulkAction(e.target.value)}
+                    className="text-xs border border-primary-300 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                  >
+                    <option value="">Bulk Actions</option>
+                    <option value="published">Publish</option>
+                    <option value="draft">Move to Draft</option>
+                    <option value="archived">Archive</option>
+                    <option value="delete">Delete</option>
+                  </select>
+                  <button
+                    onClick={handleBulkAction}
+                    disabled={!bulkAction}
+                    className="px-1.5 py-0.5 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium transition-colors"
+                  >
+                    Apply
+                  </button>
+                  <span className="text-xs text-primary-700 font-medium">
+                    {selectedCourses.length} selected
+                  </span>
+                </div>
+              )}
+
+              {/* Advanced Filters Toggle */}
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${showAdvancedFilters || hasActiveFilters
+                  ? 'bg-primary-100 text-primary-700 border border-primary-300'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
+                  }`}
               >
-                {tab.name} ({tab.count})
+                <SlidersHorizontal className="w-3 h-3" />
+                Filters {hasActiveFilters && '•'}
               </button>
-            ))}
-          </div>
 
-          {/* Search */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full lg:w-64"
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                <input
+                  type="text"
+                  placeholder="Search courses..."
+                  value={filters.search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-7 pr-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-40 text-xs"
+                />
+              </div>
             </div>
           </div>
+
+          {/* Advanced Filters Panel */}
+          {showAdvancedFilters && (
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                {/* Level Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Level</label>
+                  <select
+                    value={filters.level}
+                    onChange={(e) => handleLevelChange(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="all">All Levels</option>
+                    {levels.map(level => (
+                      <option key={level.value} value={level.value}>{level.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Mode Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Mode</label>
+                  <select
+                    value={filters.mode}
+                    onChange={(e) => handleModeChange(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="all">All Modes</option>
+                    {modes.map(mode => (
+                      <option key={mode.value} value={mode.value}>{mode.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Featured Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Featured</label>
+                  <select
+                    value={filters.featured}
+                    onChange={(e) => handleFeaturedChange(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="all">All Courses</option>
+                    <option value="true">Featured</option>
+                    <option value="false">Regular</option>
+                  </select>
+                </div>
+
+                {/* Results Per Page */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Per Page</label>
+                  <select
+                    value={filters.limit}
+                    onChange={(e) => handleLimitChange(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="5">5 per page</option>
+                    <option value="10">10 per page</option>
+                    <option value="15">15 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Active Filters Display */}
+              {hasActiveFilters && (
+                <div className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200 mt-2">
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-xs font-medium text-blue-800">Active Filters:</span>
+                    {filters.search && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        Search: "{filters.search}"
+                        <button
+                          onClick={() => handleSearchChange('')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                    {filters.level !== 'all' && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        Level: {levels.find(l => l.value === filters.level)?.label}
+                        <button
+                          onClick={() => handleLevelChange('all')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                    {filters.mode !== 'all' && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        Mode: {modes.find(m => m.value === filters.mode)?.label}
+                        <button
+                          onClick={() => handleModeChange('all')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                    {filters.featured !== 'all' && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        Featured: {filters.featured === 'true' ? 'Yes' : 'No'}
+                        <button
+                          onClick={() => handleFeaturedChange('all')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                    {filters.status !== 'all' && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        Status: {statusOptions.find(s => s.value === filters.status)?.label}
+                        <button
+                          onClick={() => handleStatusChange('all')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredCourses.map(course => (
-          <div key={course.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-            {/* Course Image */}
-            <div className="relative">
-              <img 
-                src={course.thumbnail} 
-                alt={course.title}
-                className="w-full h-48 object-cover"
-                onError={(e) => {
-                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDQwMCAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMTkyIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgOTZDMjAwIDExOS43NjUgMTgwLjc2NSAxMzkgMTU3IDEzOUMxMzMuMjM1IDEzOSAxMTQgMTE5Ljc2NSAxMTQgOTZDMTE0IDcyLjIzNSAxMzMuMjM1IDUzIDE1NyA1M0MxODAuNzY1IDUzIDIwMCA3Mi4yMzUgMjAwIDk2WiIgZmlsbD0iIzhFOUEBMiIvPgo8cGF0aCBkPSJNMjg2IDE5Mkg3OEM3MCAxOTIgNjQgMTg2IDY0IDE3OFYxMzhIMjg2VjE3OEMyODYgMTg2IDI4MCAxOTIgMjcyIDE5MloiIGZpbGw9IiM4RTlBQTIiLz4KPC9zdmc+Cg=='
-                }}
-              />
-              <div className="absolute top-3 right-3 flex space-x-2">
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(course.status)}`}>
-                  {course.status}
-                </span>
-                <span className={`px-2 py-1 text-xs rounded-full ${getLevelColor(course.level)}`}>
-                  {course.level}
-                </span>
+        {/* Table Container with Fixed Height */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {loading ? (
+            <div className="flex-1">
+              <LoadingSkeleton />
+            </div>
+          ) : error ? (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Filter className="w-4 h-4 text-red-500" />
+                </div>
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Unable to Load Courses</h3>
+                <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">{error}</p>
+                <button
+                  onClick={fetchCourses}
+                  className="px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors text-xs font-medium"
+                >
+                  Try Again
+                </button>
               </div>
             </div>
+          ) : courses.length > 0 ? (
+            <div className="flex-1 overflow-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                      <input
+                        type="checkbox"
+                        checked={selectedCourses.length === courses.length && courses.length > 0}
+                        onChange={toggleSelectAll}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                      />
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Course
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Level
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Mode
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Students
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {courses.map((course) => {
+                    const modeData = getModeIcon(course.mode)
+                    const ModeIcon = modeData.icon
+                    const discount = calculateDiscount(course.fee, course.original_fee)
 
-            {/* Course Content */}
-            <div className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">{course.description}</p>
-              
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                  </svg>
-                  {course.rating}
-                </span>
-                <span className="mx-2">•</span>
-                <span>{course.students} students</span>
-                <span className="mx-2">•</span>
-                <span>{course.duration}</span>
+                    return (
+                      <tr key={course.course_id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedCourses.includes(course.course_id)}
+                            onChange={() => toggleCourseSelection(course.course_id)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                          />
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-6 w-6 bg-gray-100 rounded-md flex items-center justify-center mr-1.5 border border-gray-200">
+                              <BookOpen className="w-3 h-3 text-gray-500" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-medium text-gray-900 line-clamp-1 flex items-center gap-0.5">
+                                {course.title}
+                                {course.featured && (
+                                  <Sparkles className="w-2.5 h-2.5 text-yellow-500" title="Featured" />
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
+                                <Star className="w-2 h-2 text-yellow-400 fill-current" />
+                                <span>4.8</span>
+                                <span className="mx-0.5">•</span>
+                                <span>{course.duration}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}>
+                            {formatLevel(course.level)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <ModeIcon className={`w-3 h-3 ${modeData.color}`} />
+                            {modes.find(m => m.value === course.mode)?.label}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
+                          <div className="flex items-center gap-0.5">
+                            <Users className="w-3 h-3 text-gray-400" />
+                            {course.seats_available || 0}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="text-xs font-medium text-gray-900">
+                            {formatPrice(course.fee)}
+                          </div>
+                          {discount > 0 && (
+                            <div className="flex items-center gap-0.5 text-xs mt-0.5">
+                              <span className="text-gray-500 line-through">{formatPrice(course.original_fee)}</span>
+                              <span className="text-green-600 font-medium">{discount}% off</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <select
+                            value={course.status || 'draft'}
+                            onChange={(e) => handleStatusUpdate(course.course_id, e.target.value)}
+                            className={`text-xs font-medium rounded-full border-0 focus:ring-1 focus:ring-primary-500 px-1.5 py-0.5 ${getStatusColor(course.status || 'draft')}`}
+                          >
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                            <option value="archived">Archived</option>
+                          </select>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                          <div className="flex items-center gap-0.5">
+                            <Calendar className="w-2.5 h-2.5" />
+                            {formatDate(course.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => openCourseModal(course)}
+                              className="text-gray-600 hover:text-gray-900 p-0.5 rounded hover:bg-gray-50 transition-colors"
+                              title="Edit Course"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCourse(course.course_id)}
+                              className="text-red-600 hover:text-red-900 p-0.5 rounded hover:bg-red-50 transition-colors"
+                              title="Delete Course"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div className="text-center">
+                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <BookOpen className="w-4 h-4 text-gray-400" />
+                </div>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">No courses found</h3>
+                <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">
+                  {hasActiveFilters
+                    ? "No courses match your search criteria. Try adjusting your filters."
+                    : "Get started by creating your first course."
+                  }
+                </p>
+                <button
+                  onClick={() => openCourseModal()}
+                  className="bg-primary-600 hover:bg-primary-700 text-white px-2 py-1 rounded font-medium flex items-center gap-1 text-xs mx-auto transition-colors"
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                  Create New Course
+                </button>
               </div>
+            </div>
+          )}
 
-              <div className="flex items-center justify-between">
-                <div className="text-lg font-bold text-gray-900">${course.price}</div>
-                <div className="flex space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+          {/* Pagination - Always visible at bottom */}
+          {pagination.totalPages > 1 && (
+            <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+              <div className="flex flex-col sm:flex-row items-center justify-between px-3 py-2 gap-2">
+                <div className="flex items-center space-x-1 text-xs text-gray-600">
+                  <span>Showing</span>
+                  <span className="font-medium">{(filters.page - 1) * filters.limit + 1}</span>
+                  <span>to</span>
+                  <span className="font-medium">
+                    {Math.min(filters.page * filters.limit, pagination.totalItems)}
+                  </span>
+                  <span>of</span>
+                  <span className="font-medium">{pagination.totalItems}</span>
+                  <span>results</span>
+                </div>
+                <div className="flex items-center space-x-0.5">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={filters.page === 1}
+                    className="p-0.5 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronsLeft className="w-3 h-3" />
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                  <button
+                    onClick={() => handlePageChange(filters.page - 1)}
+                    disabled={filters.page === 1}
+                    className="p-0.5 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (filters.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (filters.page >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = filters.page - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-6 h-6 text-xs rounded border transition-colors ${filters.page === pageNum
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                          }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => handlePageChange(filters.page + 1)}
+                    disabled={filters.page === pagination.totalPages}
+                    className="p-0.5 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(pagination.totalPages)}
+                    disabled={filters.page === pagination.totalPages}
+                    className="p-0.5 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronsRight className="w-3 h-3" />
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
 
-      {/* Empty State */}
-      {filteredCourses.length === 0 && (
-        <div className="text-center py-12">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your search or create a new course.</p>
-          <button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium">
-            Create Your First Course
-          </button>
+      {/* Course Modal */}
+      <CourseModal
+        show={showCourseModal}
+        course={editingCourse}
+        onClose={closeCourseModal}
+        onSaved={handleCourseSaved}
+      />
+
+      {/* Confirmation Modal */}
+      {confirmationModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-sm w-full shadow-xl">
+            <div className="flex items-center gap-2 p-3 border-b border-gray-200">
+              <div className={`p-1.5 rounded-full ${confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                ? 'bg-red-100 text-red-600'
+                : 'bg-blue-100 text-blue-600'
+                }`}>
+                <AlertCircle className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">{confirmationModal.title}</h3>
+                <p className="text-xs text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <div className="p-3">
+              <p className="text-xs text-gray-700">{confirmationModal.message}</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 p-3 border-t border-gray-200">
+              <button
+                onClick={hideConfirmation}
+                className="px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className={`px-2 py-1 text-xs font-medium text-white rounded focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors ${confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                  ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                  }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
