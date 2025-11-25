@@ -27,21 +27,21 @@ export const COLORS = {
     700: '#374151',
     800: '#1f2937',
     900: '#111827',
-  }
+  },
 }
 
 // src/utils/helpers.js
-export const getUserData = (user) => {
+export const getUserData = user => {
   if (!user) return null
-  
+
   if (user.user && typeof user.user === 'object') {
     return user.user
   }
-  
+
   if (user.user_id || user.id || user.email) {
     return user
   }
-  
+
   return user
 }
 
@@ -63,7 +63,7 @@ export const useLocalStorage = (key, initialValue) => {
     }
   })
 
-  const setValue = (value) => {
+  const setValue = value => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value
       setStoredValue(valueToStore)

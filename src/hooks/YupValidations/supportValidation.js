@@ -1,5 +1,5 @@
 // src/utils/validationSchemas.js
-import * as yup from 'yup';
+import * as yup from 'yup'
 
 export const supportValidationSchemas = {
   // Ticket creation schema
@@ -11,7 +11,10 @@ export const supportValidationSchemas = {
       .required('Subject is required'),
     category: yup
       .string()
-      .oneOf(['general', 'technical', 'billing', 'feature', 'bug', 'case_related'], 'Invalid category')
+      .oneOf(
+        ['general', 'technical', 'billing', 'feature', 'bug', 'case_related'],
+        'Invalid category'
+      )
       .required('Category is required'),
     priority: yup
       .string()
@@ -27,16 +30,16 @@ export const supportValidationSchemas = {
       .transform((value, originalValue) => {
         // Handle empty strings, null, undefined
         if (originalValue === '' || originalValue === null || originalValue === undefined) {
-          return null;
+          return null
         }
         // Convert to number
-        const number = Number(originalValue);
-        return isNaN(number) ? null : number; // Return null instead of originalValue
+        const number = Number(originalValue)
+        return isNaN(number) ? null : number // Return null instead of originalValue
       })
-      .test('is-integer', 'Case ID must be an integer', (value) => {
-        if (value === null || value === undefined) return true; // Allow null
-        return Number.isInteger(value);
-      })
+      .test('is-integer', 'Case ID must be an integer', value => {
+        if (value === null || value === undefined) return true // Allow null
+        return Number.isInteger(value)
+      }),
   }),
 
   // FAQ schema
@@ -59,58 +62,51 @@ export const supportValidationSchemas = {
       .integer('Order must be an integer')
       .min(0, 'Order must be 0 or greater')
       .default(0),
-    is_active: yup
-      .boolean()
-      .default(true)
+    is_active: yup.boolean().default(true),
   }),
 
   // Message schema
   createMessage: yup.object({
-    message: yup
-      .string()
-      .min(1, 'Message cannot be empty')
-      .required('Message is required'),
-    is_internal: yup
-      .boolean()
-      .default(false)
-  })
-};
+    message: yup.string().min(1, 'Message cannot be empty').required('Message is required'),
+    is_internal: yup.boolean().default(false),
+  }),
+}
 
 // Helper function to format form data before submission
 export const formatSupportData = {
   // Format ticket data for API - DO NOT include ticket_number
-  formatTicketData: (data) => {
+  formatTicketData: data => {
     const formatted = {
       subject: data.subject?.trim(),
       category: data.category,
       priority: data.priority,
       description: data.description?.trim(),
-    };
+    }
 
     // Handle case_id carefully - only include if valid integer, otherwise set to null
     if (data.case_id && data.case_id !== '' && Number.isInteger(Number(data.case_id))) {
-      formatted.case_id = parseInt(data.case_id, 10);
+      formatted.case_id = parseInt(data.case_id, 10)
     } else {
       // Explicitly set to null for empty/invalid values
-      formatted.case_id = null;
+      formatted.case_id = null
     }
 
-    console.log('Formatted ticket data for API (no ticket_number):', formatted);
-    return formatted;
+    console.log('Formatted ticket data for API (no ticket_number):', formatted)
+    return formatted
   },
 
   // Format FAQ data for API
-  formatFAQData: (data) => ({
+  formatFAQData: data => ({
     question: data.question?.trim(),
     answer: data.answer?.trim(),
     category: data.category,
     order: parseInt(data.order, 10) || 0,
-    is_active: Boolean(data.is_active)
+    is_active: Boolean(data.is_active),
   }),
 
   // Format message data for API
-  formatMessageData: (data) => ({
+  formatMessageData: data => ({
     message: data.message?.trim(),
-    is_internal: Boolean(data.is_internal)
-  })
-};
+    is_internal: Boolean(data.is_internal),
+  }),
+}

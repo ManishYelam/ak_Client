@@ -1,17 +1,17 @@
 // src/utils/helpers.js
-export const getUserData = (user) => {
+export const getUserData = user => {
   if (!user) return null
-  
+
   // If user has a nested user property (from AuthContext structure)
   if (user.user && typeof user.user === 'object') {
     return user.user
   }
-  
+
   // If user is the direct user object (from API response)
   if (user.user_id || user.id || user.email) {
     return user
   }
-  
+
   // Fallback: return the user object as is
   return user
 }
@@ -29,11 +29,11 @@ export const formatCurrency = (amount, currency = 'INR') => {
   }).format(amount)
 }
 
-export const formatDate = (dateString) => {
+export const formatDate = dateString => {
   return new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -42,7 +42,7 @@ export const truncateText = (text, maxLength = 50) => {
   return text.substring(0, maxLength) + '...'
 }
 
-export const generateInitials = (name) => {
+export const generateInitials = name => {
   if (!name) return 'U'
   return name
     .split(' ')

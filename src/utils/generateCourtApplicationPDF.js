@@ -1,21 +1,21 @@
-import html2pdf from "html2pdf.js";
+import html2pdf from 'html2pdf.js'
 
 export const generateCourtApplicationPDF = async (formData = {}) => {
   // ✅ Collect all uploaded files (if any)
-  const uploadedFiles = [];
+  const uploadedFiles = []
   if (formData.documents) {
-    Object.values(formData.documents).forEach((exhibitArray) => {
-      exhibitArray.forEach((file) => uploadedFiles.push(file));
-    });
+    Object.values(formData.documents).forEach(exhibitArray => {
+      exhibitArray.forEach(file => uploadedFiles.push(file))
+    })
   }
-  console.log("Uploaded Files:", uploadedFiles);
+  console.log('Uploaded Files:', uploadedFiles)
 
   // Create hidden container
-  const container = document.createElement("div");
-  container.style.display = "none";
-  document.body.appendChild(container);
+  const container = document.createElement('div')
+  container.style.display = 'none'
+  document.body.appendChild(container)
 
-  const exhibits = formData.exhibits || [];
+  const exhibits = formData.exhibits || []
 
   // ---------------------- PAGE 1: Index ----------------------
   const page1 = `
@@ -30,7 +30,7 @@ export const generateCourtApplicationPDF = async (formData = {}) => {
       </div>
 
       <div style="margin: 2rem 0;">
-        <p><b>${formData.applicantName || ""}</b> ….. Applicant</p>
+        <p><b>${formData.applicantName || ''}</b> ….. Applicant</p>
         <p>VERSUS</p>
         <p>DYANDHARA MULTISTATE CO-OPERATIVE CREDIT SOCIETY ….. <b>Accused</b></p>
         <p>DIRECTORATE OF ENFORCEMENT ….. <b>Complainant</b></p>
@@ -48,14 +48,18 @@ export const generateCourtApplicationPDF = async (formData = {}) => {
           </tr>
         </thead>
         <tbody>
-          ${exhibits.map((ex, i) => `
+          ${exhibits
+            .map(
+              (ex, i) => `
             <tr>
               <td style="border:1px solid black; text-align:center;">${i + 1}</td>
-              <td style="border:1px solid black;">${ex.description || ""}</td>
-              <td style="border:1px solid black; text-align:center;">${ex.title || ""}</td>
+              <td style="border:1px solid black;">${ex.description || ''}</td>
+              <td style="border:1px solid black; text-align:center;">${ex.title || ''}</td>
               <td style="border:1px solid black; text-align:center;"></td>
             </tr>
-          `).join("")}
+          `
+            )
+            .join('')}
         </tbody>
       </table>
 
@@ -70,19 +74,19 @@ export const generateCourtApplicationPDF = async (formData = {}) => {
         </div>
       </div>
     </div>
-  `;
+  `
 
   // ---------------------- PAGE 2: Applicant Info ----------------------
   const page2 = `
     <div style="page-break-before: always; padding:3rem; font-family:'Times New Roman'; font-size:12px;">
       <h3 style="text-align:center; text-decoration:underline;">APPLICATION DETAILS</h3>
-      <p><b>Full Name:</b> ${formData.name || ""}</p>
-      <p><b>Age:</b> ${formData.age || ""}</p>
-      <p><b>Gender:</b> ${formData.gender || ""}</p>
-      <p><b>Contact:</b> ${formData.phone_number || ""}</p>
-      <p><b>Email:</b> ${formData.email || ""}</p>
-      <p><b>Address:</b> ${formData.address || ""}</p>
-      <p><b>Notes:</b> ${formData.notes || ""}</p>
+      <p><b>Full Name:</b> ${formData.name || ''}</p>
+      <p><b>Age:</b> ${formData.age || ''}</p>
+      <p><b>Gender:</b> ${formData.gender || ''}</p>
+      <p><b>Contact:</b> ${formData.phone_number || ''}</p>
+      <p><b>Email:</b> ${formData.email || ''}</p>
+      <p><b>Address:</b> ${formData.address || ''}</p>
+      <p><b>Notes:</b> ${formData.notes || ''}</p>
 
       <p style="margin-top:1rem; font-style:italic;">
         I hereby affirm that the above information is true and correct to the best of my knowledge.
@@ -92,31 +96,35 @@ export const generateCourtApplicationPDF = async (formData = {}) => {
         <p><b>Signature of Applicant</b></p>
       </div>
     </div>
-  `;
+  `
 
   // ---------------------- PAGE 3+: Exhibits ----------------------
-  const exhibitPages = exhibits.map(ex => `
+  const exhibitPages = exhibits
+    .map(
+      ex => `
     <div style="page-break-before: always; padding:2rem; font-family:'Times New Roman'; font-size:12px;">
-      <h3 style="text-align:center; text-decoration:underline;">${ex.title || ""}</h3>
-      <p>${ex.description || ""}</p>
+      <h3 style="text-align:center; text-decoration:underline;">${ex.title || ''}</h3>
+      <p>${ex.description || ''}</p>
     </div>
-  `).join("");
+  `
+    )
+    .join('')
 
   // Combine all
-  container.innerHTML = page1 + page2 + exhibitPages;
+  container.innerHTML = page1 + page2 + exhibitPages
 
   // PDF options
   const options = {
     margin: [0.5, 0.5, 0.5, 0.5],
-    filename: "Court_Application.pdf",
-    image: { type: "jpeg", quality: 0.98 },
+    filename: 'Court_Application.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
-    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-  };
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+  }
 
   // Generate and return as ArrayBuffer
-  const pdfInstance = await html2pdf().set(options).from(container).toPdf().get("pdf");
-  const arrayBuffer = pdfInstance.output("arraybuffer");
-  document.body.removeChild(container);
-  return arrayBuffer;
-};
+  const pdfInstance = await html2pdf().set(options).from(container).toPdf().get('pdf')
+  const arrayBuffer = pdfInstance.output('arraybuffer')
+  document.body.removeChild(container)
+  return arrayBuffer
+}

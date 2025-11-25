@@ -1,8 +1,6 @@
 // tailwind.config.js
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -29,7 +27,7 @@ module.exports = {
           700: '#a16207',
           800: '#854d0e',
           900: '#713f12',
-        }
+        },
       },
       fontFamily: {
         display: ['Inter', 'system-ui', 'sans-serif'],
@@ -49,9 +47,9 @@ module.exports = {
         },
       },
       boxShadow: {
-        'medium': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'large': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      }
+        medium: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        large: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      },
     },
   },
   plugins: [],
