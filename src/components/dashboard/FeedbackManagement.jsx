@@ -1,7 +1,9 @@
-// src/components/dashboard/PaymentManagement.jsx
+// src/components/dashboard/FeedbackManagement.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Search,
+  Edit,
+  Trash2,
   User,
   Users,
   Mail,
@@ -16,31 +18,35 @@ import {
   ChevronsRight,
   SlidersHorizontal,
   Filter,
-  DollarSign,
-  CreditCard,
+  Plus,
+  Clock,
+  Star,
+  Tag,
+  MessageCircle,
   Eye,
+  FileText,
   CheckCircle2,
   XCircle,
   RefreshCw,
-  IndianRupee,
-  Shield,
+  Bug,
   Zap,
-  BarChart3,
+  Lightbulb,
+  Settings,
 } from 'lucide-react'
-import { paymentsAPI } from '../../services/api'
-import PaymentModal from './PaymentModal'
+import { feedbackAPI } from '../../services/api'
+import FeedbackModal from './FeedbackModal'
 
-const PaymentManagement = () => {
+const FeedbackManagement = () => {
   const [activeTab, setActiveTab] = useState('all')
-  const [payments, setPayments] = useState([])
-  const [allPayments, setAllPayments] = useState([])
+  const [feedbacks, setFeedbacks] = useState([])
+  const [allFeedbacks, setAllFeedbacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedPayments, setSelectedPayments] = useState([])
+  const [selectedFeedbacks, setSelectedFeedbacks] = useState([])
   const [bulkAction, setBulkAction] = useState('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [editingPayment, setEditingPayment] = useState(null)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [editingFeedback, setEditingFeedback] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
   const [toast, setToast] = useState(null)
 
@@ -48,11 +54,8 @@ const PaymentManagement = () => {
   const [filters, setFilters] = useState({
     search: '',
     status: 'all',
-    paymentMethod: 'all',
-    minAmount: '',
-    maxAmount: '',
-    startDate: '',
-    endDate: '',
+    category: 'all',
+    rating: 'all',
     page: 1,
     limit: 5,
   })
@@ -87,173 +90,224 @@ const PaymentManagement = () => {
     () => [
       { value: 'all', label: 'All Status' },
       {
-        value: 'created',
-        label: 'Created',
+        value: 'pending',
+        label: 'Pending',
+        color: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+      },
+      {
+        value: 'reviewed',
+        label: 'Reviewed',
         color: 'bg-blue-100 text-blue-800 border border-blue-200',
       },
       {
-        value: 'paid',
-        label: 'Paid',
+        value: 'in_progress',
+        label: 'In Progress',
+        color: 'bg-orange-100 text-orange-800 border border-orange-200',
+      },
+      {
+        value: 'resolved',
+        label: 'Resolved',
         color: 'bg-green-100 text-green-800 border border-green-200',
       },
-      { value: 'failed', label: 'Failed', color: 'bg-red-100 text-red-800 border border-red-200' },
       {
-        value: 'refunded',
-        label: 'Refunded',
-        color: 'bg-purple-100 text-purple-800 border border-purple-200',
+        value: 'closed',
+        label: 'Closed',
+        color: 'bg-gray-100 text-gray-800 border border-gray-200',
       },
     ],
     []
   )
 
-  const paymentMethodOptions = useMemo(
+  const categoryOptions = useMemo(
     () => [
-      { value: 'all', label: 'All Methods' },
+      { value: 'all', label: 'All Categories' },
       {
-        value: 'card',
-        label: 'Credit/Debit Card',
+        value: 'general',
+        label: 'General',
+        color: 'bg-gray-100 text-gray-800 border border-gray-200',
+        icon: MessageCircle,
+      },
+      {
+        value: 'bug',
+        label: 'Bug Report',
+        color: 'bg-red-100 text-red-800 border border-red-200',
+        icon: Bug,
+      },
+      {
+        value: 'feature',
+        label: 'Feature Request',
+        color: 'bg-purple-100 text-purple-800 border border-purple-200',
+        icon: Lightbulb,
+      },
+      {
+        value: 'ui',
+        label: 'UI/UX',
         color: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
-        icon: CreditCard,
+        icon: Settings,
       },
       {
-        value: 'netbanking',
-        label: 'Net Banking',
+        value: 'performance',
+        label: 'Performance',
         color: 'bg-teal-100 text-teal-800 border border-teal-200',
-        icon: BarChart3,
-      },
-      {
-        value: 'upi',
-        label: 'UPI',
-        color: 'bg-orange-100 text-orange-800 border border-orange-200',
         icon: Zap,
       },
-      {
-        value: 'wallet',
-        label: 'Wallet',
-        color: 'bg-pink-100 text-pink-800 border border-pink-200',
-        icon: DollarSign,
-      },
     ],
     []
   )
 
-  // Calculate tab counts based on allPayments
+  const ratingOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All Ratings' },
+      { value: '5', label: '5 Stars' },
+      { value: '4', label: '4 Stars' },
+      { value: '3', label: '3 Stars' },
+      { value: '2', label: '2 Stars' },
+      { value: '1', label: '1 Star' },
+    ],
+    []
+  )
+
+  // Calculate tab counts based on allFeedbacks
   const tabs = useMemo(() => {
-    if (!allPayments.length)
+    if (!allFeedbacks.length)
       return [
-        { id: 'all', name: 'All Payments', count: 0, icon: Users, color: 'text-gray-600' },
-        { id: 'paid', name: 'Paid', count: 0, icon: CheckCircle2, color: 'text-green-600' },
-        { id: 'failed', name: 'Failed', count: 0, icon: XCircle, color: 'text-red-600' },
-        { id: 'refunded', name: 'Refunded', count: 0, icon: RefreshCw, color: 'text-purple-600' },
+        { id: 'all', name: 'All Feedback', count: 0, icon: Users, color: 'text-gray-600' },
+        {
+          id: 'pending',
+          name: 'Pending',
+          count: 0,
+          icon: Clock,
+          color: 'text-yellow-600',
+        },
+        { id: 'unread', name: 'New', count: 0, icon: AlertCircle, color: 'text-red-600' },
+        { id: 'resolved', name: 'Resolved', count: 0, icon: CheckCircle2, color: 'text-green-600' },
       ]
 
-    const allCount = allPayments.length
-    const paidCount = allPayments.filter(payment => payment.status === 'paid').length
-    const failedCount = allPayments.filter(payment => payment.status === 'failed').length
-    const refundedCount = allPayments.filter(payment => payment.status === 'refunded').length
+    const allCount = allFeedbacks.length
+    const pendingCount = allFeedbacks.filter(feedback => feedback.status === 'pending').length
+    const resolvedCount = allFeedbacks.filter(feedback => feedback.status === 'resolved').length
+    const newCount = allFeedbacks.filter(
+      feedback =>
+        feedback.status === 'pending' &&
+        new Date(feedback.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+    ).length
 
     return [
-      { id: 'all', name: 'All Payments', count: allCount, icon: Users, color: 'text-gray-600' },
-      { id: 'paid', name: 'Paid', count: paidCount, icon: CheckCircle2, color: 'text-green-600' },
-      { id: 'failed', name: 'Failed', count: failedCount, icon: XCircle, color: 'text-red-600' },
+      { id: 'all', name: 'All Feedback', count: allCount, icon: Users, color: 'text-gray-600' },
       {
-        id: 'refunded',
-        name: 'Refunded',
-        count: refundedCount,
-        icon: RefreshCw,
-        color: 'text-purple-600',
+        id: 'pending',
+        name: 'Pending',
+        count: pendingCount,
+        icon: Clock,
+        color: 'text-yellow-600',
+      },
+      {
+        id: 'unread',
+        name: 'New',
+        count: newCount,
+        icon: AlertCircle,
+        color: 'text-red-600',
+      },
+      {
+        id: 'resolved',
+        name: 'Resolved',
+        count: resolvedCount,
+        icon: CheckCircle2,
+        color: 'text-green-600',
       },
     ]
-  }, [allPayments])
+  }, [allFeedbacks])
 
   // Stats calculation using actual API fields
   const stats = useMemo(() => {
-    if (!allPayments.length)
+    if (!allFeedbacks.length)
       return [
-        { number: '0', label: 'Total Payments', icon: DollarSign, color: 'text-blue-400' },
-        { number: '₹0', label: 'Total Revenue', icon: IndianRupee, color: 'text-green-400' },
-        { number: '0%', label: 'Success Rate', icon: CheckCircle, color: 'text-teal-400' },
-        { number: '₹0', label: 'Avg. Order Value', icon: BarChart3, color: 'text-purple-400' },
+        { number: '0', label: 'Total Feedback', icon: Users, color: 'text-blue-400' },
+        { number: '0', label: 'Pending', icon: Clock, color: 'text-yellow-400' },
+        { number: '0', label: 'Avg Rating', icon: Star, color: 'text-purple-400' },
+        { number: '0', label: 'Resolved', icon: CheckCircle2, color: 'text-green-400' },
       ]
 
-    const totalPayments = allPayments.length
-    const paidPayments = allPayments.filter(payment => payment.status === 'paid')
-    const totalRevenue = paidPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0)
-    const successRate =
-      totalPayments > 0 ? Math.round((paidPayments.length / totalPayments) * 100) : 0
-    const averageOrderValue =
-      paidPayments.length > 0 ? Math.round(totalRevenue / paidPayments.length) : 0
+    const totalFeedback = allFeedbacks.length
+    const pendingFeedback = allFeedbacks.filter(feedback => feedback.status === 'pending').length
+    const resolvedFeedback = allFeedbacks.filter(feedback => feedback.status === 'resolved').length
+    const averageRating =
+      allFeedbacks.length > 0
+        ? (
+            allFeedbacks.reduce((sum, feedback) => sum + (feedback.rating || 0), 0) /
+            allFeedbacks.length
+          ).toFixed(1)
+        : 0
 
     return [
       {
-        number: totalPayments.toLocaleString(),
-        label: 'Total Payments',
-        icon: DollarSign,
+        number: totalFeedback.toLocaleString(),
+        label: 'Total Feedback',
+        icon: Users,
         color: 'text-blue-400',
       },
       {
-        number: `₹${(totalRevenue / 100).toLocaleString()}`,
-        label: 'Total Revenue',
-        icon: IndianRupee,
+        number: pendingFeedback.toLocaleString(),
+        label: 'Pending',
+        icon: Clock,
+        color: 'text-yellow-400',
+      },
+      { number: averageRating, label: 'Avg Rating', icon: Star, color: 'text-purple-400' },
+      {
+        number: resolvedFeedback.toLocaleString(),
+        label: 'Resolved',
+        icon: CheckCircle2,
         color: 'text-green-400',
       },
-      {
-        number: `${successRate}%`,
-        label: 'Success Rate',
-        icon: CheckCircle,
-        color: 'text-teal-400',
-      },
-      {
-        number: `₹${(averageOrderValue / 100).toLocaleString()}`,
-        label: 'Avg. Order Value',
-        icon: BarChart3,
-        color: 'text-purple-400',
-      },
     ]
-  }, [allPayments])
+  }, [allFeedbacks])
 
-  // Fetch payments with filtering
-  const fetchPayments = useCallback(async () => {
+  // Fetch feedbacks with filtering
+  const fetchFeedbacks = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const requestData = {
-        page: filters.page,
-        limit: filters.limit,
-        search: filters.search,
-        filters: {
-          status: filters.status !== 'all' ? filters.status : undefined,
-          payment_mode: filters.paymentMethod !== 'all' ? filters.paymentMethod : undefined,
-          minAmount: filters.minAmount ? parseInt(filters.minAmount) * 100 : undefined,
-          maxAmount: filters.maxAmount ? parseInt(filters.maxAmount) * 100 : undefined,
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
-        },
+      const params = new URLSearchParams()
+
+      // Add pagination
+      params.append('page', filters.page)
+      params.append('limit', filters.limit)
+
+      // Add filters
+      if (filters.status !== 'all') {
+        params.append('status', filters.status)
+      }
+      if (filters.category !== 'all') {
+        params.append('category', filters.category)
+      }
+      if (filters.rating !== 'all') {
+        params.append('rating', filters.rating)
       }
 
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      const response = await feedbackAPI.getAllFeedback(params)
       const responseData = response.data
 
-      console.log('Payment API Response:', responseData)
+      console.log('Feedback API Response:', responseData)
 
-      if (responseData && responseData.success && responseData.data) {
-        const paymentsData = responseData.data.payments || []
-        setPayments(paymentsData)
+      // Handle the actual API response structure
+      if (responseData && responseData.success) {
+        const feedbacksData = responseData.data?.feedbacks || []
+        setFeedbacks(feedbacksData)
 
         // Update pagination from API response
-        const paginationData = responseData.data.pagination
+        const paginationData = responseData.data?.pagination
         setPagination({
-          page: paginationData?.page || filters.page,
-          limit: paginationData?.limit || filters.limit,
-          totalItems: paginationData?.totalItems || paymentsData.length,
+          page: paginationData?.currentPage || filters.page,
+          limit: filters.limit,
+          totalItems: paginationData?.totalItems || feedbacksData.length,
           totalPages:
             paginationData?.totalPages ||
-            Math.ceil((paginationData?.totalItems || paymentsData.length) / filters.limit),
+            Math.ceil((paginationData?.totalItems || feedbacksData.length) / filters.limit),
         })
       } else {
         console.warn('Unexpected API response structure:', responseData)
-        setPayments([])
+        setFeedbacks([])
         setPagination({
           page: 1,
           limit: filters.limit,
@@ -262,66 +316,78 @@ const PaymentManagement = () => {
         })
       }
     } catch (err) {
-      setError('Failed to load payments. Please try again.')
-      console.error('Error fetching payments:', err)
+      setError('Failed to load feedback. Please try again.')
+      console.error('Error fetching feedback:', err)
     } finally {
       setLoading(false)
     }
   }, [filters])
 
-  // Fetch all payments for counting and export
-  const fetchAllPayments = useCallback(async () => {
+  // Fetch all feedbacks for counting and export
+  const fetchAllFeedbacks = useCallback(async () => {
     try {
-      const requestData = {
-        page: 1,
-        limit: 1000,
-        filters: {},
-      }
+      const params = new URLSearchParams()
+      params.append('limit', '1000')
 
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      const response = await feedbackAPI.getAllFeedback(params)
       const responseData = response.data
 
-      if (responseData && responseData.success && responseData.data) {
-        const paymentsData = responseData.data.payments || []
-        setAllPayments(paymentsData)
+      if (responseData && responseData.success) {
+        const feedbacksData = responseData.data?.feedbacks || []
+        setAllFeedbacks(feedbacksData)
       } else {
-        console.warn('Unexpected API response structure in fetchAllPayments:', responseData)
-        setAllPayments([])
+        console.warn('Unexpected API response structure in fetchAllFeedbacks:', responseData)
+        setAllFeedbacks([])
       }
     } catch (err) {
-      console.error('Error fetching all payments:', err)
-      setAllPayments([])
+      console.error('Error fetching all feedbacks:', err)
+      setAllFeedbacks([])
     }
   }, [])
 
-  // Fetch all payments for export
-  const fetchAllPaymentsForExport = async () => {
+  // Fetch feedback statistics
+  const fetchFeedbackStats = useCallback(async () => {
     try {
-      const requestData = {
-        page: 1,
-        limit: 1000,
-        search: filters.search,
-        filters: {
-          status: filters.status !== 'all' ? filters.status : undefined,
-          payment_mode: filters.paymentMethod !== 'all' ? filters.paymentMethod : undefined,
-          minAmount: filters.minAmount ? parseInt(filters.minAmount) * 100 : undefined,
-          maxAmount: filters.maxAmount ? parseInt(filters.maxAmount) * 100 : undefined,
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
-        },
-      }
-
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      const response = await feedbackAPI.getFeedbackStats()
       const responseData = response.data
 
-      if (responseData && responseData.success && responseData.data) {
-        return responseData.data.payments || []
+      if (responseData && responseData.success) {
+        return responseData.data
+      }
+      return null
+    } catch (err) {
+      console.error('Error fetching feedback stats:', err)
+      return null
+    }
+  }, [])
+
+  // Fetch all feedbacks for export
+  const fetchAllFeedbacksForExport = async () => {
+    try {
+      const params = new URLSearchParams()
+      params.append('limit', '1000')
+
+      if (filters.status !== 'all') {
+        params.append('status', filters.status)
+      }
+      if (filters.category !== 'all') {
+        params.append('category', filters.category)
+      }
+      if (filters.rating !== 'all') {
+        params.append('rating', filters.rating)
+      }
+
+      const response = await feedbackAPI.getAllFeedback(params)
+      const responseData = response.data
+
+      if (responseData && responseData.success) {
+        return responseData.data?.feedbacks || []
       } else {
         console.warn('Unexpected API response structure in export:', responseData)
         return []
       }
     } catch (err) {
-      console.error('Error fetching payments for export:', err)
+      console.error('Error fetching feedbacks for export:', err)
       throw err
     }
   }
@@ -331,39 +397,39 @@ const PaymentManagement = () => {
     try {
       setExportLoading(true)
 
-      const allPayments = await fetchAllPaymentsForExport()
+      const allFeedbacks = await fetchAllFeedbacksForExport()
 
-      if (!allPayments || allPayments.length === 0) {
-        showToast('No payments found to export.', 'error')
+      if (!allFeedbacks || allFeedbacks.length === 0) {
+        showToast('No feedback found to export.', 'error')
         return
       }
 
       const headers = [
-        'Payment ID',
-        'Order ID',
+        'Feedback ID',
         'User Name',
         'User Email',
-        'Amount (₹)',
+        'Rating',
+        'Category',
+        'Message',
         'Status',
-        'Payment Method',
-        'Course',
-        'Contact',
+        'User Agent',
+        'Page URL',
         'Created At',
-        'Razorpay Payment ID',
+        'Updated At',
       ]
 
-      const csvRows = allPayments.map(payment => [
-        payment.payment_id || '',
-        payment.rzp_order_id || '',
-        `"${(payment.user?.full_name || '').replace(/"/g, '""')}"`,
-        `"${(payment.user?.email || payment.email || '').replace(/"/g, '""')}"`,
-        (payment.amount / 100).toFixed(2),
-        payment.status || '',
-        payment.method || '',
-        `"${(payment.course?.title || 'No Course').replace(/"/g, '""')}"`,
-        payment.contact || '',
-        payment.createdAt ? new Date(payment.createdAt).toISOString() : '',
-        payment.rzp_payment_id || '',
+      const csvRows = allFeedbacks.map(feedback => [
+        feedback.feedback_id || '',
+        `"${(feedback.user?.full_name || '').replace(/"/g, '""')}"`,
+        `"${(feedback.user?.email || '').replace(/"/g, '""')}"`,
+        feedback.rating || '',
+        feedback.category || '',
+        `"${(feedback.message || '').replace(/"/g, '""')}"`,
+        feedback.status || '',
+        `"${(feedback.user_agent || '').replace(/"/g, '""')}"`,
+        `"${(feedback.page_url || '').replace(/"/g, '""')}"`,
+        feedback.createdAt ? new Date(feedback.createdAt).toISOString() : '',
+        feedback.updatedAt ? new Date(feedback.updatedAt).toISOString() : '',
       ])
 
       const csvContent = [headers.join(','), ...csvRows.map(row => row.join(','))].join('\n')
@@ -373,12 +439,13 @@ const PaymentManagement = () => {
       const url = URL.createObjectURL(blob)
 
       const timestamp = new Date().toISOString().split('T')[0]
-      let filename = `payments_export_${timestamp}`
+      let filename = `feedback_export_${timestamp}`
 
       if (hasActiveFilters) {
         const filterParts = []
         if (filters.status !== 'all') filterParts.push(filters.status)
-        if (filters.paymentMethod !== 'all') filterParts.push(filters.paymentMethod)
+        if (filters.category !== 'all') filterParts.push(filters.category)
+        if (filters.rating !== 'all') filterParts.push(`${filters.rating}stars`)
 
         if (filterParts.length > 0) {
           filename += `_${filterParts.join('_')}`
@@ -395,12 +462,12 @@ const PaymentManagement = () => {
       document.body.removeChild(link)
 
       showToast(
-        `Successfully exported ${allPayments.length} payment records to ${filename}`,
+        `Successfully exported ${allFeedbacks.length} feedback entries to ${filename}`,
         'success'
       )
     } catch (err) {
-      console.error('Error exporting payments:', err)
-      showToast('Failed to export payments. Please try again.', 'error')
+      console.error('Error exporting feedback:', err)
+      showToast('Failed to export feedback. Please try again.', 'error')
     } finally {
       setExportLoading(false)
     }
@@ -409,16 +476,17 @@ const PaymentManagement = () => {
   // Debounced search and filter changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      fetchPayments()
+      fetchFeedbacks()
     }, 350)
 
     return () => clearTimeout(timeoutId)
-  }, [fetchPayments])
+  }, [fetchFeedbacks])
 
-  // Fetch all payments for counting on component mount
+  // Fetch all feedbacks for counting on component mount
   useEffect(() => {
-    fetchAllPayments()
-  }, [fetchAllPayments])
+    fetchAllFeedbacks()
+    fetchFeedbackStats()
+  }, [fetchAllFeedbacks, fetchFeedbackStats])
 
   // Confirmation Modal Functions
   const showConfirmation = (title, message, type, onConfirm, data = null) => {
@@ -450,22 +518,22 @@ const PaymentManagement = () => {
     hideConfirmation()
   }
 
-  // Payment Modal Functions
-  const openPaymentModal = (payment = null) => {
-    setEditingPayment(payment)
-    setShowPaymentModal(true)
+  // Feedback Modal Functions
+  const openFeedbackModal = (feedback = null) => {
+    setEditingFeedback(feedback)
+    setShowFeedbackModal(true)
   }
 
-  const closePaymentModal = () => {
-    setShowPaymentModal(false)
-    setEditingPayment(null)
+  const closeFeedbackModal = () => {
+    setShowFeedbackModal(false)
+    setEditingFeedback(null)
   }
 
-  const handlePaymentUpdated = () => {
-    closePaymentModal()
-    fetchPayments()
-    fetchAllPayments()
-    showToast('Payment updated successfully!', 'success')
+  const handleFeedbackSaved = () => {
+    closeFeedbackModal()
+    fetchFeedbacks()
+    fetchAllFeedbacks()
+    showToast('Feedback updated successfully!', 'success')
   }
 
   // Handle status change from tabs
@@ -495,26 +563,18 @@ const PaymentManagement = () => {
     }))
   }
 
-  const handlePaymentMethodChange = method => {
+  const handleCategoryChange = category => {
     setFilters(prev => ({
       ...prev,
-      paymentMethod: method,
+      category: category,
       page: 1,
     }))
   }
 
-  const handleAmountFilterChange = (field, value) => {
+  const handleRatingChange = rating => {
     setFilters(prev => ({
       ...prev,
-      [field]: value,
-      page: 1,
-    }))
-  }
-
-  const handleDateFilterChange = (field, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [field]: value,
+      rating: rating,
       page: 1,
     }))
   }
@@ -537,11 +597,8 @@ const PaymentManagement = () => {
     setFilters({
       search: '',
       status: 'all',
-      paymentMethod: 'all',
-      minAmount: '',
-      maxAmount: '',
-      startDate: '',
-      endDate: '',
+      category: 'all',
+      rating: 'all',
       page: 1,
       limit: 5,
     })
@@ -554,75 +611,92 @@ const PaymentManagement = () => {
     return (
       filters.search !== '' ||
       filters.status !== 'all' ||
-      filters.paymentMethod !== 'all' ||
-      filters.minAmount !== '' ||
-      filters.maxAmount !== '' ||
-      filters.startDate !== '' ||
-      filters.endDate !== ''
+      filters.category !== 'all' ||
+      filters.rating !== 'all'
     )
   }, [filters])
 
-  // Payment selection and bulk actions
-  const togglePaymentSelection = paymentId => {
-    setSelectedPayments(prev =>
-      prev.includes(paymentId) ? prev.filter(id => id !== paymentId) : [...prev, paymentId]
+  // Feedback selection and bulk actions
+  const toggleFeedbackSelection = feedbackId => {
+    setSelectedFeedbacks(prev =>
+      prev.includes(feedbackId) ? prev.filter(id => id !== feedbackId) : [...prev, feedbackId]
     )
   }
 
   const toggleSelectAll = () => {
-    setSelectedPayments(
-      selectedPayments.length === payments.length ? [] : payments.map(payment => payment.payment_id)
+    setSelectedFeedbacks(
+      selectedFeedbacks.length === feedbacks.length
+        ? []
+        : feedbacks.map(feedback => feedback.feedback_id)
     )
   }
 
-  // REMOVED: Bulk status update actions since we don't want manual status changes
   const handleBulkAction = async () => {
-    if (!bulkAction || selectedPayments.length === 0) return
+    if (!bulkAction || selectedFeedbacks.length === 0) return
 
     try {
-      if (bulkAction === 'refund') {
+      if (bulkAction === 'delete') {
         showConfirmation(
-          'Process Refund',
-          `Are you sure you want to refund ${selectedPayments.length} selected payments? This action cannot be undone.`,
-          'bulkRefund',
+          'Delete Feedback',
+          `Are you sure you want to delete ${selectedFeedbacks.length} selected feedback entries? This action cannot be undone.`,
+          'bulkDelete',
           async () => {
-            // Implement bulk refund logic here
-            await Promise.all(selectedPayments.map(id => paymentsAPI.refundPayment(id)))
+            await Promise.all(selectedFeedbacks.map(id => feedbackAPI.deleteFeedback(id)))
             setBulkAction('')
-            setSelectedPayments([])
-            fetchPayments()
-            fetchAllPayments()
+            setSelectedFeedbacks([])
+            fetchFeedbacks()
+            fetchAllFeedbacks()
             showToast(
-              `Successfully processed refund for ${selectedPayments.length} payments`,
+              `Successfully deleted ${selectedFeedbacks.length} feedback entries`,
               'success'
             )
           }
         )
+      } else {
+        // Bulk status update
+        await Promise.all(
+          selectedFeedbacks.map(id => feedbackAPI.updateFeedbackStatus(id, bulkAction))
+        )
+        setBulkAction('')
+        setSelectedFeedbacks([])
+        fetchFeedbacks()
+        fetchAllFeedbacks()
+        showToast(`Successfully updated ${selectedFeedbacks.length} feedback entries`, 'success')
       }
-      // REMOVED: Other bulk actions for status updates
     } catch (err) {
       console.error('Error performing bulk action:', err)
       showToast('Failed to perform bulk action', 'error')
     }
   }
 
-  // REMOVED: Individual status update function
+  // Individual feedback actions
+  const handleStatusUpdate = async (feedbackId, newStatus) => {
+    try {
+      await feedbackAPI.updateFeedbackStatus(feedbackId, newStatus)
+      fetchFeedbacks()
+      fetchAllFeedbacks()
+      showToast('Feedback status updated successfully', 'success')
+    } catch (err) {
+      console.error('Error updating feedback status:', err)
+      showToast('Failed to update feedback status', 'error')
+    }
+  }
 
-  const handleRefundPayment = paymentId => {
-    const payment = payments.find(p => p.payment_id === paymentId)
+  const handleDeleteFeedback = feedbackId => {
+    const feedback = feedbacks.find(f => f.feedback_id === feedbackId)
     showConfirmation(
-      'Process Refund',
-      `Are you sure you want to refund payment of ₹${(payment?.amount / 100).toFixed(2)} from "${payment?.user?.full_name}"? This action cannot be undone.`,
-      'refund',
+      'Delete Feedback',
+      `Are you sure you want to delete feedback from "${feedback?.user?.full_name}"? This action cannot be undone.`,
+      'delete',
       async () => {
         try {
-          await paymentsAPI.refundPayment(paymentId)
-          fetchPayments()
-          fetchAllPayments()
-          showToast('Payment refunded successfully', 'success')
+          await feedbackAPI.deleteFeedback(feedbackId)
+          fetchFeedbacks()
+          fetchAllFeedbacks()
+          showToast('Feedback deleted successfully', 'success')
         } catch (err) {
-          console.error('Error refunding payment:', err)
-          showToast('Failed to refund payment', 'error')
+          console.error('Error deleting feedback:', err)
+          showToast('Failed to delete feedback', 'error')
         }
       }
     )
@@ -634,9 +708,9 @@ const PaymentManagement = () => {
     return statusObj ? statusObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
-  const getPaymentMethodColor = method => {
-    const methodObj = paymentMethodOptions.find(m => m.value === method)
-    return methodObj ? methodObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
+  const getCategoryColor = category => {
+    const categoryObj = categoryOptions.find(c => c.value === category)
+    return categoryObj ? categoryObj.color : 'bg-gray-100 text-gray-700 border border-gray-300'
   }
 
   const formatDate = dateString => {
@@ -648,13 +722,35 @@ const PaymentManagement = () => {
     })
   }
 
-  const formatAmount = amount => {
-    return `₹${(amount / 100).toFixed(2)}`
+  const formatDateTime = dateString => {
+    if (!dateString) return 'Never'
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
-  const getPaymentMethodIcon = method => {
-    const methodObj = paymentMethodOptions.find(m => m.value === method)
-    const IconComponent = methodObj?.icon || CreditCard
+  const truncateText = (text, maxLength = 100) => {
+    if (!text) return ''
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength) + '...'
+  }
+
+  const renderStars = rating => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-3 h-3 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+      />
+    ))
+  }
+
+  const getCategoryIcon = category => {
+    const categoryObj = categoryOptions.find(c => c.value === category)
+    const IconComponent = categoryObj?.icon || Tag
     return <IconComponent className="w-3 h-3" />
   }
 
@@ -666,16 +762,14 @@ const PaymentManagement = () => {
             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
               <div className="h-3 bg-gray-200 rounded w-3"></div>
             </th>
-            {['User', 'Amount', 'Order ID', 'Course', 'Method', 'Status', 'Date', 'Actions'].map(
-              header => (
-                <th
-                  key={header}
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <div className="h-3 bg-gray-200 rounded w-14"></div>
-                </th>
-              )
-            )}
+            {['User', 'Feedback', 'Rating', 'Category', 'Status', 'Date', 'Actions'].map(header => (
+              <th
+                key={header}
+                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <div className="h-3 bg-gray-200 rounded w-14"></div>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -694,14 +788,11 @@ const PaymentManagement = () => {
                 </div>
               </td>
               <td className="px-3 py-2 whitespace-nowrap">
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
-              </td>
-              <td className="px-3 py-2 whitespace-nowrap">
-                <div className="h-3 bg-gray-200 rounded w-20 mb-0.5"></div>
+                <div className="h-3 bg-gray-200 rounded w-32 mb-0.5"></div>
                 <div className="h-2 bg-gray-200 rounded w-24"></div>
               </td>
               <td className="px-3 py-2 whitespace-nowrap">
-                <div className="h-3 bg-gray-200 rounded w-20"></div>
+                <div className="h-5 bg-gray-200 rounded w-8"></div>
               </td>
               <td className="px-3 py-2 whitespace-nowrap">
                 <div className="h-5 bg-gray-200 rounded w-14"></div>
@@ -751,8 +842,8 @@ const PaymentManagement = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Payment Management</h1>
-          <p className="text-xs text-gray-600">Manage and track all payment transactions</p>
+          <h1 className="text-xl font-bold text-gray-900">Feedback Management</h1>
+          <p className="text-xs text-gray-600">Manage and respond to user feedback</p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
           <button
@@ -765,7 +856,7 @@ const PaymentManagement = () => {
           </button>
 
           <button
-            onClick={() => fetchPayments()}
+            onClick={() => fetchFeedbacks()}
             className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors"
           >
             <RefreshCw className="w-2.5 h-2.5" />
@@ -830,8 +921,8 @@ const PaymentManagement = () => {
 
             {/* Search and Bulk Actions */}
             <div className="flex flex-col sm:flex-row gap-1.5">
-              {/* Bulk Actions - UPDATED: Removed status update options */}
-              {selectedPayments.length > 0 && (
+              {/* Bulk Actions */}
+              {selectedFeedbacks.length > 0 && (
                 <div className="flex items-center gap-1.5 bg-primary-50 rounded-md">
                   <select
                     value={bulkAction}
@@ -839,8 +930,12 @@ const PaymentManagement = () => {
                     className="text-xs border border-primary-300 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 bg-white"
                   >
                     <option value="">Bulk Actions</option>
-                    <option value="refund">Process Refund</option>
-                    {/* REMOVED: Status update options */}
+                    <option value="pending">Mark as Pending</option>
+                    <option value="reviewed">Mark as Reviewed</option>
+                    <option value="in_progress">Mark as In Progress</option>
+                    <option value="resolved">Mark as Resolved</option>
+                    <option value="closed">Mark as Closed</option>
+                    <option value="delete">Delete</option>
                   </select>
                   <button
                     onClick={handleBulkAction}
@@ -850,7 +945,7 @@ const PaymentManagement = () => {
                     Apply
                   </button>
                   <span className="text-xs text-primary-700 font-medium">
-                    {selectedPayments.length} selected
+                    {selectedFeedbacks.length} selected
                   </span>
                 </div>
               )}
@@ -873,7 +968,7 @@ const PaymentManagement = () => {
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                 <input
                   type="text"
-                  placeholder="Search payments..."
+                  placeholder="Search feedback..."
                   value={filters.search}
                   onChange={e => handleSearchChange(e.target.value)}
                   className="pl-7 pr-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-40 text-xs"
@@ -902,17 +997,15 @@ const PaymentManagement = () => {
                   </select>
                 </div>
 
-                {/* Payment Method Filter */}
+                {/* Category Filter */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Payment Method
-                  </label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
                   <select
-                    value={filters.paymentMethod}
-                    onChange={e => handlePaymentMethodChange(e.target.value)}
+                    value={filters.category}
+                    onChange={e => handleCategoryChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   >
-                    {paymentMethodOptions.map(option => (
+                    {categoryOptions.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -920,31 +1013,20 @@ const PaymentManagement = () => {
                   </select>
                 </div>
 
-                {/* Amount Range */}
+                {/* Rating Filter */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Min Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={filters.minAmount}
-                    onChange={e => handleAmountFilterChange('minAmount', e.target.value)}
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Rating</label>
+                  <select
+                    value={filters.rating}
+                    onChange={e => handleRatingChange(e.target.value)}
                     className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Max Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={filters.maxAmount}
-                    onChange={e => handleAmountFilterChange('maxAmount', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    {ratingOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Results Per Page */}
@@ -957,32 +1039,10 @@ const PaymentManagement = () => {
                   >
                     <option value="5">5 per page</option>
                     <option value="10">10 per page</option>
+                    <option value="15">15 per page</option>
                     <option value="25">25 per page</option>
                     <option value="50">50 per page</option>
-                    <option value="100">100 per page</option>
                   </select>
-                </div>
-              </div>
-
-              {/* Date Range Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={e => handleDateFilterChange('startDate', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={e => handleDateFilterChange('endDate', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  />
                 </div>
               </div>
 
@@ -1013,26 +1073,22 @@ const PaymentManagement = () => {
                         </button>
                       </span>
                     )}
-                    {filters.paymentMethod !== 'all' && (
+                    {filters.category !== 'all' && (
                       <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
-                        Method:{' '}
-                        {paymentMethodOptions.find(m => m.value === filters.paymentMethod)?.label}
+                        Category: {categoryOptions.find(c => c.value === filters.category)?.label}
                         <button
-                          onClick={() => handlePaymentMethodChange('all')}
+                          onClick={() => handleCategoryChange('all')}
                           className="ml-0.5 text-blue-600 hover:text-blue-800"
                         >
                           <X className="w-2.5 h-2.5" />
                         </button>
                       </span>
                     )}
-                    {(filters.minAmount || filters.maxAmount) && (
+                    {filters.rating !== 'all' && (
                       <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
-                        Amount: ₹{filters.minAmount || '0'} - ₹{filters.maxAmount || '∞'}
+                        Rating: {ratingOptions.find(r => r.value === filters.rating)?.label}
                         <button
-                          onClick={() => {
-                            handleAmountFilterChange('minAmount', '')
-                            handleAmountFilterChange('maxAmount', '')
-                          }}
+                          onClick={() => handleRatingChange('all')}
                           className="ml-0.5 text-blue-600 hover:text-blue-800"
                         >
                           <X className="w-2.5 h-2.5" />
@@ -1064,17 +1120,17 @@ const PaymentManagement = () => {
                 <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-2">
                   <Filter className="w-4 h-4 text-red-500" />
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 mb-1">Unable to Load Payments</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Unable to Load Feedback</h3>
                 <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">{error}</p>
                 <button
-                  onClick={fetchPayments}
+                  onClick={fetchFeedbacks}
                   className="px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors text-xs font-medium"
                 >
                   Try Again
                 </button>
               </div>
             </div>
-          ) : payments.length > 0 ? (
+          ) : feedbacks.length > 0 ? (
             <div className="flex-1 overflow-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
@@ -1082,7 +1138,9 @@ const PaymentManagement = () => {
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
                       <input
                         type="checkbox"
-                        checked={selectedPayments.length === payments.length && payments.length > 0}
+                        checked={
+                          selectedFeedbacks.length === feedbacks.length && feedbacks.length > 0
+                        }
                         onChange={toggleSelectAll}
                         className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
                       />
@@ -1091,16 +1149,13 @@ const PaymentManagement = () => {
                       User
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
+                      Feedback
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order ID
+                      Rating
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Course
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Method
+                      Category
                     </th>
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -1114,97 +1169,90 @@ const PaymentManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {payments.map(payment => (
-                    <tr key={payment.payment_id} className="hover:bg-gray-50 transition-colors">
+                  {feedbacks.map(feedback => (
+                    <tr key={feedback.feedback_id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-3 py-2 whitespace-nowrap">
                         <input
                           type="checkbox"
-                          checked={selectedPayments.includes(payment.payment_id)}
-                          onChange={() => togglePaymentSelection(payment.payment_id)}
+                          checked={selectedFeedbacks.includes(feedback.feedback_id)}
+                          onChange={() => toggleFeedbackSelection(feedback.feedback_id)}
                           className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
                         />
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs mr-2">
-                            {payment.user?.full_name?.charAt(0) || 'U'}
+                            {feedback.user?.full_name?.charAt(0) || 'U'}
                           </div>
                           <div>
                             <div className="text-xs font-medium text-gray-900 line-clamp-1">
-                              {payment.user?.full_name || 'Unknown User'}
+                              {feedback.user?.full_name || 'Unknown User'}
                             </div>
                             <div className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
                               <Mail className="w-2.5 h-2.5" />
-                              <span>{payment.user?.email || payment.email || 'No email'}</span>
+                              <span>{feedback.user?.email || 'No email'}</span>
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="text-xs font-bold text-gray-900">
-                          {formatAmount(payment.amount)}
-                        </div>
-                        <div className="text-xs text-gray-500">{payment.currency || 'INR'}</div>
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="text-xs font-mono text-gray-600 bg-gray-50 px-1 py-0.5 rounded border">
-                          {payment.rzp_order_id ? payment.rzp_order_id.slice(-8) : 'N/A'}
-                        </div>
-                      </td>
                       <td className="px-3 py-2">
-                        <div className="text-xs text-gray-900 font-medium line-clamp-2">
-                          {payment.course?.title || 'No Course'}
-                        </div>
-                        {payment.enrollment && (
-                          <div className="text-xs text-gray-500">
-                            Enrollment: {payment.enrollment.enrollment_id}
+                        <div className="text-xs text-gray-900">
+                          <div className="text-gray-600 line-clamp-2">
+                            {truncateText(feedback.message, 80)}
                           </div>
-                        )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="flex items-center gap-0.5">
+                          {renderStars(feedback.rating)}
+                          <span className="text-xs text-gray-500 ml-1">({feedback.rating})</span>
+                        </div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${getPaymentMethodColor(payment.method)}`}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(feedback.category)}`}
                         >
-                          {getPaymentMethodIcon(payment.method)}
-                          {payment.method
-                            ? payment.method.charAt(0).toUpperCase() + payment.method.slice(1)
-                            : 'Unknown'}
+                          {getCategoryIcon(feedback.category)}
+                          {feedback.category
+                            ? feedback.category.charAt(0).toUpperCase() + feedback.category.slice(1)
+                            : 'General'}
                         </span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        {/* REMOVED: Status dropdown - now just display status */}
-                        <span
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(payment.status || 'created')}`}
+                        <select
+                          value={feedback.status || 'pending'}
+                          onChange={e => handleStatusUpdate(feedback.feedback_id, e.target.value)}
+                          className={`text-xs font-medium rounded-full border-0 focus:ring-1 focus:ring-primary-500 px-1.5 py-0.5 ${getStatusColor(feedback.status || 'pending')}`}
                         >
-                          {payment.status
-                            ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1)
-                            : 'Created'}
-                        </span>
+                          <option value="pending">Pending</option>
+                          <option value="reviewed">Reviewed</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                         <div className="flex items-center gap-0.5">
                           <Calendar className="w-2.5 h-2.5" />
-                          {formatDate(payment.createdAt)}
+                          {formatDate(feedback.createdAt)}
                         </div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
                         <div className="flex items-center gap-0.5">
                           <button
-                            onClick={() => openPaymentModal(payment)}
+                            onClick={() => openFeedbackModal(feedback)}
                             className="text-gray-600 hover:text-gray-900 p-0.5 rounded hover:bg-gray-50 transition-colors"
-                            title="View Payment Details"
+                            title="View Feedback"
                           >
                             <Eye className="w-3 h-3" />
                           </button>
-                          {payment.status === 'paid' && (
-                            <button
-                              onClick={() => handleRefundPayment(payment.payment_id)}
-                              className="text-purple-600 hover:text-purple-900 p-0.5 rounded hover:bg-purple-50 transition-colors"
-                              title="Refund Payment"
-                            >
-                              <RefreshCw className="w-3 h-3" />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleDeleteFeedback(feedback.feedback_id)}
+                            className="text-red-600 hover:text-red-900 p-0.5 rounded hover:bg-red-50 transition-colors"
+                            title="Delete Feedback"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1216,13 +1264,13 @@ const PaymentManagement = () => {
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center">
                 <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <DollarSign className="w-4 h-4 text-gray-400" />
+                  <MessageCircle className="w-4 h-4 text-gray-400" />
                 </div>
-                <h3 className="text-sm font-medium text-gray-900 mb-1">No payments found</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">No feedback found</h3>
                 <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">
                   {hasActiveFilters
-                    ? 'No payments match your search criteria. Try adjusting your filters.'
-                    : 'No payment transactions have been recorded yet.'}
+                    ? 'No feedback matches your search criteria. Try adjusting your filters.'
+                    : 'No feedback has been submitted yet.'}
                 </p>
               </div>
             </div>
@@ -1308,12 +1356,12 @@ const PaymentManagement = () => {
         </div>
       </div>
 
-      {/* Payment Modal */}
-      <PaymentModal
-        show={showPaymentModal}
-        payment={editingPayment}
-        onClose={closePaymentModal}
-        onUpdated={handlePaymentUpdated}
+      {/* Feedback Modal */}
+      <FeedbackModal
+        show={showFeedbackModal}
+        feedback={editingFeedback}
+        onClose={closeFeedbackModal}
+        onSaved={handleFeedbackSaved}
       />
 
       {/* Confirmation Modal */}
@@ -1323,8 +1371,8 @@ const PaymentManagement = () => {
             <div className="flex items-center gap-2 p-3 border-b border-gray-200">
               <div
                 className={`p-1.5 rounded-full ${
-                  confirmationModal.type === 'refund' || confirmationModal.type === 'bulkRefund'
-                    ? 'bg-purple-100 text-purple-600'
+                  confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                    ? 'bg-red-100 text-red-600'
                     : 'bg-blue-100 text-blue-600'
                 }`}
               >
@@ -1350,8 +1398,8 @@ const PaymentManagement = () => {
               <button
                 onClick={handleConfirm}
                 className={`px-2 py-1 text-xs font-medium text-white rounded focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors ${
-                  confirmationModal.type === 'refund' || confirmationModal.type === 'bulkRefund'
-                    ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500'
+                  confirmationModal.type === 'delete' || confirmationModal.type === 'bulkDelete'
+                    ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
                     : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
                 }`}
               >
@@ -1365,4 +1413,4 @@ const PaymentManagement = () => {
   )
 }
 
-export default PaymentManagement
+export default FeedbackManagement

@@ -28,6 +28,7 @@ const Payments = lazy(() => import('../../components/dashboard/Payments'))
 const StudentsManagement = lazy(() => import('../../components/dashboard/StudentManagement'))
 const CourseManagement = lazy(() => import('../../components/dashboard/CourseManagement'))
 const ContactsManagement = lazy(() => import('../../components/dashboard/ContactsManagement'))
+const FeedbackManagement = lazy(() => import('../../components/dashboard/FeedbackManagement'))
 const Reports = lazy(() => import('../../components/dashboard/Reports'))
 const PaymentManagement = lazy(() => import('../../components/dashboard/PaymentManagement'))
 const Analytics = lazy(() => import('../../components/dashboard/Analytics'))
@@ -191,6 +192,10 @@ const getRouteConfig = userRole => {
         {
           path: 'contacts',
           element: <ContactsManagement />,
+        },
+        {
+          path: 'feedbacks',
+          element: <FeedbackManagement />,
         },
         {
           path: 'reports',

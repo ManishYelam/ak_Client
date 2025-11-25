@@ -32,6 +32,7 @@ export const paymentsAPI = {
   verifyPayment: paymentData => api.post('/payments/verify-payment', paymentData),
   getHistory: (params = {}) => api.get('/payments/history', { params }),
   getUserPayments: (params = {}) => api.get('/payments/user-payments', { params }),
+  getAllUserPayments: data => api.post('/payments/all-user-payments', { data }),
   checkEnrollment: courseId => api.get(`/payments/check-enrollment/${courseId}`),
   getUserEnrollments: (params = {}) => api.get('/payments/user-enrollments', { params }),
   getPaymentDetails: paymentId => api.get(`/payments/payment-details/${paymentId}`),

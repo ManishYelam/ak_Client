@@ -239,7 +239,7 @@ const getNavigationItems = userRole => {
     },
     {
       name: 'Feedback Management',
-      href: '/dashboard/feedback',
+      href: '/dashboard/feedbacks',
       icon: MessageSquare,
     },
     {
