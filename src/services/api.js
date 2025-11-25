@@ -10,6 +10,12 @@ export const authAPI = {
   otpChangePasswordService: (email, data) => api.post(`/change-password-otp/${email}`, data),
 }
 
+export const userAPI = {
+  getAllUsers: data => api.post(`/users/v2`, data),
+  updateUser: (userId, profileData) => api.put(`/users/${userId}`, profileData),
+  deleteUser: userId => api.delete(`/users/${userId}`),
+}
+
 export const coursesAPI = {
   getAll: data => api.post('/courses', data),
   getFeatured: () => api.get('/courses/featured'),

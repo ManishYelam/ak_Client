@@ -5,16 +5,16 @@ import { contactAPI } from '../services/api'
 
 // Memoized contact info items with proper error boundary
 const ContactInfoItem = React.memo(({ icon: Icon, title, value, description, href }) => (
-  <div className="flex items-start space-x-3">
+  <div className="flex items-start space-x-2">
     <div className="flex-shrink-0">
-      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary-600" />
+      <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+        <Icon className="w-4 h-4 text-primary-600" />
       </div>
     </div>
     <div className="flex-1 min-w-0">
-      <h3 className="font-semibold text-gray-900 text-sm mb-1">{title}</h3>
-      <p className="text-gray-600 text-sm mb-1">{value}</p>
-      <p className="text-xs text-gray-500">{description}</p>
+      <h3 className="font-semibold text-gray-900 text-xs mb-0.5">{title}</h3>
+      <p className="text-gray-600 text-xs mb-0.5">{value}</p>
+      <p className="text-[10px] text-gray-500">{description}</p>
     </div>
   </div>
 ))
@@ -31,14 +31,14 @@ const QuickLinks = React.memo(() => {
   ]
 
   return (
-    <div className="mt-8">
-      <h3 className="text-base font-semibold text-gray-900 mb-3">Quick Links</h3>
-      <div className="space-y-2">
+    <div className="mt-6">
+      <h3 className="text-sm font-semibold text-gray-900 mb-2">Quick Links</h3>
+      <div className="space-y-1">
         {links.map((link, index) => (
           <button
             key={index}
             onClick={() => console.log('Navigate to:', link)}
-            className="block w-full text-left text-sm text-gray-600 hover:text-primary-600 py-1 px-2 rounded transition-colors duration-200 hover:bg-gray-50"
+            className="block w-full text-left text-xs text-gray-600 hover:text-primary-600 py-0.5 px-1.5 rounded transition-colors duration-200 hover:bg-gray-50"
           >
             • {link}
           </button>
@@ -77,12 +77,12 @@ const FormField = React.memo(
           onChange={onChange}
           required={required}
           placeholder={placeholder}
-          className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-2.5 py-1.5 text-xs border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
             error ? 'border-red-300 bg-red-50' : 'border-gray-300'
           }`}
         />
       )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-0.5 text-xs text-red-600">{error}</p>}
     </div>
   )
 )
@@ -283,23 +283,22 @@ const Contact = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-large border border-gray-200 p-8 max-w-md w-full text-center">
-          <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Message Sent Successfully!</h2>
-          <p className="text-gray-600 mb-4">
-            Thank you for contacting us. We've received your message and will get back to you within
-            24 hours.
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-sm w-full text-center">
+          <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h2>
+          <p className="text-gray-600 text-xs mb-4">
+            Thank you for contacting us. We'll get back to you within 24 hours.
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <button
               onClick={() => setIsSubmitted(false)}
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 px-3 rounded-lg font-semibold text-xs transition-all duration-200"
             >
               Send Another Message
             </button>
             <button
               onClick={() => (window.location.href = '/')}
-              className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg font-semibold transition-all duration-200"
+              className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 px-3 rounded-lg font-semibold text-xs transition-all duration-200"
             >
               Back to Home
             </button>
@@ -312,11 +311,11 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with proper contrast */}
-      <section className="bg-gradient-to-r from-primary-700 to-primary-800 text-white py-12">
+      <section className="bg-gradient-to-r from-primary-700 to-primary-800 text-white py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold font-display mb-4">Get In Touch</h1>
-            <p className="text-base text-primary-100 max-w-2xl mx-auto leading-relaxed">
+            <h1 className="text-2xl lg:text-3xl font-bold font-display mb-3">Get In Touch</h1>
+            <p className="text-sm text-primary-100 max-w-2xl mx-auto leading-relaxed">
               Have questions about our courses? We're here to help you start your SAP ABAP journey.
             </p>
           </div>
@@ -324,23 +323,23 @@ const Contact = () => {
       </section>
 
       {/* Main Content with proper spacing */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Contact Information */}
           <div className="lg:col-span-1">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h2>
-            <div className="space-y-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Contact Information</h2>
+            <div className="space-y-4">
               {contactInfo.map((item, index) => (
                 <div key={index}>
                   {item.href ? (
                     <a
                       href={item.href}
-                      className="block hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200 no-underline"
+                      className="block hover:bg-gray-50 rounded-lg p-1.5 -m-1.5 transition-colors duration-200 no-underline"
                     >
                       <ContactInfoItem {...item} />
                     </a>
                   ) : (
-                    <div className="p-2 -m-2">
+                    <div className="p-1.5 -m-1.5">
                       <ContactInfoItem {...item} />
                     </div>
                   )}
@@ -353,24 +352,24 @@ const Contact = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-large border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Send us a Message</h2>
 
               {/* Submit Error Alert */}
               {submitError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
                   <div className="flex items-start">
-                    <AlertCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-red-700 text-sm font-medium">Submission Failed</p>
-                      <p className="text-red-600 text-sm mt-1">{submitError}</p>
+                      <p className="text-red-700 text-xs font-medium">Submission Failed</p>
+                      <p className="text-red-600 text-xs mt-0.5">{submitError}</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     label="Full Name"
                     id="name"
@@ -394,7 +393,7 @@ const Contact = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     label="Phone Number"
                     id="phone"
@@ -420,7 +419,7 @@ const Contact = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
+                      className={`w-full px-2.5 py-1.5 text-xs border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
                         errors.subject ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                     >
@@ -449,8 +448,8 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    rows="5"
-                    className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-vertical ${
+                    rows="4"
+                    className={`w-full px-2.5 py-1.5 text-xs border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-vertical ${
                       errors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                     placeholder="Tell us about your requirements..."
@@ -460,23 +459,23 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white py-3 px-4 rounded-lg font-semibold text-sm flex items-center justify-center transition-all duration-200 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed"
+                  className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white py-2 px-3 rounded-lg font-semibold text-xs flex items-center justify-center transition-all duration-200 focus:ring-1 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending Message...
+                      <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                      Sending...
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4 mr-2" />
+                      <Send className="w-3 h-3 mr-1.5" />
                       Send Message
                     </>
                   )}
                 </button>
 
                 {/* Privacy Notice */}
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-[10px] text-gray-500 text-center">
                   By submitting this form, you agree to our{' '}
                   <a
                     href="/privacy-policy"
