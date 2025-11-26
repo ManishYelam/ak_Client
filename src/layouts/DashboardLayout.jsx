@@ -253,7 +253,7 @@ const getNavigationItems = userRole => {
       icon: CreditCard,
     },
     {
-      name: 'Analytics',
+      name: 'Analytics Dashboard',
       href: '/dashboard/analytics',
       icon: BarChart3,
     },

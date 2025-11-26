@@ -97,6 +97,19 @@ export const feedbackAPI = {
   deleteFeedback: id => api.delete(`/feedback/${id}`),
 }
 
+export const analyticsAPI = {
+  getDashboardOverview: () => api.get('/analytics/dashboard-overview'),
+  getRevenueAnalytics: (params = {}) => api.get('/analytics/revenue', { params }),
+  getUserAnalytics: () => api.get('/analytics/users'),
+  getCourseAnalytics: () => api.get('/analytics/courses'),
+  getSupportAnalytics: () => api.get('/analytics/support'),
+  getBlogAnalytics: () => api.get('/analytics/blogs'),
+  getCustomAnalytics: (params = {}) => api.get('/analytics/custom', { params }),
+  getEnrollmentAnalytics: (params = {}) => api.get('/analytics/enrollments', { params }),
+  getDemoRequestAnalytics: (params = {}) => api.get('/analytics/demo-requests', { params }),
+  getTestimonialAnalytics: () => api.get('/analytics/testimonials'),
+}
+
 // import api from "./axiosInstance";
 
 // export const supportAPI = {
