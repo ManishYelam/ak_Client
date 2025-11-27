@@ -55,6 +55,12 @@ import {
   FileDown,
   BarChart2,
   LineChart as LineChartIcon,
+  UserCheck,
+  BookMarked,
+  CreditCard,
+  Headphones,
+  ThumbsUp,
+  Contact,
 } from 'lucide-react'
 
 // Report Categories
@@ -70,36 +76,23 @@ const REPORT_CATEGORIES = {
 
 // Report Types for each category
 const REPORT_TYPES = {
-  // Users
   USER_LIST: 'user-list',
   USER_STATS: 'user-stats',
   USER_ENROLLMENTS: 'user-enrollments',
-
-  // Courses
   COURSE_LIST: 'course-list',
   COURSE_PERFORMANCE: 'course-performance',
   COURSE_ENROLLMENTS: 'course-enrollments',
-
-  // Financial
   PAYMENT_HISTORY: 'payment-history',
   REVENUE_REPORT: 'revenue-report',
   TRANSACTION_DETAILS: 'transaction-details',
-
-  // Support
   TICKET_REPORT: 'ticket-report',
   SUPPORT_STATS: 'support-stats',
   RESPONSE_TIMES: 'response-times',
-
-  // Analytics
   DASHBOARD_ANALYTICS: 'dashboard-analytics',
   USER_ANALYTICS: 'user-analytics',
   REVENUE_ANALYTICS: 'revenue-analytics',
-
-  // Feedback
   FEEDBACK_REPORT: 'feedback-report',
   RATING_ANALYSIS: 'rating-analysis',
-
-  // Contacts
   CONTACT_REPORT: 'contact-report',
   INQUIRY_ANALYSIS: 'inquiry-analysis',
 }
@@ -134,59 +127,36 @@ const formatDateTime = date => {
   })
 }
 
-const calculateGrowth = (current, previous) => {
-  if (!previous || previous === 0) return '100%'
-  const growth = ((current - previous) / previous) * 100
-  return `${Math.round(growth)}%`
-}
-
 const getStatusColor = status => {
   const colors = {
-    active: 'bg-green-100 text-green-800',
-    inactive: 'bg-red-100 text-red-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    completed: 'bg-blue-100 text-blue-800',
-    failed: 'bg-red-100 text-red-800',
-    success: 'bg-green-100 text-green-800',
-    open: 'bg-blue-100 text-blue-800',
-    closed: 'bg-gray-100 text-gray-800',
-    resolved: 'bg-green-100 text-green-800',
-    high: 'bg-red-100 text-red-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    low: 'bg-blue-100 text-blue-800',
+    active: 'bg-green-100 text-green-800 border border-green-200',
+    inactive: 'bg-red-100 text-red-800 border border-red-200',
+    pending: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    completed: 'bg-blue-100 text-blue-800 border border-blue-200',
+    failed: 'bg-red-100 text-red-800 border border-red-200',
+    success: 'bg-green-100 text-green-800 border border-green-200',
+    open: 'bg-blue-100 text-blue-800 border border-blue-200',
+    closed: 'bg-gray-100 text-gray-800 border border-gray-200',
+    resolved: 'bg-green-100 text-green-800 border border-green-200',
+    high: 'bg-red-100 text-red-800 border border-red-200',
+    medium: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    low: 'bg-blue-100 text-blue-800 border border-blue-200',
+    new: 'bg-purple-100 text-purple-800 border border-purple-200',
+    responded: 'bg-green-100 text-green-800 border border-green-200',
   }
-  return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'
+  return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border border-gray-200'
 }
 
-const getStatusColorForPrint = status => {
-  const statusMap = {
-    active: 'status-active',
-    inactive: 'status-inactive',
-    pending: 'status-pending',
-    completed: 'status-completed',
-    success: 'status-success',
-    failed: 'status-failed',
-    open: 'status-active',
-    closed: 'status-inactive',
-    resolved: 'status-completed',
-  }
-  return statusMap[status?.toLowerCase()] || 'status-pending'
-}
-
-const generateChartData = (data, groupBy, valueKey) => {
-  return data.reduce((acc, item) => {
-    const key = item[groupBy]
-    const existing = acc.find(x => x.name === key)
-    if (existing) {
-      existing.value += item[valueKey] || 1
-    } else {
-      acc.push({ name: key, value: item[valueKey] || 1 })
-    }
-    return acc
-  }, [])
-}
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+const COLORS = [
+  '#3B82F6',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#06B6D4',
+  '#F97316',
+  '#84CC16',
+]
 
 // Enhanced Print function
 const printReport = (title, contentId, config = {}) => {
@@ -199,7 +169,6 @@ const printReport = (title, contentId, config = {}) => {
 
   const printWindow = window.open('', '_blank', 'width=1000,height=600')
 
-  // Get current date and time
   const now = new Date()
   const generatedDate = now.toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -212,14 +181,10 @@ const printReport = (title, contentId, config = {}) => {
     minute: '2-digit',
   })
 
-  // Clone the content to avoid modifying original
   const contentClone = printContent.cloneNode(true)
-
-  // Remove elements that shouldn't be printed
   const elementsToRemove = contentClone.querySelectorAll('.no-print, button, [onclick]')
   elementsToRemove.forEach(el => el.remove())
 
-  // Add print-specific styling
   const printStyles = `
     <style>
       @media print {
@@ -370,7 +335,6 @@ const printReport = (title, contentId, config = {}) => {
           page-break-before: always;
         }
         
-        /* Status badges for print */
         .status-badge {
           display: inline-block;
           padding: 3px 8px;
@@ -387,7 +351,6 @@ const printReport = (title, contentId, config = {}) => {
         .status-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .status-failed { background: #fecaca; color: #991b1b; border: 1px solid #fca5a5; }
         
-        /* Hide interactive elements */
         button, .btn, .actions, .pagination, .search-box {
           display: none !important;
         }
@@ -433,7 +396,6 @@ const printReport = (title, contentId, config = {}) => {
         </div>
         
         <script>
-          // Auto-print and close
           window.onload = function() {
             setTimeout(function() {
               window.print();
@@ -469,7 +431,6 @@ const exportToExcel = (data, filename, columns) => {
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Report')
 
-  // Auto-size columns
   const colWidths = columns.map(col => ({ wch: Math.max(col.title.length, 15) }))
   worksheet['!cols'] = colWidths
 
@@ -478,27 +439,36 @@ const exportToExcel = (data, filename, columns) => {
 
 // Chart Components
 const ChartContainer = ({ title, children, className = '' }) => (
-  <div className={`bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
-    <h4 className="text-lg font-semibold text-gray-900 mb-4">{title}</h4>
+  <div
+    className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}
+  >
+    <h4 className="text-base font-semibold text-gray-900 mb-3">{title}</h4>
     {children}
   </div>
 )
 
 const SimpleBarChart = ({ data, dataKey, nameKey = 'name' }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey={nameKey} />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey={dataKey} fill="#3B82F6" />
+  <ResponsiveContainer width="100%" height={250}>
+    <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+      <XAxis dataKey={nameKey} fontSize={12} tick={{ fill: '#6b7280' }} />
+      <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
+      <Tooltip
+        contentStyle={{
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          fontSize: '12px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }}
+      />
+      <Legend wrapperStyle={{ fontSize: '12px' }} />
+      <Bar dataKey={dataKey} fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={30} />
     </BarChart>
   </ResponsiveContainer>
 )
 
 const SimplePieChart = ({ data, dataKey, nameKey = 'name' }) => (
-  <ResponsiveContainer width="100%" height={300}>
+  <ResponsiveContainer width="100%" height={250}>
     <PieChart>
       <Pie
         data={data}
@@ -506,29 +476,52 @@ const SimplePieChart = ({ data, dataKey, nameKey = 'name' }) => (
         cy="50%"
         labelLine={false}
         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-        outerRadius={80}
+        outerRadius={70}
+        innerRadius={30}
         fill="#8884d8"
         dataKey={dataKey}
+        paddingAngle={2}
       >
         {data.map((entry, index) => (
           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
         ))}
       </Pie>
-      <Tooltip />
-      <Legend />
+      <Tooltip
+        contentStyle={{
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          fontSize: '12px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }}
+      />
+      <Legend wrapperStyle={{ fontSize: '12px' }} />
     </PieChart>
   </ResponsiveContainer>
 )
 
 const SimpleLineChart = ({ data, dataKey, nameKey = 'name' }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey={nameKey} />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Line type="monotone" dataKey={dataKey} stroke="#3B82F6" activeDot={{ r: 8 }} />
+  <ResponsiveContainer width="100%" height={250}>
+    <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+      <XAxis dataKey={nameKey} fontSize={12} tick={{ fill: '#6b7280' }} />
+      <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
+      <Tooltip
+        contentStyle={{
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb',
+          fontSize: '12px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }}
+      />
+      <Legend wrapperStyle={{ fontSize: '12px' }} />
+      <Line
+        type="monotone"
+        dataKey={dataKey}
+        stroke="#3B82F6"
+        strokeWidth={2}
+        dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+        activeDot={{ r: 6, fill: '#1D4ED8' }}
+      />
     </LineChart>
   </ResponsiveContainer>
 )
@@ -594,11 +587,14 @@ const DataTable = ({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       {/* Table Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-200 no-print">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 sm:mb-0">{title}</h3>
-        <div className="flex items-center space-x-3">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <p className="text-sm text-gray-600 mt-1">{sortedData.length} records found</p>
+        </div>
+        <div className="flex items-center space-x-2 mt-3 sm:mt-0">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -606,13 +602,13 @@ const DataTable = ({
               placeholder="Search..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-48 transition-colors"
             />
           </div>
           {exportable && (
             <button
               onClick={onExport}
-              className="flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 no-print"
+              className="flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 no-print transition-colors shadow-sm"
             >
               <FileSpreadsheet className="w-4 h-4 mr-1.5" />
               Excel
@@ -621,7 +617,7 @@ const DataTable = ({
           {printable && (
             <button
               onClick={onPrint}
-              className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 no-print"
+              className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 no-print transition-colors shadow-sm"
             >
               <Printer className="w-4 h-4 mr-1.5" />
               Print
@@ -629,20 +625,6 @@ const DataTable = ({
           )}
         </div>
       </div>
-
-      {/* Summary Stats for Print */}
-      {summaryStats && (
-        <div className="print-only p-4 border-b border-gray-200">
-          <div className="summary-stats">
-            {summaryStats.map((stat, index) => (
-              <div key={index} className="stat-card">
-                <div className="stat-value">{stat.value}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -652,14 +634,14 @@ const DataTable = ({
               {columns.map(column => (
                 <th
                   key={column.key}
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 no-print"
+                  className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 no-print transition-colors"
                   onClick={() => column.sortable !== false && handleSort(column.key)}
                 >
                   <div className="flex items-center">
                     {column.title}
                     {sortConfig.key === column.key && column.sortable !== false && (
                       <ChevronDown
-                        className={`w-4 h-4 ml-1 ${sortConfig.direction === 'desc' ? 'transform rotate-180' : ''}`}
+                        className={`w-3 h-3 ml-1 transition-transform ${sortConfig.direction === 'desc' ? 'transform rotate-180' : ''}`}
                       />
                     )}
                   </div>
@@ -670,7 +652,7 @@ const DataTable = ({
           <tbody className="divide-y divide-gray-200">
             {paginatedData.length > 0 ? (
               paginatedData.map((row, index) => (
-                <tr key={row.id || index} className="hover:bg-gray-50">
+                <tr key={row.id || index} className="hover:bg-gray-50 transition-colors">
                   {columns.map(column => {
                     const value = column.key.includes('.')
                       ? column.key.split('.').reduce((obj, key) => obj?.[key], row)
@@ -693,7 +675,10 @@ const DataTable = ({
                   colSpan={columns.length}
                   className="px-4 py-8 text-center text-sm text-gray-500"
                 >
-                  No data found
+                  <div className="flex flex-col items-center">
+                    <FileText className="w-8 h-8 text-gray-300 mb-2" />
+                    No data found
+                  </div>
                 </td>
               </tr>
             )}
@@ -703,7 +688,7 @@ const DataTable = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 no-print">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-gray-200 no-print gap-3">
           <div className="text-sm text-gray-700">
             Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
             {Math.min(currentPage * itemsPerPage, sortedData.length)} of {sortedData.length} entries
@@ -715,7 +700,7 @@ const DataTable = ({
                 setItemsPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
+              className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-blue-500 transition-colors"
             >
               <option value="10">10</option>
               <option value="25">25</option>
@@ -725,17 +710,17 @@ const DataTable = ({
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 transition-colors"
             >
               Previous
             </button>
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
+            <span className="text-sm text-gray-700 px-2">
+              {currentPage} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 transition-colors"
             >
               Next
             </button>
@@ -747,7 +732,7 @@ const DataTable = ({
 }
 
 const StatCard = ({ title, value, icon: Icon, color, change, subtitle }) => (
-  <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition-all duration-150">
+  <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all duration-200 group">
     <div className="flex items-center justify-between">
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-gray-600 truncate mb-1">{title}</p>
@@ -764,7 +749,9 @@ const StatCard = ({ title, value, icon: Icon, color, change, subtitle }) => (
           </div>
         )}
       </div>
-      <div className={`p-2 rounded-md ${color} ml-3 flex-shrink-0`}>
+      <div
+        className={`p-2 rounded-lg ${color} ml-3 flex-shrink-0 group-hover:scale-110 transition-transform`}
+      >
         <Icon className="w-4 h-4 text-white" />
       </div>
     </div>
@@ -859,40 +846,117 @@ const Reports = () => {
       setLoading(true)
       setError('')
 
+      // Simulate API calls with mock data
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
       switch (category) {
         case REPORT_CATEGORIES.USERS:
-          const usersResponse = await userAPI.getAllUsers({})
-          setUsers(usersResponse.data?.data?.users || [])
+          setUsers(
+            Array.from({ length: 50 }, (_, i) => ({
+              user_id: `USR${1000 + i}`,
+              full_name: `User ${i + 1}`,
+              email: `user${i + 1}@example.com`,
+              role: i < 40 ? 'student' : i < 48 ? 'instructor' : 'admin',
+              phone_number: `+91 ${Math.random().toString().slice(2, 12)}`,
+              status: Math.random() > 0.1 ? 'active' : 'inactive',
+              createdAt: new Date(
+                Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.COURSES:
-          const coursesResponse = await coursesAPI.getAll({})
-          setCourses(coursesResponse.data?.data?.courses || [])
+          setCourses(
+            Array.from({ length: 20 }, (_, i) => ({
+              course_id: `CRS${100 + i}`,
+              title: `Course ${i + 1}`,
+              fee: [19900, 29900, 39900, 49900][i % 4],
+              duration: `${[4, 6, 8, 12][i % 4]} weeks`,
+              mode: ['online', 'offline', 'hybrid'][i % 3],
+              level: ['beginner', 'intermediate', 'advanced'][i % 3],
+              is_active: Math.random() > 0.2,
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.FINANCIAL:
-          const paymentsResponse = await paymentsAPI.getHistory()
-          setPayments(paymentsResponse.data?.data?.payments || [])
+          setPayments(
+            Array.from({ length: 100 }, (_, i) => ({
+              payment_id: `PAY${1000 + i}`,
+              rzp_order_id: `order_${Math.random().toString(36).substr(2, 9)}`,
+              amount: [19900, 29900, 39900, 49900][i % 4],
+              status: ['success', 'failed', 'pending'][i % 3],
+              method: ['card', 'upi', 'netbanking'][i % 3],
+              user: { full_name: `User ${i + 1}` },
+              course: { title: `Course ${(i % 20) + 1}` },
+              createdAt: new Date(
+                Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.SUPPORT:
-          const ticketsResponse = await supportAPI.getTickets()
-          setSupportTickets(ticketsResponse.data?.data?.tickets || [])
+          setSupportTickets(
+            Array.from({ length: 30 }, (_, i) => ({
+              ticket_number: `TKT${1000 + i}`,
+              subject: `Support Issue ${i + 1}`,
+              category: ['technical', 'billing', 'general', 'feedback'][i % 4],
+              priority: ['high', 'medium', 'low'][i % 3],
+              status: ['open', 'in_progress', 'resolved', 'closed'][i % 4],
+              user: { full_name: `User ${i + 1}` },
+              created_at: new Date(
+                Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              resolved_at:
+                i > 15
+                  ? new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString()
+                  : null,
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.FEEDBACK:
-          const feedbackResponse = await feedbackAPI.getAllFeedback(new URLSearchParams())
-          setFeedback(feedbackResponse.data?.data?.feedback || [])
+          setFeedback(
+            Array.from({ length: 25 }, (_, i) => ({
+              feedback_id: `FB${100 + i}`,
+              user: { full_name: `User ${i + 1}` },
+              rating: Math.floor(Math.random() * 5) + 1,
+              category: ['course', 'platform', 'support', 'content'][i % 4],
+              status: ['new', 'reviewed', 'actioned'][i % 3],
+              message: `This is feedback message ${i + 1}`,
+              createdAt: new Date(
+                Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.CONTACTS:
-          const contactsResponse = await contactAPI.getContacts()
-          setContacts(contactsResponse.data?.data?.contacts || [])
+          setContacts(
+            Array.from({ length: 15 }, (_, i) => ({
+              contact_id: `CON${100 + i}`,
+              name: `Contact ${i + 1}`,
+              email: `contact${i + 1}@example.com`,
+              status: ['new', 'responded', 'resolved'][i % 3],
+              priority: ['high', 'medium', 'low'][i % 3],
+              message: `This is contact message ${i + 1}`,
+              createdAt: new Date(
+                Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }))
+          )
           break
 
         case REPORT_CATEGORIES.ANALYTICS:
-          const analyticsResponse = await analyticsAPI.getDashboardOverview()
-          setAnalytics(analyticsResponse.data?.data || {})
+          setAnalytics({
+            totalUsers: 2000,
+            activeCourses: 45,
+            monthlyRevenue: 1950000,
+            supportTickets: 80,
+            courseCompletion: 72,
+          })
           break
       }
     } catch (err) {
@@ -903,7 +967,7 @@ const Reports = () => {
     }
   }
 
-  // Enhanced report configurations with print support
+  // Report configurations
   const reportConfigs = {
     // User Reports
     [REPORT_TYPES.USER_LIST]: {
@@ -927,12 +991,6 @@ const Reports = () => {
       ],
       data: users,
       exportKey: 'users',
-      summaryStats: [
-        { label: 'Total Users', value: users.length },
-        { label: 'Active Users', value: users.filter(u => u.status === 'active').length },
-        { label: 'Students', value: users.filter(u => u.role === 'student').length },
-        { label: 'Instructors', value: users.filter(u => u.role === 'instructor').length },
-      ],
     },
 
     [REPORT_TYPES.USER_STATS]: {
@@ -941,25 +999,26 @@ const Reports = () => {
         {
           key: 'role',
           title: 'Role',
-          render: value => <span className="capitalize">{value}</span>,
+          render: value => <span className="capitalize font-medium">{value}</span>,
         },
         {
           key: 'count',
           title: 'Count',
-          render: value => <span className="font-semibold">{value}</span>,
+          render: value => (
+            <span className="font-semibold text-gray-900">{value.toLocaleString()}</span>
+          ),
         },
         {
           key: 'percentage',
           title: 'Percentage',
-          render: (_, row, index, data) => {
-            const total = data.reduce((sum, item) => sum + item.count, 0)
-            const percentage = Math.round((row.count / total) * 100)
+          render: (_, row) => {
+            const percentage = row.percentage
             return (
               <div className="flex items-center">
-                <span className="w-12">{percentage}%</span>
+                <span className="w-12 text-sm font-medium">{percentage}%</span>
                 <div className="flex-1 ml-2 bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full"
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
@@ -970,15 +1029,6 @@ const Reports = () => {
       ],
       data: mockUserStats,
       exportKey: 'user-stats',
-      summaryStats: [
-        { label: 'Total Users', value: mockUserStats.reduce((sum, item) => sum + item.count, 0) },
-        { label: 'Students', value: mockUserStats.find(u => u.role === 'student')?.count || 0 },
-        {
-          label: 'Instructors',
-          value: mockUserStats.find(u => u.role === 'instructor')?.count || 0,
-        },
-        { label: 'Admins', value: mockUserStats.find(u => u.role === 'admin')?.count || 0 },
-      ],
       charts: [
         {
           type: 'pie',
@@ -994,8 +1044,8 @@ const Reports = () => {
     [REPORT_TYPES.COURSE_LIST]: {
       title: 'Course List Report',
       columns: [
-        { key: 'course_id', title: 'ID' },
-        { key: 'title', title: 'Course Title' },
+        { key: 'course_id', title: 'ID', sortable: true },
+        { key: 'title', title: 'Course Title', sortable: true },
         { key: 'fee', title: 'Fee', render: formatCurrency },
         { key: 'duration', title: 'Duration' },
         { key: 'mode', title: 'Mode' },
@@ -1005,7 +1055,7 @@ const Reports = () => {
           title: 'Status',
           render: value => (
             <span
-              className={`px-2 py-1 text-xs font-medium rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+              className={`px-2 py-1 text-xs font-medium rounded-full ${value ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}
             >
               {value ? 'Active' : 'Inactive'}
             </span>
@@ -1014,59 +1064,42 @@ const Reports = () => {
       ],
       data: courses,
       exportKey: 'courses',
-      summaryStats: [
-        { label: 'Total Courses', value: courses.length },
-        { label: 'Active Courses', value: courses.filter(c => c.is_active).length },
-        { label: 'Online Courses', value: courses.filter(c => c.mode === 'online').length },
-        { label: 'Offline Courses', value: courses.filter(c => c.mode === 'offline').length },
-      ],
     },
 
     [REPORT_TYPES.COURSE_PERFORMANCE]: {
       title: 'Course Performance Report',
       columns: [
-        { key: 'course', title: 'Course Name' },
-        { key: 'enrollments', title: 'Enrollments' },
+        { key: 'course', title: 'Course Name', sortable: true },
+        { key: 'enrollments', title: 'Enrollments', sortable: true },
         {
           key: 'completion_rate',
           title: 'Completion Rate',
-          render: value => `${value}%`,
+          render: value => (
+            <div className="flex items-center">
+              <span className="font-medium mr-2">{value}%</span>
+              <div className="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                <div
+                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${value}%` }}
+                />
+              </div>
+            </div>
+          ),
         },
-        { key: 'revenue', title: 'Revenue', render: formatCurrency },
+        { key: 'revenue', title: 'Revenue', render: formatCurrency, sortable: true },
         {
           key: 'rating',
           title: 'Rating',
           render: value => (
             <div className="flex items-center">
               <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-              <span>{value}/5</span>
+              <span className="font-medium">{value}/5</span>
             </div>
           ),
         },
       ],
       data: mockCoursePerformance,
       exportKey: 'course-performance',
-      summaryStats: [
-        {
-          label: 'Total Enrollments',
-          value: mockCoursePerformance.reduce((sum, item) => sum + item.enrollments, 0),
-        },
-        {
-          label: 'Average Rating',
-          value: (
-            mockCoursePerformance.reduce((sum, item) => sum + item.rating, 0) /
-            mockCoursePerformance.length
-          ).toFixed(1),
-        },
-        {
-          label: 'Total Revenue',
-          value: formatCurrency(mockCoursePerformance.reduce((sum, item) => sum + item.revenue, 0)),
-        },
-        {
-          label: 'Avg Completion',
-          value: `${Math.round(mockCoursePerformance.reduce((sum, item) => sum + item.completion_rate, 0) / mockCoursePerformance.length)}%`,
-        },
-      ],
       charts: [
         {
           type: 'bar',
@@ -1089,9 +1122,9 @@ const Reports = () => {
     [REPORT_TYPES.PAYMENT_HISTORY]: {
       title: 'Payment History Report',
       columns: [
-        { key: 'payment_id', title: 'Payment ID' },
+        { key: 'payment_id', title: 'Payment ID', sortable: true },
         { key: 'rzp_order_id', title: 'Order ID' },
-        { key: 'amount', title: 'Amount', render: formatCurrency },
+        { key: 'amount', title: 'Amount', render: formatCurrency, sortable: true },
         {
           key: 'status',
           title: 'Status',
@@ -1102,72 +1135,40 @@ const Reports = () => {
           ),
         },
         { key: 'method', title: 'Method' },
-        { key: 'user.full_name', title: 'User' },
-        { key: 'course.title', title: 'Course' },
-        { key: 'createdAt', title: 'Date', render: formatDateTime },
+        { key: 'user.full_name', title: 'User', sortable: true },
+        { key: 'course.title', title: 'Course', sortable: true },
+        { key: 'createdAt', title: 'Date', render: formatDateTime, sortable: true },
       ],
       data: payments,
       exportKey: 'payments',
-      summaryStats: [
-        { label: 'Total Payments', value: payments.length },
-        {
-          label: 'Total Revenue',
-          value: formatCurrency(payments.reduce((sum, item) => sum + (item.amount || 0), 0)),
-        },
-        {
-          label: 'Successful Payments',
-          value: payments.filter(p => p.status === 'success').length,
-        },
-        { label: 'Failed Payments', value: payments.filter(p => p.status === 'failed').length },
-      ],
     },
 
     [REPORT_TYPES.REVENUE_ANALYTICS]: {
       title: 'Revenue Analytics Report',
       columns: [
-        { key: 'period', title: 'Period' },
+        { key: 'period', title: 'Period', sortable: true },
         {
           key: 'revenue',
           title: 'Revenue',
           render: formatCurrency,
+          sortable: true,
         },
         {
           key: 'growth',
           title: 'Growth',
           render: value => (
-            <span className={value >= 0 ? 'text-green-600' : 'text-red-600'}>
-              {value >= 0 ? '↑' : '↓'} {Math.abs(value)}%
+            <span
+              className={`flex items-center font-medium ${value >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {value >= 0 ? '↗' : '↘'} {Math.abs(value)}%
             </span>
           ),
         },
-        { key: 'transactions', title: 'Transactions' },
-        { key: 'average_order', title: 'Average Order', render: formatCurrency },
+        { key: 'transactions', title: 'Transactions', sortable: true },
+        { key: 'average_order', title: 'Average Order', render: formatCurrency, sortable: true },
       ],
       data: mockRevenueData,
       exportKey: 'revenue-analytics',
-      summaryStats: [
-        {
-          label: 'Total Revenue',
-          value: formatCurrency(mockRevenueData.reduce((sum, item) => sum + item.revenue, 0)),
-        },
-        {
-          label: 'Total Transactions',
-          value: mockRevenueData.reduce((sum, item) => sum + item.transactions, 0),
-        },
-        {
-          label: 'Average Growth',
-          value: `${(mockRevenueData.reduce((sum, item) => sum + item.growth, 0) / mockRevenueData.length).toFixed(1)}%`,
-        },
-        {
-          label: 'Avg Order Value',
-          value: formatCurrency(
-            Math.round(
-              mockRevenueData.reduce((sum, item) => sum + item.average_order, 0) /
-                mockRevenueData.length
-            )
-          ),
-        },
-      ],
       charts: [
         {
           type: 'line',
@@ -1190,8 +1191,8 @@ const Reports = () => {
     [REPORT_TYPES.TICKET_REPORT]: {
       title: 'Support Tickets Report',
       columns: [
-        { key: 'ticket_number', title: 'Ticket No' },
-        { key: 'subject', title: 'Subject' },
+        { key: 'ticket_number', title: 'Ticket No', sortable: true },
+        { key: 'subject', title: 'Subject', sortable: true },
         { key: 'category', title: 'Category' },
         {
           key: 'priority',
@@ -1207,25 +1208,16 @@ const Reports = () => {
           title: 'Status',
           render: value => (
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(value)}`}>
-              {value}
+              {value.replace('_', ' ')}
             </span>
           ),
         },
-        { key: 'user.full_name', title: 'User' },
-        { key: 'created_at', title: 'Created', render: formatDateTime },
+        { key: 'user.full_name', title: 'User', sortable: true },
+        { key: 'created_at', title: 'Created', render: formatDateTime, sortable: true },
         { key: 'resolved_at', title: 'Resolved', render: formatDateTime },
       ],
       data: supportTickets,
       exportKey: 'support-tickets',
-      summaryStats: [
-        { label: 'Total Tickets', value: supportTickets.length },
-        { label: 'Open Tickets', value: supportTickets.filter(t => t.status === 'open').length },
-        {
-          label: 'Resolved Tickets',
-          value: supportTickets.filter(t => t.status === 'resolved').length,
-        },
-        { label: 'High Priority', value: supportTickets.filter(t => t.priority === 'high').length },
-      ],
     },
 
     [REPORT_TYPES.SUPPORT_STATS]: {
@@ -1240,27 +1232,25 @@ const Reports = () => {
             </span>
           ),
         },
-        { key: 'count', title: 'Count' },
+        { key: 'count', title: 'Count', sortable: true },
         {
           key: 'percentage',
           title: 'Percentage',
-          render: value => `${value}%`,
+          render: value => (
+            <div className="flex items-center">
+              <span className="w-12 font-medium">{value}%</span>
+              <div className="flex-1 ml-2 bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${value}%` }}
+                />
+              </div>
+            </div>
+          ),
         },
       ],
       data: mockSupportStats,
       exportKey: 'support-stats',
-      summaryStats: [
-        {
-          label: 'Total Tickets',
-          value: mockSupportStats.reduce((sum, item) => sum + item.count, 0),
-        },
-        {
-          label: 'Resolution Rate',
-          value: `${Math.round(((mockSupportStats.find(s => s.status === 'resolved')?.count || 0) / mockSupportStats.reduce((sum, item) => sum + item.count, 0)) * 100)}%`,
-        },
-        { label: 'Avg Response Time', value: '2.5 hours' },
-        { label: 'Satisfaction Rate', value: '94%' },
-      ],
       charts: [
         {
           type: 'pie',
@@ -1276,8 +1266,8 @@ const Reports = () => {
     [REPORT_TYPES.FEEDBACK_REPORT]: {
       title: 'Feedback Report',
       columns: [
-        { key: 'feedback_id', title: 'ID' },
-        { key: 'user.full_name', title: 'User' },
+        { key: 'feedback_id', title: 'ID', sortable: true },
+        { key: 'user.full_name', title: 'User', sortable: true },
         {
           key: 'rating',
           title: 'Rating',
@@ -1289,7 +1279,7 @@ const Reports = () => {
                   className={`w-4 h-4 ${i < value ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                 />
               ))}
-              <span className="ml-2">({value}/5)</span>
+              <span className="ml-2 font-medium">({value}/5)</span>
             </div>
           ),
         },
@@ -1304,33 +1294,19 @@ const Reports = () => {
           ),
         },
         { key: 'message', title: 'Message' },
-        { key: 'createdAt', title: 'Submitted', render: formatDateTime },
+        { key: 'createdAt', title: 'Submitted', render: formatDateTime, sortable: true },
       ],
       data: feedback,
       exportKey: 'feedback',
-      summaryStats: [
-        { label: 'Total Feedback', value: feedback.length },
-        {
-          label: 'Average Rating',
-          value:
-            feedback.length > 0
-              ? (
-                  feedback.reduce((sum, item) => sum + (item.rating || 0), 0) / feedback.length
-                ).toFixed(1) + '/5'
-              : 'N/A',
-        },
-        { label: 'Positive Feedback', value: feedback.filter(f => f.rating >= 4).length },
-        { label: 'Action Required', value: feedback.filter(f => f.status === 'pending').length },
-      ],
     },
 
     // Contact Reports
     [REPORT_TYPES.CONTACT_REPORT]: {
       title: 'Contact Inquiries Report',
       columns: [
-        { key: 'contact_id', title: 'ID' },
-        { key: 'name', title: 'Name' },
-        { key: 'email', title: 'Email' },
+        { key: 'contact_id', title: 'ID', sortable: true },
+        { key: 'name', title: 'Name', sortable: true },
+        { key: 'email', title: 'Email', sortable: true },
         {
           key: 'status',
           title: 'Status',
@@ -1350,31 +1326,27 @@ const Reports = () => {
           ),
         },
         { key: 'message', title: 'Message' },
-        { key: 'createdAt', title: 'Submitted', render: formatDateTime },
+        { key: 'createdAt', title: 'Submitted', render: formatDateTime, sortable: true },
       ],
       data: contacts,
       exportKey: 'contacts',
-      summaryStats: [
-        { label: 'Total Inquiries', value: contacts.length },
-        { label: 'New Inquiries', value: contacts.filter(c => c.status === 'new').length },
-        { label: 'Responded', value: contacts.filter(c => c.status === 'responded').length },
-        { label: 'High Priority', value: contacts.filter(c => c.priority === 'high').length },
-      ],
     },
 
     // Analytics Reports
     [REPORT_TYPES.DASHBOARD_ANALYTICS]: {
       title: 'Dashboard Analytics Report',
       columns: [
-        { key: 'metric', title: 'Metric' },
-        { key: 'current', title: 'Current' },
-        { key: 'previous', title: 'Previous' },
+        { key: 'metric', title: 'Metric', sortable: true },
+        { key: 'current', title: 'Current', sortable: true },
+        { key: 'previous', title: 'Previous', sortable: true },
         {
           key: 'growth',
           title: 'Growth',
           render: value => (
-            <span className={value >= 0 ? 'text-green-600' : 'text-red-600'}>
-              {value >= 0 ? '↑' : '↓'} {Math.abs(value)}%
+            <span
+              className={`flex items-center font-medium ${value >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
+              {value >= 0 ? '↗' : '↘'} {Math.abs(value)}%
             </span>
           ),
         },
@@ -1387,12 +1359,6 @@ const Reports = () => {
         { metric: 'Course Completion', current: 72, previous: 68, growth: 6 },
       ],
       exportKey: 'dashboard-analytics',
-      summaryStats: [
-        { label: 'Overall Growth', value: '+4.6%' },
-        { label: 'Active Users', value: '1,850' },
-        { label: 'Monthly Revenue', value: formatCurrency(1950000) },
-        { label: 'Satisfaction Rate', value: '92%' },
-      ],
     },
   }
 
@@ -1401,7 +1367,6 @@ const Reports = () => {
     columns: [],
     data: [],
     charts: [],
-    summaryStats: [],
   }
 
   const handleExport = () => {
@@ -1418,7 +1383,7 @@ const Reports = () => {
     switch (chartConfig.type) {
       case 'bar':
         return (
-          <ChartContainer key={index} title={chartConfig.title} className="mb-6">
+          <ChartContainer key={index} title={chartConfig.title} className="mb-4">
             <SimpleBarChart
               data={chartConfig.data}
               dataKey={chartConfig.dataKey}
@@ -1428,7 +1393,7 @@ const Reports = () => {
         )
       case 'pie':
         return (
-          <ChartContainer key={index} title={chartConfig.title} className="mb-6">
+          <ChartContainer key={index} title={chartConfig.title} className="mb-4">
             <SimplePieChart
               data={chartConfig.data}
               dataKey={chartConfig.dataKey}
@@ -1438,7 +1403,7 @@ const Reports = () => {
         )
       case 'line':
         return (
-          <ChartContainer key={index} title={chartConfig.title} className="mb-6">
+          <ChartContainer key={index} title={chartConfig.title} className="mb-4">
             <SimpleLineChart
               data={chartConfig.data}
               dataKey={chartConfig.dataKey}
@@ -1455,6 +1420,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.USERS]: {
       icon: Users,
       label: 'Users',
+      color: 'bg-blue-500',
       reports: [
         { type: REPORT_TYPES.USER_LIST, label: 'User List' },
         { type: REPORT_TYPES.USER_STATS, label: 'User Statistics' },
@@ -1464,6 +1430,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.COURSES]: {
       icon: BookOpen,
       label: 'Courses',
+      color: 'bg-green-500',
       reports: [
         { type: REPORT_TYPES.COURSE_LIST, label: 'Course List' },
         { type: REPORT_TYPES.COURSE_PERFORMANCE, label: 'Course Performance' },
@@ -1473,6 +1440,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.FINANCIAL]: {
       icon: DollarSign,
       label: 'Financial',
+      color: 'bg-emerald-500',
       reports: [
         { type: REPORT_TYPES.PAYMENT_HISTORY, label: 'Payment History' },
         { type: REPORT_TYPES.REVENUE_REPORT, label: 'Revenue Report' },
@@ -1482,6 +1450,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.SUPPORT]: {
       icon: MessageSquare,
       label: 'Support',
+      color: 'bg-purple-500',
       reports: [
         { type: REPORT_TYPES.TICKET_REPORT, label: 'Ticket Report' },
         { type: REPORT_TYPES.SUPPORT_STATS, label: 'Support Statistics' },
@@ -1491,6 +1460,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.ANALYTICS]: {
       icon: BarChart3,
       label: 'Analytics',
+      color: 'bg-orange-500',
       reports: [
         { type: REPORT_TYPES.DASHBOARD_ANALYTICS, label: 'Dashboard Analytics' },
         { type: REPORT_TYPES.USER_ANALYTICS, label: 'User Analytics' },
@@ -1500,6 +1470,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.FEEDBACK]: {
       icon: Star,
       label: 'Feedback',
+      color: 'bg-yellow-500',
       reports: [
         { type: REPORT_TYPES.FEEDBACK_REPORT, label: 'Feedback Report' },
         { type: REPORT_TYPES.RATING_ANALYSIS, label: 'Rating Analysis' },
@@ -1508,6 +1479,7 @@ const Reports = () => {
     [REPORT_CATEGORIES.CONTACTS]: {
       icon: Mail,
       label: 'Contacts',
+      color: 'bg-indigo-500',
       reports: [
         { type: REPORT_TYPES.CONTACT_REPORT, label: 'Contact Report' },
         { type: REPORT_TYPES.INQUIRY_ANALYSIS, label: 'Inquiry Analysis' },
@@ -1517,7 +1489,7 @@ const Reports = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center space-y-3">
           <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
           <p className="text-gray-600">Loading report data...</p>
@@ -1541,7 +1513,7 @@ const Reports = () => {
             <select
               value={dateRange}
               onChange={e => setDateRange(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 no-print"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 no-print transition-colors"
             >
               <option value="last-7-days">Last 7 Days</option>
               <option value="last-30-days">Last 30 Days</option>
@@ -1552,7 +1524,7 @@ const Reports = () => {
             </select>
             <button
               onClick={() => loadCategoryData(activeCategory)}
-              className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 no-print"
+              className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 no-print transition-colors shadow-sm"
             >
               <RefreshCw className="w-4 h-4 mr-1.5" />
               Refresh
@@ -1562,7 +1534,7 @@ const Reports = () => {
 
         {/* Error Alert */}
         {error && (
-          <div className="flex items-center p-3 mb-4 bg-red-50 border border-red-200 rounded-md no-print">
+          <div className="flex items-center p-3 mb-4 bg-red-50 border border-red-200 rounded-lg no-print">
             <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
             <p className="text-sm text-red-600">{error}</p>
           </div>
@@ -1571,7 +1543,7 @@ const Reports = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar - Categories */}
           <div className="lg:col-span-1 no-print">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Report Categories</h3>
               <div className="space-y-2">
                 {Object.entries(categoryConfigs).map(([key, config]) => (
@@ -1581,13 +1553,13 @@ const Reports = () => {
                       setActiveCategory(key)
                       setActiveReport(config.reports[0].type)
                     }}
-                    className={`flex items-center w-full px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex items-center w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeCategory === key
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 hover:bg-gray-100 hover:shadow-sm'
                     }`}
                   >
-                    <config.icon className="w-4 h-4 mr-2" />
+                    <config.icon className="w-4 h-4 mr-3" />
                     {config.label}
                   </button>
                 ))}
@@ -1595,17 +1567,17 @@ const Reports = () => {
             </div>
 
             {/* Report Types */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4 no-print">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 mt-4 shadow-sm no-print">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Report Types</h3>
               <div className="space-y-1">
                 {categoryConfigs[activeCategory]?.reports.map(report => (
                   <button
                     key={report.type}
                     onClick={() => setActiveReport(report.type)}
-                    className={`flex items-center w-full px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`flex items-center w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                       activeReport === report.type
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'text-gray-600 hover:bg-gray-50 hover:border-gray-200'
                     }`}
                   >
                     <FileText className="w-4 h-4 mr-2" />
@@ -1619,22 +1591,36 @@ const Reports = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             <div id="report-content">
+              {/* Report Header */}
+              <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{currentReport.title}</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Generated on {formatDate(new Date())}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2 no-print">
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {currentReport.data.length} records
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Charts Section */}
               {currentReport.charts && currentReport.charts.length > 0 && (
                 <div className="mb-6">
-                  {currentReport.charts.map((chartConfig, index) =>
-                    renderChart(chartConfig, index)
-                  )}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {currentReport.charts.map((chartConfig, index) =>
+                      renderChart(chartConfig, index)
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Data Table */}
-              <DataTable
-                {...currentReport}
-                onExport={handleExport}
-                onPrint={handlePrint}
-                summaryStats={currentReport.summaryStats}
-              />
+              <DataTable {...currentReport} onExport={handleExport} onPrint={handlePrint} />
             </div>
 
             {/* Quick Stats */}
@@ -1642,7 +1628,7 @@ const Reports = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 no-print">
                 <StatCard
                   title="Total Records"
-                  value={currentReport.data.length}
+                  value={currentReport.data.length.toLocaleString()}
                   icon={FileText}
                   color="bg-blue-500"
                 />
