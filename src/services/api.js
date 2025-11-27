@@ -110,30 +110,29 @@ export const analyticsAPI = {
   getTestimonialAnalytics: () => api.get('/analytics/testimonials'),
 }
 
-// import api from "./axiosInstance";
-
-// export const supportAPI = {
-//   // 🎟️ Ticket methods
-//   createTicket: (ticketData) => api.post(`/support/tickets`, ticketData),
-//   getTickets: (params = {}) => api.get(`/support/tickets`, { params }),
-//   getUserTickets: (params = {}) => api.get(`/support/tickets/user`, { params }),
-//   getTicket: (ticketId) => api.get(`/support/tickets/${ticketId}`),
-//   updateTicket: (ticketId, updateData) => api.put(`/support/tickets/${ticketId}`, updateData),
-//   deleteTicket: (ticketId) => api.delete(`/support/tickets/${ticketId}`),
-//   // 💬 Message methods
-//   addMessage: (ticketId, messageData) => api.post(`/support/tickets/${ticketId}/messages`, messageData),
-//   getTicketMessages: (ticketId) => api.get(`/support/tickets/${ticketId}/messages`),
-//   // ❓ FAQ methods
-//   getFAQs: (params = {}) => api.get(`/support/faqs`, { params }),
-//   createFAQ: (faqData) => api.post(`/support/faqs`, faqData),
-//   updateFAQ: (faqId, updateData) => api.put(`/support/faqs/${faqId}`, updateData),
-//   deleteFAQ: (faqId) => api.delete(`/support/faqs/${faqId}`),
-//   // 📊 Stats
-//   getStats: () => api.get(`/support/tickets/stats`),
-//   // 👤 User support history
-//   getUserSupportHistory: (userId) => api.get(`/support/users/${userId}/support-history`),
-//   // 🧾 Case tickets
-//   getCaseTickets: (caseId) => api.get(`/support/cases/${caseId}/tickets`),
-// };
+export const supportAPI = {
+  // 🎟️ Ticket methods
+  createTicket: ticketData => api.post(`/support/tickets`, ticketData),
+  getTickets: (params = {}) => api.get(`/support/tickets`, { params }),
+  getUserTickets: (params = {}) => api.get(`/support/tickets/user`, { params }),
+  getTicket: ticketId => api.get(`/support/tickets/${ticketId}`),
+  updateTicket: (ticketId, updateData) => api.put(`/support/tickets/${ticketId}`, updateData),
+  deleteTicket: ticketId => api.delete(`/support/tickets/${ticketId}`),
+  // 💬 Message methods
+  addMessage: (ticketId, messageData) =>
+    api.post(`/support/tickets/${ticketId}/messages`, messageData),
+  getTicketMessages: ticketId => api.get(`/support/tickets/${ticketId}/messages`),
+  // ❓ FAQ methods
+  getFAQs: (params = {}) => api.get(`/support/faqs`, { params }),
+  createFAQ: faqData => api.post(`/support/faqs`, faqData),
+  updateFAQ: (faqId, updateData) => api.put(`/support/faqs/${faqId}`, updateData),
+  deleteFAQ: faqId => api.delete(`/support/faqs/${faqId}`),
+  // 📊 Stats
+  getStats: () => api.get(`/support/tickets/stats`),
+  // 👤 User support history
+  getUserSupportHistory: userId => api.get(`/support/users/${userId}/support-history`),
+  // 🧾 Case tickets
+  getCaseTickets: caseId => api.get(`/support/cases/${caseId}/tickets`),
+}
 
 export default api
