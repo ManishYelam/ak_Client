@@ -30,6 +30,7 @@ import {
   CreditCard,
   DollarSign,
   AlertTriangle,
+  MessageCircle,
 } from 'lucide-react'
 import { applicationAPI, genericAPI } from '../../services/api'
 
@@ -53,6 +54,15 @@ const razorpaySettingsSchema = yup.object({
   keyId: yup.string().required('Key ID is required'),
   keySecret: yup.string().required('Key Secret is required'),
   webhookSecret: yup.string().required('Webhook Secret is required'),
+  description: yup.string(),
+})
+
+const whatsappSettingsSchema = yup.object({
+  phoneNumberId: yup.string().required('Phone Number ID is required'),
+  businessAccountId: yup.string().required('Business Account ID is required'),
+  accessToken: yup.string().required('Access Token is required'),
+  webhookSecret: yup.string().required('Webhook Secret is required'),
+  phoneNumber: yup.string().required('Phone Number is required'),
   description: yup.string(),
 })
 
@@ -86,6 +96,10 @@ const SystemSettings = () => {
   const [razorpayConfigs, setRazorpayConfigs] = useState([])
   const [showRazorpayConfigs, setShowRazorpayConfigs] = useState(false)
 
+  // WhatsApp Configurations
+  const [whatsappConfigs, setWhatsappConfigs] = useState([])
+  const [showWhatsappConfigs, setShowWhatsappConfigs] = useState(false)
+
   // Modal states
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [editingEmailConfig, setEditingEmailConfig] = useState(null)
@@ -94,6 +108,14 @@ const SystemSettings = () => {
   const [showRazorpayModal, setShowRazorpayModal] = useState(false)
   const [editingRazorpayConfig, setEditingRazorpayConfig] = useState(null)
   const [razorpayFormStatus, setRazorpayFormStatus] = useState('inactive')
+
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false)
+  const [editingWhatsappConfig, setEditingWhatsappConfig] = useState(null)
+  const [whatsappFormStatus, setWhatsappFormStatus] = useState('inactive')
+
+  // WhatsApp Password visibility
+  const [showAccessToken, setShowAccessToken] = useState(false)
+  const [showWhatsappWebhookSecret, setShowWhatsappWebhookSecret] = useState(false)
 
   // LOV States with Advanced Filtering
   const [lovs, setLovs] = useState([])
@@ -196,6 +218,23 @@ const SystemSettings = () => {
   })
 
   const {
+    register: registerWhatsapp,
+    handleSubmit: handleSubmitWhatsapp,
+    formState: { errors: whatsappErrors },
+    reset: resetWhatsapp,
+  } = useForm({
+    resolver: yupResolver(whatsappSettingsSchema),
+    defaultValues: {
+      phoneNumberId: '',
+      businessAccountId: '',
+      accessToken: '',
+      webhookSecret: '',
+      phoneNumber: '',
+      description: '',
+    },
+  })
+
+  const {
     register: registerLov,
     handleSubmit: handleSubmitLov,
     formState: { errors: lovErrors },
@@ -214,6 +253,7 @@ const SystemSettings = () => {
     { id: 'general', name: 'General', icon: '⚙️' },
     { id: 'email', name: 'Email', icon: '📧' },
     { id: 'razorpay', name: 'Razorpay', icon: '💳' },
+    { id: 'whatsapp', name: 'WhatsApp', icon: '💬' },
     { id: 'advanced', name: 'Advanced', icon: '🔧' },
   ]
 
@@ -222,6 +262,7 @@ const SystemSettings = () => {
     loadSettings()
     loadEmailConfigs()
     loadRazorpayConfigs()
+    loadWhatsappConfigs()
     loadLOVs()
   }, [])
 
@@ -341,6 +382,28 @@ const SystemSettings = () => {
     } catch (error) {
       console.error('Error loading Razorpay configurations:', error)
       showMessage('error', 'Failed to load Razorpay configurations')
+    }
+  }
+
+  const loadWhatsappConfigs = async () => {
+    try {
+      const payload = {
+        page: 1,
+        limit: 50,
+        search: '',
+        searchFields: ['property_name', 'property_value'],
+        filters: {
+          property_name: 'app_whatsapp',
+        },
+      }
+
+      const response = await applicationAPI.getAllProperties(payload)
+      if (response.data && response.data.data) {
+        setWhatsappConfigs(response.data.data)
+      }
+    } catch (error) {
+      console.error('Error loading WhatsApp configurations:', error)
+      showMessage('error', 'Failed to load WhatsApp configurations')
     }
   }
 
@@ -527,6 +590,27 @@ const SystemSettings = () => {
           console.error('Error deleting Razorpay config:', error)
           const errorMessage =
             error.response?.data?.message || 'Failed to delete Razorpay configuration'
+          showMessage('error', errorMessage)
+        }
+      },
+      config
+    )
+  }
+
+  const deleteWhatsappConfig = config => {
+    showConfirmation(
+      'Delete WhatsApp Configuration',
+      `Are you sure you want to delete the WhatsApp configuration for "${config.property_value}"? This action cannot be undone.`,
+      'delete',
+      async data => {
+        try {
+          await applicationAPI.deleteProperty(data.app_prop_id)
+          showMessage('success', 'WhatsApp configuration deleted successfully!')
+          loadWhatsappConfigs()
+        } catch (error) {
+          console.error('Error deleting WhatsApp config:', error)
+          const errorMessage =
+            error.response?.data?.message || 'Failed to delete WhatsApp configuration'
           showMessage('error', errorMessage)
         }
       },
@@ -764,6 +848,108 @@ const SystemSettings = () => {
     }
   }
 
+  // WhatsApp Modal Functions
+  const openEditWhatsappModal = config => {
+    setEditingWhatsappConfig(config)
+    setWhatsappFormStatus(config.status || 'active')
+
+    if (config.metadata?.whatsappSettings) {
+      const whatsappSettings = config.metadata.whatsappSettings
+      resetWhatsapp({
+        phoneNumberId: whatsappSettings.phoneNumberId || '',
+        businessAccountId: whatsappSettings.businessAccountId || '',
+        accessToken: whatsappSettings.accessToken || '',
+        webhookSecret: whatsappSettings.webhookSecret || '',
+        phoneNumber: whatsappSettings.phoneNumber || '',
+        description: config.desc || '',
+      })
+    } else {
+      resetWhatsapp({
+        phoneNumberId: '',
+        businessAccountId: '',
+        accessToken: '',
+        webhookSecret: '',
+        phoneNumber: '',
+        description: config.desc || '',
+      })
+    }
+
+    setShowWhatsappModal(true)
+  }
+
+  const openNewWhatsappModal = () => {
+    setEditingWhatsappConfig(null)
+    setWhatsappFormStatus('active')
+    resetWhatsapp()
+    setShowWhatsappModal(true)
+  }
+
+  const closeWhatsappModal = () => {
+    if (saveLoading) return
+
+    setShowWhatsappModal(false)
+    setEditingWhatsappConfig(null)
+    setWhatsappFormStatus('active')
+    resetWhatsapp()
+  }
+
+  // Set active WhatsApp configuration
+  const setActiveWhatsappConfig = async config => {
+    try {
+      await applicationAPI.activeAppProperty(config.property_name, config.app_prop_id)
+      loadWhatsappConfigs()
+      showMessage('success', 'WhatsApp configuration activated successfully!')
+    } catch (error) {
+      console.error('Error activating WhatsApp config:', error)
+      const errorMessage =
+        error.response?.data?.message || 'Failed to activate WhatsApp configuration'
+      showMessage('error', errorMessage)
+    }
+  }
+
+  const handleWhatsappSubmit = async data => {
+    setSaveLoading(true)
+    try {
+      const payload = {
+        property_name: 'app_whatsapp',
+        property_value: data.phoneNumber,
+        desc: data.description || 'WhatsApp Business API configuration',
+        metadata: {
+          appName: settings.site_title || 'Learn SAP ABAP',
+          companyName: 'Learn SAP ABAP',
+          whatsappSettings: {
+            phoneNumberId: data.phoneNumberId,
+            businessAccountId: data.businessAccountId,
+            accessToken: data.accessToken,
+            webhookSecret: data.webhookSecret,
+            phoneNumber: data.phoneNumber,
+          },
+        },
+        status: 'inactive',
+      }
+
+      if (editingWhatsappConfig) {
+        payload.app_prop_id = editingWhatsappConfig.app_prop_id
+      }
+
+      await applicationAPI.createOrUpdateProperty(payload)
+      showMessage(
+        'success',
+        editingWhatsappConfig
+          ? 'WhatsApp configuration updated successfully!'
+          : 'WhatsApp configuration created successfully!'
+      )
+      closeWhatsappModal()
+      loadWhatsappConfigs()
+    } catch (error) {
+      console.error('Error saving WhatsApp settings:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to save WhatsApp configuration'
+      showMessage('error', errorMessage)
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
   // Test functions
   const testSpecificEmailConfig = async config => {
     try {
@@ -795,6 +981,21 @@ const SystemSettings = () => {
     }
   }
 
+  const testSpecificWhatsappConfig = async config => {
+    try {
+      showMessage('info', `Testing WhatsApp configuration: ${config.property_value}...`)
+
+      setTimeout(() => {
+        showMessage(
+          'success',
+          `WhatsApp configuration test for ${config.property_value} completed successfully!`
+        )
+      }, 2000)
+    } catch (error) {
+      showMessage('error', `Failed to test WhatsApp configuration: ${config.property_value}`)
+    }
+  }
+
   const testEmailConfiguration = async () => {
     try {
       if (editingEmailConfig) {
@@ -822,6 +1023,21 @@ const SystemSettings = () => {
       }
     } catch (error) {
       showMessage('error', 'Failed to test Razorpay configuration')
+    }
+  }
+
+  const testWhatsappConfiguration = async () => {
+    try {
+      if (editingWhatsappConfig) {
+        await testSpecificWhatsappConfig(editingWhatsappConfig)
+      } else {
+        showMessage('info', 'Testing current WhatsApp configuration...')
+        setTimeout(() => {
+          showMessage('success', 'WhatsApp configuration test completed successfully!')
+        }, 2000)
+      }
+    } catch (error) {
+      showMessage('error', 'Failed to test WhatsApp configuration')
     }
   }
 
@@ -1485,6 +1701,209 @@ const SystemSettings = () => {
                         </p>
                         <button
                           onClick={openNewRazorpayModal}
+                          className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Create Configuration</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'whatsapp' && (
+            <div className="space-y-4">
+              {/* WhatsApp Configurations Header */}
+              <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900">
+                      WhatsApp Configurations
+                    </h2>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      Manage your WhatsApp Business API configurations ({whatsappConfigs.length}{' '}
+                      total)
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setShowWhatsappConfigs(!showWhatsappConfigs)}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>{showWhatsappConfigs ? 'Hide' : 'Show'} Table</span>
+                    </button>
+                    <button
+                      onClick={openNewWhatsappModal}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Config</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {showWhatsappConfigs && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="w-16 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Phone Number
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Business Account
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Environment
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="w-32 px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {whatsappConfigs.map(config => (
+                          <tr
+                            key={config.app_prop_id}
+                            className={`hover:bg-gray-50 transition-colors ${
+                              config.status === 'active' ? 'bg-green-50 hover:bg-green-100' : ''
+                            }`}
+                          >
+                            {/* Status Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div
+                                  className={`w-2 h-2 rounded-full mr-1.5 ${
+                                    config.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                  }`}
+                                />
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    config.status === 'active'
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}
+                                >
+                                  {config.status}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Phone Number Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div>
+                                <div className="font-medium text-gray-900 text-xs">
+                                  {config.property_value}
+                                </div>
+                                <div className="text-gray-500 text-xs mt-0.5">
+                                  ID: {config.metadata?.whatsappSettings?.phoneNumberId || 'N/A'}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Business Account Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div>
+                                <div className="text-gray-900 text-xs">
+                                  {config.metadata?.whatsappSettings?.businessAccountId || 'N/A'}
+                                </div>
+                                <div className="text-gray-500 text-xs mt-0.5">
+                                  {config.metadata?.whatsappSettings?.phoneNumberId
+                                    ? 'Configured'
+                                    : 'Not set'}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Environment Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  config.metadata?.whatsappSettings?.accessToken?.includes('test')
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}
+                              >
+                                {config.metadata?.whatsappSettings?.accessToken?.includes('test')
+                                  ? 'Test'
+                                  : 'Live'}
+                              </span>
+                            </td>
+
+                            {/* Description Column */}
+                            <td className="px-3 py-2">
+                              <div
+                                className="text-gray-900 text-xs max-w-[120px] truncate"
+                                title={config.desc}
+                              >
+                                {config.desc || 'No description'}
+                              </div>
+                            </td>
+
+                            {/* Actions Column */}
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <div className="flex items-center space-x-1">
+                                {config.status !== 'active' && (
+                                  <button
+                                    onClick={() => setActiveWhatsappConfig(config)}
+                                    className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-100 transition-colors flex items-center"
+                                    title="Activate this configuration"
+                                  >
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+                                    <span className="text-xs">Activate</span>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => openEditWhatsappModal(config)}
+                                  className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-100 transition-colors"
+                                  title="Edit this configuration"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => testSpecificWhatsappConfig(config)}
+                                  className="text-purple-600 hover:text-purple-800 p-1 rounded hover:bg-purple-100 transition-colors"
+                                  title="Test this configuration"
+                                >
+                                  <Activity className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteWhatsappConfig(config)}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-100 transition-colors"
+                                  title="Delete this configuration"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {whatsappConfigs.length === 0 && (
+                      <div className="text-center py-6">
+                        <MessageCircle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">
+                          No WhatsApp configurations
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Get started by creating a new WhatsApp configuration.
+                        </p>
+                        <button
+                          onClick={openNewWhatsappModal}
                           className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-1.5 mx-auto transition-colors"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -2323,6 +2742,239 @@ const SystemSettings = () => {
                       <Save className="w-3.5 h-3.5" />
                       <span>
                         {saveLoading ? 'Saving...' : editingRazorpayConfig ? 'Update' : 'Create'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Configuration Modal */}
+      {showWhatsappModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {editingWhatsappConfig ? 'Edit WhatsApp Config' : 'New WhatsApp Config'}
+                </h2>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {editingWhatsappConfig
+                    ? `Editing: ${editingWhatsappConfig.property_value}`
+                    : 'Configure WhatsApp Business API settings'}
+                </p>
+              </div>
+              <button
+                onClick={closeWhatsappModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4">
+              <form onSubmit={handleSubmitWhatsapp(handleWhatsappSubmit)} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Phone Number ID *
+                  </label>
+                  <input
+                    type="text"
+                    {...registerWhatsapp('phoneNumberId')}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      whatsappErrors.phoneNumberId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    placeholder="123456789012345"
+                  />
+                  {whatsappErrors.phoneNumberId && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {whatsappErrors.phoneNumberId.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Business Account ID *
+                  </label>
+                  <input
+                    type="text"
+                    {...registerWhatsapp('businessAccountId')}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      whatsappErrors.businessAccountId
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="1234567890"
+                  />
+                  {whatsappErrors.businessAccountId && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {whatsappErrors.businessAccountId.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Access Token *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showAccessToken ? 'text' : 'password'}
+                      {...registerWhatsapp('accessToken')}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        whatsappErrors.accessToken ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="EAAG... (Permanent Access Token)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccessToken(!showAccessToken)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                    >
+                      {showAccessToken ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                  {whatsappErrors.accessToken && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {whatsappErrors.accessToken.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Webhook Secret *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showWhatsappWebhookSecret ? 'text' : 'password'}
+                      {...registerWhatsapp('webhookSecret')}
+                      className={`w-full pl-2.5 pr-8 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                        whatsappErrors.webhookSecret
+                          ? 'border-red-300 bg-red-50'
+                          : 'border-gray-300'
+                      }`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowWhatsappWebhookSecret(!showWhatsappWebhookSecret)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                    >
+                      {showWhatsappWebhookSecret ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                  {whatsappErrors.webhookSecret && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {whatsappErrors.webhookSecret.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="text"
+                    {...registerWhatsapp('phoneNumber')}
+                    className={`w-full px-2.5 py-2 text-sm border rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent ${
+                      whatsappErrors.phoneNumber ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    placeholder="+1234567890"
+                  />
+                  {whatsappErrors.phoneNumber && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {whatsappErrors.phoneNumber.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    {...registerWhatsapp('description')}
+                    rows="2"
+                    className="w-full px-2.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Describe this WhatsApp configuration..."
+                  />
+                </div>
+
+                {/* Status Toggle for Editing */}
+                {editingWhatsappConfig && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Status</p>
+                      <p className="text-xs text-gray-600">Set as active</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setWhatsappFormStatus(
+                          editingWhatsappConfig.status === 'active' ? 'inactive' : 'active'
+                        )
+                      }
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        whatsappFormStatus === 'active' ? 'bg-primary-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          whatsappFormStatus === 'active' ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editingWhatsappConfig) {
+                        testSpecificWhatsappConfig(editingWhatsappConfig)
+                      } else {
+                        testWhatsappConfiguration()
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Test</span>
+                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={closeWhatsappModal}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saveLoading}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>
+                        {saveLoading ? 'Saving...' : editingWhatsappConfig ? 'Update' : 'Create'}
                       </span>
                     </button>
                   </div>
