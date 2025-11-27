@@ -20,6 +20,7 @@ import {
   Heart,
 } from 'lucide-react'
 import { coursesAPI } from '../services/api'
+import WhatsAppFloatingIcon from '../components/ui/WhatsAppFloatingIcon'
 
 // Lazy load CourseCard for better performance
 const CourseCard = lazy(() => import('../components/ui/CourseCard'))
@@ -256,31 +257,24 @@ const Home = () => {
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {' '}
-      {/* Updated to 4 columns */}
-      {Array.from({ length: 8 }).map(
-        (
-          _,
-          index // Increased to 8 skeletons
-        ) => (
-          <div
-            key={index}
-            className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse"
-          >
-            <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-36 w-full" />
-            <div className="p-4">
-              <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
-              <div className="h-2 bg-gray-200 rounded w-1/2 mb-3" />
-              <div className="h-2 bg-gray-200 rounded w-full mb-1" />
-              <div className="h-2 bg-gray-200 rounded w-4/5 mb-3" />
-              <div className="flex justify-between items-center">
-                <div className="h-4 bg-gray-200 rounded w-12" />
-                <div className="h-8 bg-gray-200 rounded-lg w-16" />
-              </div>
+      {Array.from({ length: 8 }).map((_, index) => (
+        <div
+          key={index}
+          className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse"
+        >
+          <div className="bg-gradient-to-r from-gray-200 to-gray-300 h-36 w-full" />
+          <div className="p-4">
+            <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-2 bg-gray-200 rounded w-1/2 mb-3" />
+            <div className="h-2 bg-gray-200 rounded w-full mb-1" />
+            <div className="h-2 bg-gray-200 rounded w-4/5 mb-3" />
+            <div className="flex justify-between items-center">
+              <div className="h-4 bg-gray-200 rounded w-12" />
+              <div className="h-8 bg-gray-200 rounded-lg w-16" />
             </div>
           </div>
-        )
-      )}
+        </div>
+      ))}
     </div>
   )
 
@@ -707,6 +701,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* WhatsApp Floating Icon - Directly included in Home page */}
+      <WhatsAppFloatingIcon />
     </div>
   )
 }
