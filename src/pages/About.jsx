@@ -15,6 +15,7 @@ import {
   BookOpen,
   Heart,
 } from 'lucide-react'
+import WhatsAppFloatingIcon from '../components/ui/WhatsAppFloatingIcon'
 
 const About = () => {
   const features = [
@@ -298,6 +299,8 @@ const About = () => {
           </div>
         </div>
       </section>
+      {/* WhatsApp Floating Icon - Directly included in Home page */}
+      <WhatsAppFloatingIcon />
     </div>
   )
 }

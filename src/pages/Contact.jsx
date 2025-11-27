@@ -2,6 +2,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { Mail, Phone, MapPin, Clock, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { contactAPI } from '../services/api'
+import WhatsAppFloatingIcon from '../components/ui/WhatsAppFloatingIcon'
 
 // Memoized contact info items with proper error boundary
 const ContactInfoItem = React.memo(({ icon: Icon, title, value, description, href }) => (
@@ -491,6 +492,8 @@ const Contact = () => {
           </div>
         </div>
       </div>
+      {/* WhatsApp Floating Icon - Directly included in Home page */}
+      <WhatsAppFloatingIcon />
     </div>
   )
 }

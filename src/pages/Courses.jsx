@@ -17,6 +17,7 @@ import {
   Target,
 } from 'lucide-react'
 import { coursesAPI } from '../services/api'
+import WhatsAppFloatingIcon from '../components/ui/WhatsAppFloatingIcon'
 
 // Lazy load CourseCard for better performance
 const CourseCard = lazy(() => import('../components/ui/CourseCard'))
@@ -620,6 +621,8 @@ const Courses = () => {
           </div>
         )}
       </div>
+      {/* WhatsApp Floating Icon - Directly included in Home page */}
+      <WhatsAppFloatingIcon />
     </div>
   )
 }
