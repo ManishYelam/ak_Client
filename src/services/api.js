@@ -27,6 +27,7 @@ export const coursesAPI = {
   delete: id => api.delete(`/courses/${id}`),
 
   getEnrolled: async data => api.post(`/courses/enrolled`, data),
+  completeEnrollment: async data => api.post(`/courses/complete-enrolled`, data),
   getWishlist: async id => api.get(`/courses/enrolled/${id}`),
 }
 
