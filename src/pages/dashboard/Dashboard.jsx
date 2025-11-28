@@ -162,7 +162,7 @@ const getRouteConfig = userRole => {
         },
         {
           path: 'payments',
-          element: <Payments />,
+          element: <PaymentManagement />,
         },
         {
           path: 'profile',

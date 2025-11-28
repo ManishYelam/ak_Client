@@ -212,44 +212,73 @@ const PaymentManagement = () => {
     ]
   }, [allPayments])
 
-  // Fetch payments with filtering
+  // Fixed fetchPayments function
   const fetchPayments = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
+      // Build request data according to your payload structure
       const requestData = {
         page: filters.page,
         limit: filters.limit,
         search: filters.search,
         filters: {
           status: filters.status !== 'all' ? filters.status : undefined,
-          payment_mode: filters.paymentMethod !== 'all' ? filters.paymentMethod : undefined,
-          minAmount: filters.minAmount ? parseInt(filters.minAmount) * 100 : undefined,
-          maxAmount: filters.maxAmount ? parseInt(filters.maxAmount) * 100 : undefined,
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
-        },
+        }
       }
 
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      console.log('📤 Sending request data:', requestData)
+
+      const response = await paymentsAPI.getUserPayments(requestData)
       const responseData = response.data
 
-      console.log('Payment API Response:', responseData)
+      console.log('📦 Payment API Response:', responseData)
 
       if (responseData && responseData.success && responseData.data) {
-        const paymentsData = responseData.data.payments || []
+        // ✅ FIXED: Properly handle the nested response structure
+        let paymentsData = []
+        let paginationData = {}
+
+        // Handle different possible response structures
+        if (responseData.data.payments) {
+          // Structure: { data: { payments: [], pagination: {} } }
+          paymentsData = responseData.data.payments
+          paginationData = responseData.data.pagination || {}
+        } else if (responseData.data.data && responseData.data.data.payments) {
+          // Structure: { data: { data: { payments: [], pagination: {} } } }
+          paymentsData = responseData.data.data.payments
+          paginationData = responseData.data.data.pagination || {}
+        } else if (Array.isArray(responseData.data)) {
+          // Structure: { data: [] } (array directly)
+          paymentsData = responseData.data
+        } else {
+          // Fallback: try to extract from root level
+          paymentsData = responseData.payments || responseData.data || []
+          paginationData = responseData.pagination || {}
+        }
+
         setPayments(paymentsData)
 
-        // Update pagination from API response
-        const paginationData = responseData.data.pagination
+        // Calculate pagination if not provided
+        const totalItems = paginationData.totalItems || paymentsData.length
+        const currentPage = paginationData.page || filters.page
+        const currentLimit = paginationData.limit || filters.limit
+        const totalPages = paginationData.totalPages || Math.ceil(totalItems / currentLimit)
+
         setPagination({
-          page: paginationData?.page || filters.page,
-          limit: paginationData?.limit || filters.limit,
-          totalItems: paginationData?.totalItems || paymentsData.length,
-          totalPages:
-            paginationData?.totalPages ||
-            Math.ceil((paginationData?.totalItems || paymentsData.length) / filters.limit),
+          page: currentPage,
+          limit: currentLimit,
+          totalItems: totalItems,
+          totalPages: totalPages,
+        })
+
+        console.log('✅ Payments loaded:', paymentsData.length)
+        console.log('✅ Pagination:', {
+          page: currentPage,
+          limit: currentLimit,
+          totalItems: totalItems,
+          totalPages: totalPages
         })
       } else {
         console.warn('Unexpected API response structure:', responseData)
@@ -262,14 +291,14 @@ const PaymentManagement = () => {
         })
       }
     } catch (err) {
+      console.error('❌ Error fetching payments:', err)
       setError('Failed to load payments. Please try again.')
-      console.error('Error fetching payments:', err)
     } finally {
       setLoading(false)
     }
   }, [filters])
 
-  // Fetch all payments for counting and export
+  // Fixed fetchAllPayments function
   const fetchAllPayments = useCallback(async () => {
     try {
       const requestData = {
@@ -278,12 +307,25 @@ const PaymentManagement = () => {
         filters: {},
       }
 
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      const response = await paymentsAPI.getUserPayments(requestData)
       const responseData = response.data
 
       if (responseData && responseData.success && responseData.data) {
-        const paymentsData = responseData.data.payments || []
+        // ✅ FIXED: Use the same extraction logic
+        let paymentsData = []
+
+        if (responseData.data.payments) {
+          paymentsData = responseData.data.payments
+        } else if (responseData.data.data && responseData.data.data.payments) {
+          paymentsData = responseData.data.data.payments
+        } else if (Array.isArray(responseData.data)) {
+          paymentsData = responseData.data
+        } else {
+          paymentsData = responseData.payments || responseData.data || []
+        }
+
         setAllPayments(paymentsData)
+        console.log('✅ All payments loaded for stats:', paymentsData.length)
       } else {
         console.warn('Unexpected API response structure in fetchAllPayments:', responseData)
         setAllPayments([])
@@ -294,7 +336,7 @@ const PaymentManagement = () => {
     }
   }, [])
 
-  // Fetch all payments for export
+  // Fixed fetchAllPaymentsForExport function
   const fetchAllPaymentsForExport = async () => {
     try {
       const requestData = {
@@ -303,19 +345,27 @@ const PaymentManagement = () => {
         search: filters.search,
         filters: {
           status: filters.status !== 'all' ? filters.status : undefined,
-          payment_mode: filters.paymentMethod !== 'all' ? filters.paymentMethod : undefined,
-          minAmount: filters.minAmount ? parseInt(filters.minAmount) * 100 : undefined,
-          maxAmount: filters.maxAmount ? parseInt(filters.maxAmount) * 100 : undefined,
-          startDate: filters.startDate || undefined,
-          endDate: filters.endDate || undefined,
         },
       }
 
-      const response = await paymentsAPI.getAllUserPayments(requestData)
+      const response = await paymentsAPI.getUserPayments(requestData)
       const responseData = response.data
 
       if (responseData && responseData.success && responseData.data) {
-        return responseData.data.payments || []
+        // ✅ FIXED: Use the same extraction logic
+        let paymentsData = []
+
+        if (responseData.data.payments) {
+          paymentsData = responseData.data.payments
+        } else if (responseData.data.data && responseData.data.data.payments) {
+          paymentsData = responseData.data.data.payments
+        } else if (Array.isArray(responseData.data)) {
+          paymentsData = responseData.data
+        } else {
+          paymentsData = responseData.payments || responseData.data || []
+        }
+
+        return paymentsData
       } else {
         console.warn('Unexpected API response structure in export:', responseData)
         return []
@@ -405,6 +455,13 @@ const PaymentManagement = () => {
       setExportLoading(false)
     }
   }
+
+  // Debug useEffect
+  useEffect(() => {
+    console.log('🔍 Current filters:', filters)
+    console.log('🔍 Payments state:', payments.length)
+    console.log('🔍 Pagination state:', pagination)
+  }, [filters, payments, pagination])
 
   // Debounced search and filter changes
   useEffect(() => {
@@ -751,7 +808,7 @@ const PaymentManagement = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Payment Management</h1>
+          {/* <h1 className="text-xl font-bold text-gray-900">Payment Management</h1> */}
           <p className="text-xs text-gray-600">Manage and track all payment transactions</p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">

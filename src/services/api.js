@@ -35,7 +35,7 @@ export const paymentsAPI = {
   createRazorpayOrder: orderData => api.post('/payments/create-order', orderData),
   verifyPayment: paymentData => api.post('/payments/verify-payment', paymentData),
   getHistory: (params = {}) => api.get('/payments/history', { params }),
-  getUserPayments: (params = {}) => api.get('/payments/user-payments', { params }),
+  getUserPayments: (data) => api.post('/payments/user-payments', data),
   getAllUserPayments: data => api.post('/payments/all-user-payments', { data }),
   checkEnrollment: courseId => api.get(`/payments/check-enrollment/${courseId}`),
   getUserEnrollments: (params = {}) => api.get('/payments/user-enrollments', { params }),
