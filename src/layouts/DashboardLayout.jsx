@@ -180,12 +180,12 @@ const MessageSquare = ({ className = 'w-5 h-5' }) => (
 // Navigation items based on user role - Define this AFTER all icons are defined
 const getNavigationItems = userRole => {
   const commonItems = [
-    {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: Home,
-      exact: true,
-    },
+    // {
+    //   name: 'Dashboard',
+    //   href: '/dashboard',
+    //   icon: Home,
+    //   exact: true,
+    // },
     {
       name: 'Profile',
       href: '/dashboard/profile',
@@ -200,7 +200,7 @@ const getNavigationItems = userRole => {
 
   const studentItems = [
     {
-      name: 'My Courses',
+      name: 'Courses',
       href: '/dashboard/courses',
       icon: BookOpen,
     },
@@ -651,7 +651,7 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
 
                   <div className="border-t border-gray-100"></div>
 
-                  <button
+                  {/* <button
                     onClick={() => {
                       setShowUserDropdown(false)
                       onLogout()
@@ -661,7 +661,7 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
                   >
                     <LogOut className="w-3.5 h-3.5 mr-1.5" />
                     Sign out
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}

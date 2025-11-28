@@ -25,6 +25,9 @@ export const coursesAPI = {
   create: courseData => api.post('/courses', courseData),
   update: (id, courseData) => api.put(`/courses/${id}`, courseData),
   delete: id => api.delete(`/courses/${id}`),
+
+  getEnrolled: async data => api.post(`/courses/enrolled`, data),
+  getWishlist: async id => api.get(`/courses/enrolled/${id}`),
 }
 
 export const paymentsAPI = {
