@@ -331,7 +331,6 @@ const CourseCatalog = () => {
   }, [fetchEnrolledCourses, getUserId])
 
   // Filter Section Component
-  // Updated FilterSection component with smaller sizes
   const FilterSection = ({ title, options, currentValue, onChange, icon: Icon }) => (
     <div className="border-b border-gray-100 last:border-b-0 pb-3 last:pb-0">
       <div className="flex items-center gap-2 mb-2">
@@ -440,7 +439,7 @@ const CourseCatalog = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-2 ">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-2">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Mobile Filter Toggle */}
           <div className="lg:hidden">

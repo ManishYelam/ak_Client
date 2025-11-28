@@ -15,6 +15,7 @@ import {
   Heart,
   Share2,
   Eye,
+  Download,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -94,7 +95,16 @@ const getCourseImage = course => {
   }
 }
 
-const CourseCard = ({ course, viewMode = 'grid', showActions = true, className = '' }) => {
+const CourseCard = ({
+  course,
+  viewMode = 'grid',
+  showActions = true,
+  className = '',
+  isEnrolled = false,
+  enrollmentStatus = null,
+  enrollmentProgress = 0,
+  showMyCourses = false,
+}) => {
   const { user, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -142,19 +152,33 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
     }
   }
 
+  const handleDownloadSyllabus = e => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    // Check if syllabus URL exists
+    if (course.syllabus_url) {
+      window.open(course.syllabus_url, '_blank')
+    } else if (course.metadata?.syllabus_pdf) {
+      window.open(course.metadata.syllabus_pdf, '_blank')
+    } else {
+      // Fallback: Show a modal or message that syllabus is not available
+      alert('Syllabus is not available for this course yet.')
+    }
+  }
+
   const handleEnrollClick = e => {
     e.preventDefault()
     e.stopPropagation()
 
-    // Check if already enrolled
-    const userData = user?.user || user
-    if (userData?.enrolledCourses?.includes(course.id)) {
-      navigate(`/learning/course/${course.id}`)
+    // If already enrolled, navigate to learning page
+    if (isEnrolled) {
+      navigate(`/learning/course/${course.course_id || course.id}`)
       return
     }
 
     if (!isAuthenticated) {
-      localStorage.setItem('pendingEnrollment', course.id)
+      localStorage.setItem('pendingEnrollment', course.course_id || course.id)
       setShowAuthModal(true)
       return
     }
@@ -181,8 +205,7 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
     return 'available'
   }
 
-  const enrollmentStatus = getEnrollmentStatus()
-  const userData = user?.user || user
+  const enrollmentAvailabilityStatus = getEnrollmentStatus()
 
   // Grid View - Compact Design
   if (viewMode === 'grid') {
@@ -219,12 +242,12 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                     Featured
                   </div>
                 )}
-                {enrollmentStatus === 'limited' && (
+                {enrollmentAvailabilityStatus === 'limited' && (
                   <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-full text-[10px] font-semibold shadow-sm">
                     Limited
                   </div>
                 )}
-                {enrollmentStatus === 'sold-out' && (
+                {enrollmentAvailabilityStatus === 'sold-out' && (
                   <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-2 py-1 rounded-full text-[10px] font-semibold shadow-sm">
                     Sold Out
                   </div>
@@ -257,6 +280,13 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   className="p-1.5 rounded-full bg-white/90 text-gray-600 backdrop-blur-sm hover:bg-white hover:text-blue-600 transition-all duration-200"
                 >
                   <Share2 className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={handleDownloadSyllabus}
+                  className="p-1.5 rounded-full bg-white/90 text-gray-600 backdrop-blur-sm hover:bg-white hover:text-green-600 transition-all duration-200"
+                  title="Download Syllabus"
+                >
+                  <Download className="w-3 h-3" />
                 </button>
               </div>
 
@@ -348,16 +378,18 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 <button
                   onClick={handleEnrollClick}
                   className={`btn-secondary flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 ${
-                    enrollmentStatus === 'sold-out' ? 'opacity-50 cursor-not-allowed' : ''
+                    enrollmentAvailabilityStatus === 'sold-out'
+                      ? 'opacity-50 cursor-not-allowed'
+                      : ''
                   }`}
-                  disabled={enrollmentStatus === 'sold-out'}
+                  disabled={enrollmentAvailabilityStatus === 'sold-out'}
                 >
-                  {enrollmentStatus === 'sold-out' ? (
+                  {enrollmentAvailabilityStatus === 'sold-out' ? (
                     <>
                       <Award className="w-3 h-3" />
                       Sold Out
                     </>
-                  ) : userData?.enrolledCourses?.includes(course.id) ? (
+                  ) : isEnrolled ? (
                     <>
                       <CheckCircle className="w-3 h-3" />
                       Continue
@@ -492,10 +524,13 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                   <Users className="w-3 h-3" />
                   <span
                     className={
-                      enrollmentStatus === 'limited' ? 'text-orange-600 font-semibold' : ''
+                      enrollmentAvailabilityStatus === 'limited'
+                        ? 'text-orange-600 font-semibold'
+                        : ''
                     }
                   >
-                    {course.seats_available} seats {enrollmentStatus === 'limited' && 'left'}
+                    {course.seats_available} seats{' '}
+                    {enrollmentAvailabilityStatus === 'limited' && 'left'}
                   </span>
                 </div>
               )}
@@ -518,16 +553,18 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                 <button
                   onClick={handleEnrollClick}
                   className={`btn-secondary max-w-[140px] flex items-center justify-center gap-1.5 text-xs py-1.5 px-3 ${
-                    enrollmentStatus === 'sold-out' ? 'opacity-50 cursor-not-allowed' : ''
+                    enrollmentAvailabilityStatus === 'sold-out'
+                      ? 'opacity-50 cursor-not-allowed'
+                      : ''
                   }`}
-                  disabled={enrollmentStatus === 'sold-out'}
+                  disabled={enrollmentAvailabilityStatus === 'sold-out'}
                 >
-                  {enrollmentStatus === 'sold-out' ? (
+                  {enrollmentAvailabilityStatus === 'sold-out' ? (
                     <>
                       <Award className="w-3 h-3" />
                       Sold Out
                     </>
-                  ) : userData?.enrolledCourses?.includes(course.id) ? (
+                  ) : isEnrolled ? (
                     <>
                       <CheckCircle className="w-3 h-3" />
                       Continue
@@ -557,6 +594,13 @@ const CourseCard = ({ course, viewMode = 'grid', showActions = true, className =
                     className="p-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all duration-200"
                   >
                     <Share2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={handleDownloadSyllabus}
+                    className="p-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 hover:bg-green-50 hover:border-green-200 hover:text-green-600 transition-all duration-200"
+                    title="Download Syllabus"
+                  >
+                    <Download className="w-3 h-3" />
                   </button>
                 </div>
               </div>
