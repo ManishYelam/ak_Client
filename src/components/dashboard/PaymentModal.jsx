@@ -171,15 +171,15 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
   // Generate gradient background based on course ID
   const getCourseGradient = () => {
     if (!payment.course) return 'from-blue-100 to-blue-200'
-    
+
     const courseId = payment.course.course_id || 0
     const gradients = [
       'from-blue-100 to-blue-200',
-      'from-green-100 to-green-200', 
+      'from-green-100 to-green-200',
       'from-purple-100 to-purple-200',
       'from-orange-100 to-orange-200',
       'from-teal-100 to-teal-200',
-      'from-pink-100 to-pink-200'
+      'from-pink-100 to-pink-200',
     ]
     return gradients[courseId % gradients.length]
   }
@@ -233,7 +233,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                         {payment.user?.full_name || 'Unknown User'}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {isAdmin ? (payment.user?.occupation || 'Customer') : 'Student'}
+                        {isAdmin ? payment.user?.occupation || 'Customer' : 'Student'}
                       </p>
                     </div>
                   </div>
@@ -370,7 +370,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                         </p>
                         {payment.notes?.actualAmount && (
                           <p className="text-sm text-gray-700 mt-1">
-                            <strong>Original Price:</strong> ₹{(payment.notes.actualAmount).toFixed(2)}
+                            <strong>Original Price:</strong> ₹
+                            {payment.notes.actualAmount.toFixed(2)}
                           </p>
                         )}
                         {payment.notes?.paymentPlan && (
@@ -388,7 +389,9 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                             onError={handleImageError}
                           />
                         ) : (
-                          <div className={`w-full h-full bg-gradient-to-br ${getCourseGradient()} rounded border flex items-center justify-center`}>
+                          <div
+                            className={`w-full h-full bg-gradient-to-br ${getCourseGradient()} rounded border flex items-center justify-center`}
+                          >
                             <span className="text-lg font-bold text-gray-700">
                               {getCourseInitial()}
                             </span>
@@ -398,8 +401,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                     </div>
                     {payment.enrollment && (
                       <div className="mt-3 text-xs text-gray-500">
-                        <strong>Enrollment ID:</strong> {payment.enrollment.enrollment_id} • 
-                        <strong> Status:</strong> {payment.enrollment.status} • 
+                        <strong>Enrollment ID:</strong> {payment.enrollment.enrollment_id} •
+                        <strong> Status:</strong> {payment.enrollment.status} •
                         <strong> Progress:</strong> {payment.enrollment.progress || 0}%
                       </div>
                     )}
@@ -456,7 +459,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                           <strong>Enrollment Type:</strong> {payment.metadata.enrollment_type}
                         </div>
                       )}
-                      
+
                       {/* Payment Notes - Show simplified version for students */}
                       {payment.notes && (
                         <div className="md:col-span-2">
@@ -475,14 +478,15 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                               </div>
                               {payment.notes.actualAmount && (
                                 <div>
-                                  <strong>Original Price:</strong> ₹{(payment.notes.actualAmount).toFixed(2)}
+                                  <strong>Original Price:</strong> ₹
+                                  {payment.notes.actualAmount.toFixed(2)}
                                 </div>
                               )}
                             </div>
                           )}
                         </div>
                       )}
-                      
+
                       {/* Razorpay Metadata - Only for admin */}
                       {isAdmin && payment.metadata && Object.keys(payment.metadata).length > 0 && (
                         <div className="md:col-span-2">
@@ -508,8 +512,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
           <div className="text-xs text-gray-500">
-            Payment ID: {payment?.payment_id || 'N/A'} • 
-            Created: {payment?.createdAt ? formatDate(payment.createdAt) : 'N/A'}
+            Payment ID: {payment?.payment_id || 'N/A'} • Created:{' '}
+            {payment?.createdAt ? formatDate(payment.createdAt) : 'N/A'}
             {isAdmin && payment?.user_id && ` • User ID: ${payment.user_id}`}
           </div>
 

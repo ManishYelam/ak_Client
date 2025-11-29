@@ -33,6 +33,7 @@ const Reports = lazy(() => import('../../components/dashboard/Reports'))
 const PaymentManagement = lazy(() => import('../../components/dashboard/PaymentManagement'))
 const Analytics = lazy(() => import('../../components/dashboard/Analytics'))
 const SystemSettings = lazy(() => import('../../components/dashboard/SystemSettings'))
+const HelpSupport = lazy(() => import('../../components/dashboard/HelpSupport'))
 
 // Enhanced loading component
 const DashboardLoading = ({ message = 'Loading dashboard...' }) => (
@@ -162,7 +163,7 @@ const getRouteConfig = userRole => {
         },
         {
           path: 'payments',
-          element: <PaymentManagement />,
+          element: <Payments />,
         },
         {
           path: 'profile',
@@ -171,6 +172,10 @@ const getRouteConfig = userRole => {
         {
           path: 'settings',
           element: <Settings />,
+        },
+        {
+          path: 'support',
+          element: <HelpSupport />,
         },
       ],
     },
@@ -220,6 +225,10 @@ const getRouteConfig = userRole => {
         {
           path: 'settings',
           element: <Settings />,
+        },
+        {
+          path: 'support',
+          element: <HelpSupport />,
         },
       ],
     },

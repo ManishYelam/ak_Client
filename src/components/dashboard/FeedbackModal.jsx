@@ -2,152 +2,278 @@
 import React, { useState, useEffect } from 'react'
 import {
   X,
-  Mail,
-  User,
-  Calendar,
-  MessageCircle,
   Star,
-  Tag,
-  CheckCircle,
+  User,
+  Mail,
+  Calendar,
   Clock,
+  Tag,
+  MessageCircle,
+  CheckCircle,
   AlertCircle,
+  Edit,
+  Save,
+  XCircle,
   Bug,
   Zap,
   Lightbulb,
   Settings,
+  FileText,
   Globe,
-  Smartphone,
   Monitor,
+  MapPin,
+  Send,
+  Smartphone,
   ExternalLink,
+  Plus,
 } from 'lucide-react'
 import { feedbackAPI } from '../../services/api'
 
-const FeedbackModal = ({ show, feedback, onClose, onSaved }) => {
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    status: '',
-    adminNotes: '',
+const FeedbackModal = ({ show, feedback, onClose, onSaved, isAdmin = false }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedFeedback, setEditedFeedback] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState(null)
+
+  // New feedback form state
+  const [newFeedback, setNewFeedback] = useState({
+    rating: 5,
+    category: 'general',
+    message: '',
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Initialize form data when feedback changes
+  // Check if this is for new feedback (feedback prop is null)
+  const isNewFeedback = feedback === null
+
+  // Initialize states when modal opens
   useEffect(() => {
-    if (feedback) {
-      setFormData({
-        status: feedback.status || 'pending',
-        adminNotes: feedback.metadata?.adminNotes || '',
+    if (isNewFeedback) {
+      setNewFeedback({
+        rating: 5,
+        category: 'general',
+        message: '',
       })
+    } else {
+      setEditedFeedback(feedback ? { ...feedback } : null)
     }
-  }, [feedback])
+    setIsEditing(false)
+    setSaveStatus(null)
+  }, [feedback, show, isNewFeedback])
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    if (!feedback) return
+  // Enhanced status options with icons
+  const statusOptions = [
+    {
+      value: 'pending',
+      label: 'Pending',
+      color: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+      icon: Clock,
+      description: 'New, unprocessed feedback',
+    },
+    {
+      value: 'reviewed',
+      label: 'Reviewed',
+      color: 'bg-blue-100 text-blue-800 border border-blue-200',
+      icon: AlertCircle,
+      description: 'Feedback has been read and acknowledged',
+    },
+    {
+      value: 'in_progress',
+      label: 'In Progress',
+      color: 'bg-orange-100 text-orange-800 border border-orange-200',
+      icon: Settings,
+      description: 'Working on the feedback item',
+    },
+    {
+      value: 'resolved',
+      label: 'Resolved',
+      color: 'bg-green-100 text-green-800 border border-green-200',
+      icon: CheckCircle,
+      description: 'Feedback has been addressed',
+    },
+    {
+      value: 'closed',
+      label: 'Closed',
+      color: 'bg-gray-100 text-gray-800 border border-gray-200',
+      icon: X,
+      description: 'No further action needed',
+    },
+  ]
 
-    setLoading(true)
-    try {
-      // Update status and admin notes
-      await feedbackAPI.updateFeedbackStatus(
-        feedback.feedback_id,
-        formData.status,
-        formData.adminNotes
-      )
-
-      onSaved()
-      showToast('Feedback updated successfully!', 'success')
-    } catch (error) {
-      console.error('Error updating feedback:', error)
-      showToast('Failed to update feedback', 'error')
-    } finally {
-      setLoading(false)
-    }
+  // Enhanced category options with icons and colors
+  const categoryOptions = {
+    general: {
+      label: 'General',
+      icon: MessageCircle,
+      color: 'bg-gray-100 text-gray-800 border border-gray-200',
+      description: 'General feedback or comments',
+    },
+    bug: {
+      label: 'Bug Report',
+      icon: Bug,
+      color: 'bg-red-100 text-red-800 border border-red-200',
+      description: 'Report an issue or bug',
+    },
+    feature: {
+      label: 'Feature Request',
+      icon: Lightbulb,
+      color: 'bg-purple-100 text-purple-800 border border-purple-200',
+      description: 'Suggest a new feature',
+    },
+    ui: {
+      label: 'UI/UX',
+      icon: Monitor,
+      color: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+      description: 'User interface or experience feedback',
+    },
+    performance: {
+      label: 'Performance',
+      icon: Zap,
+      color: 'bg-teal-100 text-teal-800 border border-teal-200',
+      description: 'Performance-related issues',
+    },
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+  if (!show) return null
+
+  // Handle input changes for new feedback
+  const handleNewInputChange = (field, value) => {
+    setNewFeedback(prev => ({
       ...prev,
       [field]: value,
     }))
   }
 
-  const getStatusColor = status => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'reviewed':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'in_progress':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'resolved':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'closed':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+  // Handle rating change for new feedback
+  const handleNewRatingChange = rating => {
+    setNewFeedback(prev => ({
+      ...prev,
+      rating: rating,
+    }))
+  }
+
+  // Submit new feedback
+  const handleSubmitNewFeedback = async () => {
+    if (!newFeedback.message.trim() || newFeedback.message.length < 10) {
+      setSaveStatus({
+        type: 'error',
+        message: 'Please enter at least 10 characters for your feedback.',
+      })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      setSaveStatus(null)
+
+      const feedbackData = {
+        rating: newFeedback.rating,
+        category: newFeedback.category,
+        message: newFeedback.message.trim(),
+      }
+
+      const response = await feedbackAPI.submitFeedback(feedbackData)
+
+      if (response.data?.success || response.success) {
+        setSaveStatus({
+          type: 'success',
+          message: response.data?.message || response.message || 'Thank you for your feedback!',
+        })
+
+        // Reset form
+        setNewFeedback({
+          rating: 5,
+          category: 'general',
+          message: '',
+        })
+
+        // Close modal after success
+        setTimeout(() => {
+          onSaved()
+          onClose()
+        }, 1500)
+      } else {
+        throw new Error(response.data?.message || response.message || 'Failed to submit feedback.')
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error)
+      setSaveStatus({
+        type: 'error',
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          'Failed to submit feedback. Please try again.',
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const getCategoryColor = category => {
-    switch (category) {
-      case 'bug':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'feature':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'ui':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-200'
-      case 'performance':
-        return 'bg-teal-100 text-teal-800 border-teal-200'
-      case 'general':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+  // Handle input changes for existing feedback (admin editing)
+  const handleInputChange = (field, value) => {
+    setEditedFeedback(prev => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  // Handle status change for existing feedback
+  const handleStatusChange = async newStatus => {
+    if (!isAdmin) return
+
+    try {
+      setIsSaving(true)
+      const response = await feedbackAPI.updateFeedbackStatus(feedback.feedback_id, newStatus)
+
+      if (response.data?.success || response.success) {
+        setSaveStatus({ type: 'success', message: 'Status updated successfully' })
+        onSaved()
+      } else {
+        throw new Error(response.data?.message || response.message || 'Failed to update status')
+      }
+    } catch (error) {
+      console.error('Error updating feedback status:', error)
+      setSaveStatus({ type: 'error', message: error.message || 'Failed to update status' })
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  const getStatusIcon = status => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4" />
-      case 'reviewed':
-        return <AlertCircle className="w-4 h-4" />
-      case 'in_progress':
-        return <Settings className="w-4 h-4" />
-      case 'resolved':
-        return <CheckCircle className="w-4 h-4" />
-      case 'closed':
-        return <X className="w-4 h-4" />
-      default:
-        return <Clock className="w-4 h-4" />
+  // Enhanced save function for admin notes and status
+  const handleSave = async () => {
+    if (!isAdmin || !editedFeedback) return
+
+    try {
+      setIsSaving(true)
+      const response = await feedbackAPI.updateFeedbackStatus(
+        feedback.feedback_id,
+        editedFeedback.status,
+        editedFeedback.admin_notes || ''
+      )
+
+      if (response.data?.success || response.success) {
+        setSaveStatus({ type: 'success', message: 'Feedback updated successfully' })
+        setIsEditing(false)
+        onSaved()
+      } else {
+        throw new Error(response.data?.message || response.message || 'Failed to update feedback')
+      }
+    } catch (error) {
+      console.error('Error updating feedback:', error)
+      setSaveStatus({ type: 'error', message: error.message || 'Failed to update feedback' })
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  const getCategoryIcon = category => {
-    switch (category) {
-      case 'bug':
-        return <Bug className="w-4 h-4" />
-      case 'feature':
-        return <Lightbulb className="w-4 h-4" />
-      case 'ui':
-        return <Monitor className="w-4 h-4" />
-      case 'performance':
-        return <Zap className="w-4 h-4" />
-      case 'general':
-        return <MessageCircle className="w-4 h-4" />
-      default:
-        return <Tag className="w-4 h-4" />
-    }
-  }
+  // Get category info
+  const categoryInfo =
+    categoryOptions[isNewFeedback ? newFeedback.category : feedback?.category || 'general'] ||
+    categoryOptions.general
 
-  const renderStars = rating => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-      />
-    ))
-  }
-
+  // Enhanced format date function
   const formatDate = dateString => {
-    if (!dateString) return 'Never'
+    if (!dateString) return 'Unknown'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -157,6 +283,33 @@ const FeedbackModal = ({ show, feedback, onClose, onSaved }) => {
     })
   }
 
+  // Enhanced render stars function - compact version
+  const renderStars = (rating, interactive = false, onStarClick = null) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <button
+        key={i}
+        type={interactive ? 'button' : undefined}
+        onClick={interactive ? () => onStarClick(i + 1) : undefined}
+        className={`transition-all ${
+          interactive ? 'transform hover:scale-110 cursor-pointer' : 'cursor-default'
+        } ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+        disabled={!interactive}
+      >
+        <Star className={`w-4 h-4 ${i < rating ? 'fill-current' : ''}`} />
+      </button>
+    ))
+  }
+
+  // Get status info with enhanced data
+  const getStatusInfo = status => {
+    const statusOption = statusOptions.find(s => s.value === status) || statusOptions[0]
+    return statusOption
+  }
+
+  const statusInfo = getStatusInfo(feedback?.status || 'pending')
+  const StatusIcon = statusInfo.icon
+
+  // Enhanced device detection
   const detectDevice = userAgent => {
     if (!userAgent) return 'Unknown'
 
@@ -169,6 +322,7 @@ const FeedbackModal = ({ show, feedback, onClose, onSaved }) => {
     }
   }
 
+  // Enhanced browser detection
   const detectBrowser = userAgent => {
     if (!userAgent) return 'Unknown'
 
@@ -180,7 +334,7 @@ const FeedbackModal = ({ show, feedback, onClose, onSaved }) => {
     return 'Unknown'
   }
 
-  // FIXED: Safe URL parsing function
+  // Safe URL parsing function
   const getPageUrlInfo = pageUrl => {
     if (!pageUrl) return { display: 'No page URL', isValid: false }
 
@@ -202,286 +356,470 @@ const FeedbackModal = ({ show, feedback, onClose, onSaved }) => {
     }
   }
 
-  const showToast = (message, type = 'success') => {
-    // You can implement a toast notification system here
-    console.log(`${type}: ${message}`)
-  }
-
-  if (!show) return null
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Feedback Details</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-          >
-            <X className="w-5 h-5" />
-          </button>
+  // Compact New Feedback Form
+  const renderNewFeedbackForm = () => (
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="text-center">
+        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+          <MessageCircle className="w-5 h-5 text-primary-600" />
         </div>
+        <h3 className="text-base font-semibold text-gray-900">Share Your Feedback</h3>
+        <p className="text-xs text-gray-600 mt-1">Help us improve by sharing your thoughts</p>
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-4">
-          {feedback ? (
-            <div className="space-y-6">
-              {/* User Information */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                      {feedback.user?.full_name?.charAt(0) || 'U'}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {feedback.user?.full_name || 'Unknown User'}
-                      </h3>
-                      <p className="text-sm text-gray-500">{feedback.user?.role || 'User'}</p>
-                    </div>
-                  </div>
+      {/* Rating - Compact */}
+      <div className="bg-gray-50 rounded-lg p-3">
+        <label className="block text-xs font-medium text-gray-700 mb-2">
+          How would you rate your experience? *
+        </label>
+        <div className="flex items-center gap-3">
+          {renderStars(newFeedback.rating, true, handleNewRatingChange)}
+          <span className="text-xs text-gray-600">{newFeedback.rating}/5</span>
+        </div>
+      </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <a
-                        href={`mailto:${feedback.user?.email}`}
-                        className="text-primary-600 hover:text-primary-700"
-                      >
-                        {feedback.user?.email}
-                      </a>
-                    </div>
+      {/* Category - Compact */}
+      <div className="bg-gray-50 rounded-lg p-3">
+        <label className="block text-xs font-medium text-gray-700 mb-2">Category *</label>
+        <select
+          value={newFeedback.category}
+          onChange={e => handleNewInputChange('category', e.target.value)}
+          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 bg-white"
+          required
+        >
+          {Object.entries(categoryOptions).map(([value, option]) => (
+            <option key={value} value={value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>Submitted: {formatDate(feedback.createdAt)}</span>
-                    </div>
-                  </div>
+      {/* Message - Compact */}
+      <div className="bg-gray-50 rounded-lg p-3">
+        <label className="block text-xs font-medium text-gray-700 mb-2">Your Feedback *</label>
+        <textarea
+          value={newFeedback.message}
+          onChange={e => handleNewInputChange('message', e.target.value)}
+          rows={4}
+          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 resize-none"
+          placeholder="Please share your detailed feedback, suggestions, or any issues you've encountered. Minimum 10 characters required."
+          minLength={10}
+          maxLength={1000}
+          required
+        />
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-xs text-gray-500">Min. 10 characters</p>
+          <div className="text-xs text-gray-500">{newFeedback.message.length}/1000</div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Render existing feedback view - Compact version
+  const renderExistingFeedback = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Main Content */}
+      <div className="lg:col-span-2 space-y-4">
+        {/* User & Basic Info - Compact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* User Info */}
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              User Information
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                  {feedback.user?.full_name?.charAt(0) || 'U'}
                 </div>
-
-                {/* Feedback Metadata */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Status:</span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(feedback.status)}`}
-                    >
-                      {getStatusIcon(feedback.status)}
-                      {feedback.status
-                        ? feedback.status.charAt(0).toUpperCase() +
-                          feedback.status.slice(1).replace('_', ' ')
-                        : 'Pending'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Category:</span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getCategoryColor(feedback.category)}`}
-                    >
-                      {getCategoryIcon(feedback.category)}
-                      {feedback.category
-                        ? feedback.category.charAt(0).toUpperCase() + feedback.category.slice(1)
-                        : 'General'}
-                    </span>
-                  </div>
-
-                  {feedback.rating && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Rating:</span>
-                      <div className="flex items-center gap-1">
-                        {renderStars(feedback.rating)}
-                        <span className="text-sm text-gray-500 ml-2">({feedback.rating}/5)</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Technical Information */}
-                <div className="space-y-3">
-                  {feedback.user_agent && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Device:</span>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                          <Smartphone className="w-3 h-3" />
-                          {detectDevice(feedback.user_agent)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Browser:</span>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                          <Globe className="w-3 h-3" />
-                          {detectBrowser(feedback.user_agent)}
-                        </span>
-                      </div>
-                    </>
-                  )}
-
-                  {/* FIXED: Safe page URL handling */}
-                  {feedback.page_url && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Page:</span>
-                      <div className="flex items-center gap-1">
-                        {getPageUrlInfo(feedback.page_url).isValid ? (
-                          <a
-                            href={feedback.page_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary-600 hover:text-primary-700 truncate max-w-[150px] flex items-center gap-1"
-                            title={feedback.page_url}
-                          >
-                            {getPageUrlInfo(feedback.page_url).display}
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        ) : (
-                          <span
-                            className="text-xs text-gray-500 truncate max-w-[150px]"
-                            title={feedback.page_url}
-                          >
-                            {getPageUrlInfo(feedback.page_url).display}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <p className="text-xs font-medium text-gray-900">
+                    {feedback.user?.full_name || 'Unknown User'}
+                  </p>
+                  <p className="text-xs text-gray-600">{feedback.user?.role || 'User'}</p>
                 </div>
               </div>
-
-              {/* Message Content */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Feedback Message</h4>
-                  <div className="text-sm text-gray-900 bg-gray-50 rounded-lg p-4 border border-gray-200 whitespace-pre-wrap max-h-60 overflow-y-auto">
-                    {feedback.message}
-                  </div>
-                </div>
-
-                {/* Admin Response Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Admin Notes & Response</h4>
-                  <textarea
-                    value={formData.adminNotes}
-                    onChange={e => handleInputChange('adminNotes', e.target.value)}
-                    placeholder="Add your notes, response, or action taken for this feedback..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                    rows="4"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    These notes are for internal use and won't be shared with the user.
-                  </p>
-                </div>
-
-                {/* Status Update */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Update Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={e => handleInputChange('status', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200 w-full">
-                      <strong>Status Guidelines:</strong>
-                      <ul className="mt-1 space-y-1">
-                        <li>
-                          • <strong>Pending:</strong> New, unprocessed feedback
-                        </li>
-                        <li>
-                          • <strong>Reviewed:</strong> Feedback has been read and acknowledged
-                        </li>
-                        <li>
-                          • <strong>In Progress:</strong> Working on the feedback item
-                        </li>
-                        <li>
-                          • <strong>Resolved:</strong> Feedback has been addressed
-                        </li>
-                        <li>
-                          • <strong>Closed:</strong> No further action needed
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Metadata */}
-                {(feedback.metadata || feedback.updatedAt !== feedback.createdAt) && (
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Additional Information
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
-                      <div>
-                        <strong>Created:</strong> {formatDate(feedback.createdAt)}
-                      </div>
-                      {feedback.updatedAt !== feedback.createdAt && (
-                        <div>
-                          <strong>Last Updated:</strong> {formatDate(feedback.updatedAt)}
-                        </div>
-                      )}
-                      {feedback.metadata && Object.keys(feedback.metadata).length > 0 && (
-                        <div className="md:col-span-2">
-                          <strong>Metadata:</strong>
-                          <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
-                            {JSON.stringify(feedback.metadata, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <Mail className="w-3.5 h-3.5" />
+                <a
+                  href={`mailto:${feedback.user?.email}`}
+                  className="text-primary-600 hover:text-primary-700 truncate"
+                  title={feedback.user?.email}
+                >
+                  {feedback.user?.email || 'No email provided'}
+                </a>
               </div>
             </div>
+          </div>
+
+          {/* Feedback Meta - Compact */}
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              Feedback Information
+            </h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">Status</span>
+                {isAdmin && isEditing ? (
+                  <select
+                    value={editedFeedback?.status || 'pending'}
+                    onChange={e => handleInputChange('status', e.target.value)}
+                    className="text-xs font-medium rounded-full border-0 focus:ring-1 focus:ring-primary-500 px-2 py-1 bg-white border border-gray-300"
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
+                  >
+                    <StatusIcon className="w-3 h-3" />
+                    {statusInfo.label}
+                  </span>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">Category</span>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${categoryInfo.color}`}
+                >
+                  <categoryInfo.icon className="w-3 h-3" />
+                  {categoryInfo.label}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">Rating</span>
+                <div className="flex items-center gap-1">
+                  {renderStars(feedback.rating)}
+                  <span className="text-xs text-gray-500 ml-1">({feedback.rating}/5)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Feedback Message - Compact */}
+        <div className="bg-white border border-gray-200 rounded-lg p-3">
+          <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <MessageCircle className="w-3.5 h-3.5" />
+            Feedback Message
+          </h3>
+          {isEditing ? (
+            <textarea
+              value={editedFeedback?.message || ''}
+              onChange={e => handleInputChange('message', e.target.value)}
+              rows={4}
+              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Enter feedback message..."
+            />
           ) : (
-            <div className="text-center py-8">
-              <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">No feedback data available</p>
+            <div className="text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 rounded p-2 border border-gray-100">
+              {feedback.message}
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
-          <div className="text-xs text-gray-500">Feedback ID: {feedback?.feedback_id || 'N/A'}</div>
+        {/* Admin Notes (Admin only) - Compact */}
+        {isAdmin && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <h3 className="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-1.5">
+              <Edit className="w-3.5 h-3.5" />
+              Admin Notes & Response
+            </h3>
+            {isEditing ? (
+              <>
+                <textarea
+                  value={editedFeedback?.admin_notes || ''}
+                  onChange={e => handleInputChange('admin_notes', e.target.value)}
+                  rows={3}
+                  className="w-full px-2 py-1.5 text-xs border border-blue-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Add your notes, response, or action taken for this feedback..."
+                />
+                <p className="text-xs text-blue-600 mt-1">
+                  These notes are for internal use and won't be shared with the user.
+                </p>
+              </>
+            ) : (
+              <div className="text-xs text-blue-800 whitespace-pre-wrap bg-blue-100 rounded p-2 border border-blue-200">
+                {feedback.admin_notes || 'No admin notes yet.'}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-          <div className="flex items-center gap-3">
+      {/* Sidebar - Compact Technical & Timeline Info */}
+      <div className="space-y-4">
+        {/* Timeline */}
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            Timeline
+          </h3>
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs text-gray-600">Submitted</p>
+              <p className="text-xs font-medium text-gray-900 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {formatDate(feedback.createdAt)}
+              </p>
+            </div>
+            {feedback.updatedAt !== feedback.createdAt && (
+              <div>
+                <p className="text-xs text-gray-600">Last Updated</p>
+                <p className="text-xs font-medium text-gray-900 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {formatDate(feedback.updatedAt)}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Technical Information - Compact */}
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <h3 className="text-xs font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <Monitor className="w-3.5 h-3.5" />
+            Technical Information
+          </h3>
+          <div className="space-y-2">
+            {feedback.user_agent && (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Device</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
+                    <Smartphone className="w-3 h-3" />
+                    {detectDevice(feedback.user_agent)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Browser</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
+                    <Globe className="w-3 h-3" />
+                    {detectBrowser(feedback.user_agent)}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {feedback.page_url && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">Page</span>
+                <div className="flex items-center gap-1">
+                  {getPageUrlInfo(feedback.page_url).isValid ? (
+                    <a
+                      href={feedback.page_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary-600 hover:text-primary-700 truncate max-w-[100px] flex items-center gap-0.5"
+                      title={feedback.page_url}
+                    >
+                      {getPageUrlInfo(feedback.page_url).display}
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  ) : (
+                    <span
+                      className="text-xs text-gray-500 truncate max-w-[100px]"
+                      title={feedback.page_url}
+                    >
+                      {getPageUrlInfo(feedback.page_url).display}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {feedback.metadata?.ipAddress && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">IP Address</span>
+                <span className="text-xs text-gray-700 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {feedback.metadata.ipAddress}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Actions (Admin only) - Compact */}
+        {isAdmin && !isEditing && (
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+            <h3 className="text-xs font-semibold text-primary-900 mb-2">Quick Actions</h3>
+            <div className="space-y-1.5">
+              {statusOptions.map(status => (
+                <button
+                  key={status.value}
+                  onClick={() => handleStatusChange(status.value)}
+                  disabled={isSaving || feedback.status === status.value}
+                  className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    feedback.status === status.value
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-primary-100 border border-primary-200'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <status.icon className="w-3 h-3" />
+                  Mark as {status.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Additional Metadata */}
+        {feedback.metadata && Object.keys(feedback.metadata).length > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <h3 className="text-xs font-semibold text-gray-900 mb-2">Additional Information</h3>
+            <div className="text-xs text-gray-600">
+              <pre className="bg-white p-1.5 rounded border overflow-x-auto max-h-24 text-xs">
+                {JSON.stringify(feedback.metadata, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div
+        className={`bg-white rounded-lg shadow-xl w-full max-h-[80vh] overflow-hidden ${
+          isNewFeedback ? 'max-w-md' : 'max-w-5xl'
+        }`}
+      >
+        {/* Compact Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded ${isNewFeedback ? 'bg-primary-100' : 'bg-primary-500'}`}>
+              {isNewFeedback ? (
+                <Plus className="w-4 h-4 text-primary-600" />
+              ) : (
+                <MessageCircle className="w-4 h-4 text-white" />
+              )}
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">
+                {isNewFeedback ? 'Submit New Feedback' : 'Feedback Details'}
+              </h2>
+              {!isNewFeedback && (
+                <p className="text-xs text-gray-600">ID: {feedback.feedback_id}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {!isNewFeedback && isAdmin && (
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`p-1.5 rounded transition-colors ${
+                  isEditing
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title={isEditing ? 'Cancel Editing' : 'Edit Feedback'}
+              >
+                <Edit className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              title="Close"
             >
-              Cancel
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Save Status - Compact */}
+        {saveStatus && (
+          <div
+            className={`mx-4 mt-3 p-2 rounded border text-xs ${
+              saveStatus.type === 'success'
+                ? 'bg-green-50 border-green-200 text-green-700'
+                : 'bg-red-50 border-red-200 text-red-700'
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              {saveStatus.type === 'success' ? (
+                <CheckCircle className="w-3.5 h-3.5" />
+              ) : (
+                <XCircle className="w-3.5 h-3.5" />
+              )}
+              <span className="font-medium">{saveStatus.message}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-4">
+          {isNewFeedback ? renderNewFeedbackForm() : renderExistingFeedback()}
+        </div>
+
+        {/* Compact Footer */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+          {!isNewFeedback && (
+            <div className="text-xs text-gray-600">
+              ID:{' '}
+              <span className="font-mono text-xs bg-white px-1.5 py-0.5 rounded border">
+                {feedback.feedback_id}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={onClose}
+              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            >
+              {isNewFeedback ? 'Cancel' : isEditing ? 'Cancel' : 'Close'}
             </button>
 
-            {feedback && (
+            {isNewFeedback ? (
               <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={handleSubmitNewFeedback}
+                disabled={isSubmitting || newFeedback.message.length < 10}
+                className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </div>
+                {isSubmitting ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting...
+                  </>
                 ) : (
-                  'Save Changes'
+                  <>
+                    <Send className="w-3 h-3" />
+                    Submit
+                  </>
                 )}
               </button>
+            ) : (
+              isAdmin &&
+              isEditing && (
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3 h-3" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              )
             )}
           </div>
         </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getUserData, classNames } from '../utils/helpers'
+import FeedbackModal from '../components/dashboard/FeedbackModal'
 
 // Icons - Define all icons first with smaller sizes
 const Menu = ({ className = 'w-5 h-5' }) => (
@@ -177,6 +178,28 @@ const MessageSquare = ({ className = 'w-5 h-5' }) => (
   </svg>
 )
 
+const HelpCircle = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+)
+
+const Lifebuoy = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+    />
+  </svg>
+)
+
 // Navigation items based on user role - Define this AFTER all icons are defined
 const getNavigationItems = userRole => {
   const commonItems = [
@@ -264,10 +287,23 @@ const getNavigationItems = userRole => {
     },
   ]
 
+  // Support items for both student and admin
+  const supportItems = [
+    {
+      name: 'Help & Support',
+      href: '/dashboard/support',
+      icon: Lifebuoy,
+    },
+  ]
+
   if (userRole === 'admin') {
-    return [...commonItems.filter(item => item.name !== 'Dashboard'), ...adminItems]
+    return [
+      ...commonItems.filter(item => item.name !== 'Dashboard'),
+      ...adminItems,
+      ...supportItems,
+    ]
   } else {
-    return [...commonItems, ...studentItems]
+    return [...commonItems, ...studentItems, ...supportItems]
   }
 }
 
@@ -327,7 +363,16 @@ class LayoutErrorBoundary extends React.Component {
 
 // Mobile sidebar component
 const MobileSidebar = React.memo(
-  ({ isOpen, onClose, navigationItems, userRole, userData, currentPath, onLogout }) => {
+  ({
+    isOpen,
+    onClose,
+    navigationItems,
+    userRole,
+    userData,
+    currentPath,
+    onLogout,
+    onOpenFeedback,
+  }) => {
     if (!isOpen) return null
 
     return (
@@ -397,6 +442,20 @@ const MobileSidebar = React.memo(
                 )
               })}
             </nav>
+
+            {/* Feedback Button in Mobile Sidebar */}
+            <div className="mt-4 px-3">
+              <button
+                onClick={() => {
+                  onOpenFeedback()
+                  onClose()
+                }}
+                className="w-full flex items-center justify-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Submit Feedback
+              </button>
+            </div>
           </div>
 
           {/* User section */}
@@ -435,7 +494,7 @@ MobileSidebar.displayName = 'MobileSidebar'
 
 // Desktop sidebar component
 const DesktopSidebar = React.memo(
-  ({ navigationItems, userRole, userData, currentPath, onLogout }) => {
+  ({ navigationItems, userRole, userData, currentPath, onLogout, onOpenFeedback }) => {
     return (
       <div className="hidden lg:flex lg:flex-shrink-0">
         <div className="flex flex-col w-56 border-r border-gray-200 bg-white">
@@ -486,6 +545,17 @@ const DesktopSidebar = React.memo(
                 )
               })}
             </nav>
+
+            {/* Feedback Button in Desktop Sidebar */}
+            <div className="mt-4 px-3">
+              <button
+                onClick={onOpenFeedback}
+                className="w-full flex items-center justify-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Submit Feedback
+              </button>
+            </div>
           </div>
 
           {/* User section */}
@@ -523,10 +593,20 @@ const DesktopSidebar = React.memo(
 DesktopSidebar.displayName = 'DesktopSidebar'
 
 // Header component
-const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
+const Header = React.memo(({ onMenuClick, userData, userRole, onLogout, onOpenFeedback }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -549,10 +629,30 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
     return currentItem?.name || 'Dashboard'
   }, [location.pathname, userRole])
 
+  // Format time and date
+  const formattedTime = currentTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  })
+
+  const formattedDate = currentTime.toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+
   const currentPageTitle = getCurrentPageTitle()
 
   const handleDashboardClick = () => {
     navigate('/dashboard')
+  }
+
+  const handleFeedbackClick = () => {
+    setShowUserDropdown(false)
+    onOpenFeedback()
   }
 
   return (
@@ -572,11 +672,66 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
           <h1 className="text-xl font-bold text-gray-900">{currentPageTitle}</h1>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          {/* Date and Time Display */}
+          <div className="hidden lg:flex flex-col items-end text-right">
+            <div className="flex items-center space-x-2 text-sm text-gray-700">
+              <svg
+                className="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="font-medium tabular-nums">{formattedTime}</span>
+            </div>
+            <div className="text-xs text-gray-500 mt-0.5">{formattedDate}</div>
+          </div>
+
+          {/* Mobile time display */}
+          <div className="lg:hidden flex items-center space-x-1 text-sm text-gray-600">
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span className="tabular-nums">
+              {currentTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </span>
+          </div>
+
+          {/* Quick Feedback Access Button */}
+          <button
+            onClick={onOpenFeedback}
+            className="hidden md:flex items-center space-x-1.5 bg-primary-50 hover:bg-primary-100 text-primary-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors duration-200 text-xs"
+            title="Submit Feedback"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Feedback</span>
+          </button>
+
           {/* Quick Dashboard Access Button */}
           <button
             onClick={handleDashboardClick}
-            className="hidden md:flex items-center space-x-1.5 bg-primary-50 hover:bg-primary-100 text-primary-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors duration-200 text-xs"
+            className="hidden md:flex items-center space-x-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors duration-200 text-xs"
             title="Go to Dashboard"
           >
             <Home className="w-3.5 h-3.5" />
@@ -620,7 +775,7 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
 
             {/* Dropdown menu */}
             {showUserDropdown && (
-              <div className="origin-top-right absolute right-0 mt-1 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-scale-in">
+              <div className="origin-top-right absolute right-0 mt-1 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-scale-in">
                 <div className="py-1" role="menu" aria-orientation="vertical">
                   <div className="px-3 py-1.5 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -649,9 +804,28 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
                     Settings
                   </Link>
 
+                  <button
+                    onClick={handleFeedbackClick}
+                    className="flex items-center w-full px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    role="menuitem"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+                    Submit Feedback
+                  </button>
+
+                  <Link
+                    to="/dashboard/support"
+                    className="flex items-center px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowUserDropdown(false)}
+                    role="menuitem"
+                  >
+                    <Lifebuoy className="w-3.5 h-3.5 mr-1.5" />
+                    Help & Support
+                  </Link>
+
                   <div className="border-t border-gray-100"></div>
 
-                  {/* <button
+                  <button
                     onClick={() => {
                       setShowUserDropdown(false)
                       onLogout()
@@ -661,7 +835,7 @@ const Header = React.memo(({ onMenuClick, userData, userRole, onLogout }) => {
                   >
                     <LogOut className="w-3.5 h-3.5 mr-1.5" />
                     Sign out
-                  </button> */}
+                  </button>
                 </div>
               </div>
             )}
@@ -677,6 +851,7 @@ Header.displayName = 'Header'
 // Main DashboardLayout component
 const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserData }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false)
   const { logout, user: authUser } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -713,6 +888,23 @@ const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserD
     }
   }, [logout, navigate])
 
+  // Handle opening feedback modal
+  const handleOpenFeedback = useCallback(() => {
+    setFeedbackModalOpen(true)
+  }, [])
+
+  // Handle closing feedback modal
+  const handleCloseFeedback = useCallback(() => {
+    setFeedbackModalOpen(false)
+  }, [])
+
+  // Handle feedback saved
+  const handleFeedbackSaved = useCallback(() => {
+    setFeedbackModalOpen(false)
+    // You can add a toast notification here if needed
+    console.log('Feedback submitted successfully')
+  }, [])
+
   const navigationItems = useMemo(() => getNavigationItems(userRole), [userRole])
 
   return (
@@ -727,6 +919,7 @@ const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserD
           userData={userData}
           currentPath={location.pathname}
           onLogout={handleLogout}
+          onOpenFeedback={handleOpenFeedback}
         />
 
         {/* Desktop sidebar */}
@@ -736,6 +929,7 @@ const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserD
           userData={userData}
           currentPath={location.pathname}
           onLogout={handleLogout}
+          onOpenFeedback={handleOpenFeedback}
         />
 
         {/* Main content area */}
@@ -746,6 +940,7 @@ const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserD
             userData={userData}
             userRole={userRole}
             onLogout={handleLogout}
+            onOpenFeedback={handleOpenFeedback}
           />
 
           {/* Main content */}
@@ -781,6 +976,15 @@ const DashboardLayout = ({ children, userRole: propUserRole, userData: propUserD
             </div>
           </footer>
         </div>
+
+        {/* Feedback Modal */}
+        <FeedbackModal
+          show={feedbackModalOpen}
+          feedback={null} // null indicates new feedback
+          onClose={handleCloseFeedback}
+          onSaved={handleFeedbackSaved}
+          isAdmin={userRole === 'admin'}
+        />
 
         {/* Close sidebar when clicking outside (mobile) */}
         {sidebarOpen && (

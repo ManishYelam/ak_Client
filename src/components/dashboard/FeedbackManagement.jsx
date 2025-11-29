@@ -1,5 +1,5 @@
 // src/components/dashboard/FeedbackManagement.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
 import {
   Search,
   Edit,
@@ -32,11 +32,17 @@ import {
   Zap,
   Lightbulb,
   Settings,
+  UserCheck,
 } from 'lucide-react'
+import { getUserData } from '../../utils/getUserId'
+import { supportAPI } from '../../services/api'
 import { feedbackAPI } from '../../services/api'
 import FeedbackModal from './FeedbackModal'
+import { AuthContext } from '../../context/AuthContext'
 
 const FeedbackManagement = () => {
+  const { user } = useContext(AuthContext)
+  const userData = getUserData(user)
   const [activeTab, setActiveTab] = useState('all')
   const [feedbacks, setFeedbacks] = useState([])
   const [allFeedbacks, setAllFeedbacks] = useState([])
@@ -49,6 +55,11 @@ const FeedbackManagement = () => {
   const [editingFeedback, setEditingFeedback] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
   const [toast, setToast] = useState(null)
+
+  // NEW: State for admin-only filter
+  const [showMyFeedbacksOnly, setShowMyFeedbacksOnly] = useState(false)
+  const user_id = userData?.user_id
+  const isAdmin = userData?.role === 'admin'
 
   // Advanced Filter States
   const [filters, setFilters] = useState({
@@ -167,9 +178,16 @@ const FeedbackManagement = () => {
     []
   )
 
-  // Calculate tab counts based on allFeedbacks
+  // Calculate tab counts based on allFeedbacks - UPDATED to include admin filter
   const tabs = useMemo(() => {
-    if (!allFeedbacks.length)
+    let filteredFeedbacks = allFeedbacks
+
+    // NEW: Apply admin filter if enabled
+    if (showMyFeedbacksOnly && user_id) {
+      filteredFeedbacks = allFeedbacks.filter(feedback => feedback.user_id === user_id)
+    }
+
+    if (!filteredFeedbacks.length)
       return [
         { id: 'all', name: 'All Feedback', count: 0, icon: Users, color: 'text-gray-600' },
         {
@@ -183,10 +201,12 @@ const FeedbackManagement = () => {
         { id: 'resolved', name: 'Resolved', count: 0, icon: CheckCircle2, color: 'text-green-600' },
       ]
 
-    const allCount = allFeedbacks.length
-    const pendingCount = allFeedbacks.filter(feedback => feedback.status === 'pending').length
-    const resolvedCount = allFeedbacks.filter(feedback => feedback.status === 'resolved').length
-    const newCount = allFeedbacks.filter(
+    const allCount = filteredFeedbacks.length
+    const pendingCount = filteredFeedbacks.filter(feedback => feedback.status === 'pending').length
+    const resolvedCount = filteredFeedbacks.filter(
+      feedback => feedback.status === 'resolved'
+    ).length
+    const newCount = filteredFeedbacks.filter(
       feedback =>
         feedback.status === 'pending' &&
         new Date(feedback.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -216,11 +236,18 @@ const FeedbackManagement = () => {
         color: 'text-green-600',
       },
     ]
-  }, [allFeedbacks])
+  }, [allFeedbacks, showMyFeedbacksOnly, user_id])
 
-  // Stats calculation using actual API fields
+  // Stats calculation using actual API fields - UPDATED to include admin filter
   const stats = useMemo(() => {
-    if (!allFeedbacks.length)
+    let filteredFeedbacks = allFeedbacks
+
+    // NEW: Apply admin filter if enabled
+    if (showMyFeedbacksOnly && user_id) {
+      filteredFeedbacks = allFeedbacks.filter(feedback => feedback.user_id === user_id)
+    }
+
+    if (!filteredFeedbacks.length)
       return [
         { number: '0', label: 'Total Feedback', icon: Users, color: 'text-blue-400' },
         { number: '0', label: 'Pending', icon: Clock, color: 'text-yellow-400' },
@@ -228,14 +255,18 @@ const FeedbackManagement = () => {
         { number: '0', label: 'Resolved', icon: CheckCircle2, color: 'text-green-400' },
       ]
 
-    const totalFeedback = allFeedbacks.length
-    const pendingFeedback = allFeedbacks.filter(feedback => feedback.status === 'pending').length
-    const resolvedFeedback = allFeedbacks.filter(feedback => feedback.status === 'resolved').length
+    const totalFeedback = filteredFeedbacks.length
+    const pendingFeedback = filteredFeedbacks.filter(
+      feedback => feedback.status === 'pending'
+    ).length
+    const resolvedFeedback = filteredFeedbacks.filter(
+      feedback => feedback.status === 'resolved'
+    ).length
     const averageRating =
-      allFeedbacks.length > 0
+      filteredFeedbacks.length > 0
         ? (
-            allFeedbacks.reduce((sum, feedback) => sum + (feedback.rating || 0), 0) /
-            allFeedbacks.length
+            filteredFeedbacks.reduce((sum, feedback) => sum + (feedback.rating || 0), 0) /
+            filteredFeedbacks.length
           ).toFixed(1)
         : 0
 
@@ -260,32 +291,52 @@ const FeedbackManagement = () => {
         color: 'text-green-400',
       },
     ]
-  }, [allFeedbacks])
+  }, [allFeedbacks, showMyFeedbacksOnly, user_id])
 
-  // Fetch feedbacks with filtering
+  // Build payload for API request
+  const buildPayload = useCallback(() => {
+    const payload = {
+      page: filters.page,
+      limit: filters.limit,
+      search: filters.search,
+      searchFields: ['message', 'category', 'user.full_name', 'user.email'],
+      filters: {},
+      sortBy: 'created_at',
+      sortOrder: 'DESC',
+    }
+
+    // Add status filter
+    if (filters.status !== 'all') {
+      payload.filters.status = filters.status
+    }
+
+    // Add category filter
+    if (filters.category !== 'all') {
+      payload.filters.category = filters.category
+    }
+
+    // Add rating filter
+    if (filters.rating !== 'all') {
+      payload.filters.rating = parseInt(filters.rating)
+    }
+
+    // Add user_id filter for admin only
+    if (showMyFeedbacksOnly && user_id && isAdmin) {
+      payload.filters.user_id = parseInt(user_id)
+    }
+
+    return payload
+  }, [filters, showMyFeedbacksOnly, user_id, isAdmin])
+
+  // Fetch feedbacks with filtering - UPDATED to use new payload structure
   const fetchFeedbacks = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const params = new URLSearchParams()
+      const payload = buildPayload()
 
-      // Add pagination
-      params.append('page', filters.page)
-      params.append('limit', filters.limit)
-
-      // Add filters
-      if (filters.status !== 'all') {
-        params.append('status', filters.status)
-      }
-      if (filters.category !== 'all') {
-        params.append('category', filters.category)
-      }
-      if (filters.rating !== 'all') {
-        params.append('rating', filters.rating)
-      }
-
-      const response = await feedbackAPI.getAllFeedback(params)
+      const response = await feedbackAPI.getAllFeedback(payload)
       const responseData = response.data
 
       console.log('Feedback API Response:', responseData)
@@ -321,15 +372,27 @@ const FeedbackManagement = () => {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [buildPayload, filters.limit, filters.page])
 
-  // Fetch all feedbacks for counting and export
+  // Fetch all feedbacks for counting and export - UPDATED to use new payload structure
   const fetchAllFeedbacks = useCallback(async () => {
     try {
-      const params = new URLSearchParams()
-      params.append('limit', '1000')
+      const payload = {
+        page: 1,
+        limit: 1000,
+        search: '',
+        searchFields: ['message', 'category', 'user.full_name', 'user.email'],
+        filters: {},
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+      }
 
-      const response = await feedbackAPI.getAllFeedback(params)
+      // Add user_id filter for admin only
+      if (showMyFeedbacksOnly && user_id && isAdmin) {
+        payload.filters.user_id = parseInt(user_id)
+      }
+
+      const response = await feedbackAPI.getAllFeedback(payload)
       const responseData = response.data
 
       if (responseData && responseData.success) {
@@ -343,7 +406,7 @@ const FeedbackManagement = () => {
       console.error('Error fetching all feedbacks:', err)
       setAllFeedbacks([])
     }
-  }, [])
+  }, [showMyFeedbacksOnly, user_id, isAdmin])
 
   // Fetch feedback statistics
   const fetchFeedbackStats = useCallback(async () => {
@@ -361,23 +424,36 @@ const FeedbackManagement = () => {
     }
   }, [])
 
-  // Fetch all feedbacks for export
+  // Fetch all feedbacks for export - UPDATED to use new payload structure
   const fetchAllFeedbacksForExport = async () => {
     try {
-      const params = new URLSearchParams()
-      params.append('limit', '1000')
+      const payload = {
+        page: 1,
+        limit: 1000,
+        search: filters.search,
+        searchFields: ['message', 'category', 'user.full_name', 'user.email'],
+        filters: {},
+        sortBy: 'created_at',
+        sortOrder: 'DESC',
+      }
 
+      // Add filters
       if (filters.status !== 'all') {
-        params.append('status', filters.status)
+        payload.filters.status = filters.status
       }
       if (filters.category !== 'all') {
-        params.append('category', filters.category)
+        payload.filters.category = filters.category
       }
       if (filters.rating !== 'all') {
-        params.append('rating', filters.rating)
+        payload.filters.rating = parseInt(filters.rating)
       }
 
-      const response = await feedbackAPI.getAllFeedback(params)
+      // Add user_id filter for admin only
+      if (showMyFeedbacksOnly && user_id && isAdmin) {
+        payload.filters.user_id = parseInt(user_id)
+      }
+
+      const response = await feedbackAPI.getAllFeedback(payload)
       const responseData = response.data
 
       if (responseData && responseData.success) {
@@ -473,6 +549,15 @@ const FeedbackManagement = () => {
     }
   }
 
+  // NEW: Handler for admin-only filter toggle
+  const handleMyFeedbacksToggle = checked => {
+    setShowMyFeedbacksOnly(checked)
+    setFilters(prev => ({
+      ...prev,
+      page: 1, // Reset to first page when filter changes
+    }))
+  }
+
   // Debounced search and filter changes
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -521,6 +606,11 @@ const FeedbackManagement = () => {
   // Feedback Modal Functions
   const openFeedbackModal = (feedback = null) => {
     setEditingFeedback(feedback)
+    setShowFeedbackModal(true)
+  }
+
+  const openNewFeedbackModal = () => {
+    setEditingFeedback(null)
     setShowFeedbackModal(true)
   }
 
@@ -602,19 +692,21 @@ const FeedbackManagement = () => {
       page: 1,
       limit: 5,
     })
+    setShowMyFeedbacksOnly(false) // NEW: Reset admin filter
     setActiveTab('all')
     showToast('All filters cleared', 'info')
   }
 
-  // Check if any filters are active
+  // Check if any filters are active - UPDATED to include admin filter
   const hasActiveFilters = useMemo(() => {
     return (
       filters.search !== '' ||
       filters.status !== 'all' ||
       filters.category !== 'all' ||
-      filters.rating !== 'all'
+      filters.rating !== 'all' ||
+      (isAdmin && showMyFeedbacksOnly) // NEW: Include admin filter in active filters check only for admins
     )
-  }, [filters])
+  }, [filters, showMyFeedbacksOnly, isAdmin])
 
   // Feedback selection and bulk actions
   const toggleFeedbackSelection = feedbackId => {
@@ -842,7 +934,7 @@ const FeedbackManagement = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Feedback Management</h1>
+          {/* <h1 className="text-xl font-bold text-gray-900">Feedback Management</h1> */}
           <p className="text-xs text-gray-600">Manage and respond to user feedback</p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
@@ -861,6 +953,14 @@ const FeedbackManagement = () => {
           >
             <RefreshCw className="w-2.5 h-2.5" />
             Refresh
+          </button>
+
+          <button
+            onClick={openNewFeedbackModal}
+            className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded transition-colors flex items-center justify-center gap-2 text-xs"
+          >
+            <Plus className="w-3 h-3" />
+            Submit Feedback
           </button>
         </div>
       </div>
@@ -947,6 +1047,26 @@ const FeedbackManagement = () => {
                   <span className="text-xs text-primary-700 font-medium">
                     {selectedFeedbacks.length} selected
                   </span>
+                </div>
+              )}
+
+              {/* NEW: My Feedbacks Only Toggle - Only show for admin users */}
+              {isAdmin && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded border border-gray-300">
+                  <input
+                    type="checkbox"
+                    id="my-feedbacks-only"
+                    checked={showMyFeedbacksOnly}
+                    onChange={e => handleMyFeedbacksToggle(e.target.checked)}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                  />
+                  <label
+                    htmlFor="my-feedbacks-only"
+                    className="text-xs font-medium text-gray-700 flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <UserCheck className="w-3 h-3" />
+                    My Feedbacks Only
+                  </label>
                 </div>
               )}
 
@@ -1044,9 +1164,27 @@ const FeedbackManagement = () => {
                     <option value="50">50 per page</option>
                   </select>
                 </div>
+
+                {/* NEW: My Feedbacks Only Filter in Advanced Panel - Only for admin */}
+                {/* {isAdmin && (
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={showMyFeedbacksOnly}
+                        onChange={(e) => handleMyFeedbacksToggle(e.target.checked)}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                      />
+                      <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                        <UserCheck className="w-3 h-3" />
+                        Show only my feedbacks
+                      </span>
+                    </label>
+                  </div>
+                )} */}
               </div>
 
-              {/* Active Filters Display */}
+              {/* Active Filters Display - UPDATED to include admin filter */}
               {hasActiveFilters && (
                 <div className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200 mt-2">
                   <div className="flex items-center gap-1 flex-wrap">
@@ -1089,6 +1227,18 @@ const FeedbackManagement = () => {
                         Rating: {ratingOptions.find(r => r.value === filters.rating)?.label}
                         <button
                           onClick={() => handleRatingChange('all')}
+                          className="ml-0.5 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    )}
+                    {/* NEW: Admin filter active indicator - Only for admin */}
+                    {isAdmin && showMyFeedbacksOnly && (
+                      <span className="inline-flex items-center px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded border border-blue-200">
+                        My Feedbacks Only
+                        <button
+                          onClick={() => handleMyFeedbacksToggle(false)}
                           className="ml-0.5 text-blue-600 hover:text-blue-800"
                         >
                           <X className="w-2.5 h-2.5" />
@@ -1272,6 +1422,13 @@ const FeedbackManagement = () => {
                     ? 'No feedback matches your search criteria. Try adjusting your filters.'
                     : 'No feedback has been submitted yet.'}
                 </p>
+                <button
+                  onClick={openNewFeedbackModal}
+                  className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded transition-colors flex items-center justify-center gap-2 text-xs mx-auto"
+                >
+                  <Plus className="w-3 h-3" />
+                  Submit First Feedback
+                </button>
               </div>
             </div>
           )}

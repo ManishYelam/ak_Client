@@ -1,36 +1,21 @@
-// ✅ src/utils/getUserId.js
-export const getUserId = () => {
-  try {
-    const user = localStorage.getItem('user')
-    if (!user) return null
+export const getUserRole = user => {
+  return user?.user?.role || user?.role || 'student'
+}
 
-    const parsedUser = JSON.parse(user)
-    return parsedUser?.id
-  } catch (error) {
-    console.error('Error parsing user from localStorage:', error)
-    return null
+export const getUserInfo = user => {
+  return {
+    id: user?.user?.id || user?.id,
+    email: user?.user?.email || user?.email,
+    fullName: user?.user?.full_name || user?.full_name,
+    role: getUserRole(user),
   }
 }
 
-export const getUserToken = () => {
-  try {
-    const user = localStorage.getItem('user')
-    if (!user) return null
-
-    const parsedUser = JSON.parse(user)
-    return parsedUser?.token || null
-  } catch (error) {
-    console.error('Error parsing token from localStorage:', error)
-    return null
-  }
+export const isAdmin = user => {
+  return getUserRole(user) === 'admin'
 }
 
-export const getUserData = () => {
-  try {
-    const user = localStorage.getItem('user')
-    return user ? JSON.parse(user) : null
-  } catch (error) {
-    console.error('Error parsing user data:', error)
-    return null
-  }
+export const getUserData = user => {
+  if (!user) return null
+  return user.user || user
 }

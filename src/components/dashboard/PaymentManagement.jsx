@@ -236,7 +236,7 @@ const PaymentManagement = () => {
         search: filters.search,
         filters: {
           status: filters.status !== 'all' ? filters.status : undefined,
-        }
+        },
       }
 
       console.log('📤 Sending request data:', requestData)
@@ -298,7 +298,7 @@ const PaymentManagement = () => {
           page: currentPage,
           limit: currentLimit,
           totalItems: totalItems,
-          totalPages: totalPages
+          totalPages: totalPages,
         })
       } else {
         console.warn('Unexpected API response structure:', responseData)
@@ -845,10 +845,9 @@ const PaymentManagement = () => {
             {isAdmin ? 'Payment Management' : 'My Payments'}
           </h1>
           <p className="text-xs text-gray-600">
-            {isAdmin 
-              ? 'Manage and track all payment transactions' 
-              : 'View your payment history and receipts'
-            }
+            {isAdmin
+              ? 'Manage and track all payment transactions'
+              : 'View your payment history and receipts'}
           </p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
@@ -883,11 +882,13 @@ const PaymentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">
-                    {isAdmin ? stat.label : 
-                      stat.label === 'Total Payments' ? 'My Payments' :
-                      stat.label === 'Total Revenue' ? 'Total Spent' :
-                      stat.label
-                    }
+                    {isAdmin
+                      ? stat.label
+                      : stat.label === 'Total Payments'
+                        ? 'My Payments'
+                        : stat.label === 'Total Revenue'
+                          ? 'Total Spent'
+                          : stat.label}
                   </p>
                   <p className="text-lg font-bold text-gray-900">{stat.number}</p>
                 </div>
@@ -979,7 +980,7 @@ const PaymentManagement = () => {
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                 <input
                   type="text"
-                  placeholder={isAdmin ? "Search payments..." : "Search my payments..."}
+                  placeholder={isAdmin ? 'Search payments...' : 'Search my payments...'}
                   value={filters.search}
                   onChange={e => handleSearchChange(e.target.value)}
                   className="pl-7 pr-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-40 text-xs"
@@ -1190,7 +1191,9 @@ const PaymentManagement = () => {
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
                         <input
                           type="checkbox"
-                          checked={selectedPayments.length === payments.length && payments.length > 0}
+                          checked={
+                            selectedPayments.length === payments.length && payments.length > 0
+                          }
                           onChange={toggleSelectAll}
                           className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
                         />
@@ -1340,10 +1343,9 @@ const PaymentManagement = () => {
                 <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">
                   {hasActiveFilters
                     ? 'No payments match your search criteria. Try adjusting your filters.'
-                    : isAdmin 
+                    : isAdmin
                       ? 'No payment transactions have been recorded yet.'
-                      : 'You haven\'t made any payments yet.'
-                  }
+                      : "You haven't made any payments yet."}
                 </p>
               </div>
             </div>

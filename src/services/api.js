@@ -35,8 +35,8 @@ export const paymentsAPI = {
   createRazorpayOrder: orderData => api.post('/payments/create-order', orderData),
   verifyPayment: paymentData => api.post('/payments/verify-payment', paymentData),
   getHistory: (params = {}) => api.get('/payments/history', { params }),
-  getUserPayments: (data) => api.post('/payments/user-payments', data),
-  getAllUserPayments: data => api.post('/payments/all-user-payments', data ),
+  getUserPayments: data => api.post('/payments/user-payments', data),
+  getAllUserPayments: data => api.post('/payments/all-user-payments', data),
   checkEnrollment: courseId => api.get(`/payments/check-enrollment/${courseId}`),
   getUserEnrollments: (params = {}) => api.get('/payments/user-enrollments', { params }),
   getPaymentDetails: paymentId => api.get(`/payments/payment-details/${paymentId}`),
@@ -94,7 +94,7 @@ export const feedbackAPI = {
   submitFeedback: feedbackData => api.post(`/feedback/submit`, feedbackData),
   getUserFeedback: (page = 1, limit = 10) =>
     api.get(`/feedback/my-feedback?page=${page}&limit=${limit}`),
-  getAllFeedback: queryParams => api.get(`/feedback?${queryParams.toString()}`),
+  getAllFeedback: data => api.post(`/feedback/`, data),
   getFeedbackStats: () => api.get(`/feedback/stats`),
   updateFeedbackStatus: (id, status, adminNotes = '') =>
     api.patch(`/feedback/${id}/status`, { status, adminNotes }),
@@ -117,7 +117,7 @@ export const analyticsAPI = {
 export const supportAPI = {
   // 🎟️ Ticket methods
   createTicket: ticketData => api.post(`/support/tickets`, ticketData),
-  getTickets: (params = {}) => api.get(`/support/tickets`, { params }),
+  getTickets: data => api.post(`/support/all-tickets`, data),
   getUserTickets: (params = {}) => api.get(`/support/tickets/user`, { params }),
   getTicket: ticketId => api.get(`/support/tickets/${ticketId}`),
   updateTicket: (ticketId, updateData) => api.put(`/support/tickets/${ticketId}`, updateData),
