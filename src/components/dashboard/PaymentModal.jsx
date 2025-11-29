@@ -19,23 +19,26 @@ import {
   Zap,
   Smartphone,
   BookOpen,
+  RefreshCw,
+  Image,
 } from 'lucide-react'
 import { paymentsAPI } from '../../services/api'
 
 const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
   const [loading, setLoading] = useState(false)
+  const [refundLoading, setRefundLoading] = useState(false)
   const [formData, setFormData] = useState({
-    status: '',
     adminNotes: '',
   })
+  const [imageError, setImageError] = useState(false)
 
   // Initialize form data when payment changes
   useEffect(() => {
     if (payment) {
       setFormData({
-        status: payment.status || 'created',
         adminNotes: payment.metadata?.adminNotes || '',
       })
+      setImageError(false) // Reset image error when payment changes
     }
   }, [payment])
 
@@ -45,10 +48,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
 
     setLoading(true)
     try {
-      // Update payment status and admin notes
-      // You'll need to implement this API endpoint
+      // Update admin notes only
       await paymentsAPI.updatePayment(payment.payment_id, {
-        status: formData.status,
         metadata: {
           ...payment.metadata,
           adminNotes: formData.adminNotes,
@@ -56,12 +57,24 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
       })
 
       onUpdated()
-      showToast('Payment updated successfully!', 'success')
     } catch (error) {
       console.error('Error updating payment:', error)
-      showToast('Failed to update payment', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRefund = async () => {
+    if (!payment) return
+
+    setRefundLoading(true)
+    try {
+      await paymentsAPI.refundPayment(payment.payment_id)
+      onUpdated()
+    } catch (error) {
+      console.error('Error refunding payment:', error)
+    } finally {
+      setRefundLoading(false)
     }
   }
 
@@ -70,6 +83,10 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
       ...prev,
       [field]: value,
     }))
+  }
+
+  const handleImageError = () => {
+    setImageError(true)
   }
 
   const getStatusColor = status => {
@@ -133,13 +150,36 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
   }
 
   const copyToClipboard = text => {
+    if (!text) return
     navigator.clipboard.writeText(text)
-    showToast('Copied to clipboard!', 'success')
   }
 
-  const showToast = (message, type = 'success') => {
-    // You can implement a toast notification system here
-    console.log(`${type}: ${message}`)
+  const openRazorpayDashboard = () => {
+    if (payment.rzp_payment_id) {
+      window.open(`https://dashboard.razorpay.com/app/payments/${payment.rzp_payment_id}`, '_blank')
+    }
+  }
+
+  // Generate gradient background based on course ID
+  const getCourseGradient = () => {
+    if (!payment.course) return 'from-blue-100 to-blue-200'
+    
+    const courseId = payment.course.course_id || 0
+    const gradients = [
+      'from-blue-100 to-blue-200',
+      'from-green-100 to-green-200', 
+      'from-purple-100 to-purple-200',
+      'from-orange-100 to-orange-200',
+      'from-teal-100 to-teal-200',
+      'from-pink-100 to-pink-200'
+    ]
+    return gradients[courseId % gradients.length]
+  }
+
+  // Get course initial for placeholder
+  const getCourseInitial = () => {
+    if (!payment.course || !payment.course.title) return 'C'
+    return payment.course.title.charAt(0).toUpperCase()
   }
 
   if (!show) return null
@@ -170,14 +210,14 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                      {payment.User?.full_name?.charAt(0) || 'U'}
+                      {payment.user?.full_name?.charAt(0) || 'U'}
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {payment.User?.full_name || 'Unknown User'}
+                        {payment.user?.full_name || 'Unknown User'}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {payment.User?.occupation || 'Customer'}
+                        {payment.user?.occupation || 'Customer'}
                       </p>
                     </div>
                   </div>
@@ -186,10 +226,10 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                     <div className="flex items-center gap-2 text-sm">
                       <Mail className="w-4 h-4 text-gray-400" />
                       <a
-                        href={`mailto:${payment.User?.email || payment.email}`}
+                        href={`mailto:${payment.user?.email || payment.email}`}
                         className="text-primary-600 hover:text-primary-700"
                       >
-                        {payment.User?.email || payment.email || 'No email'}
+                        {payment.user?.email || payment.email || 'No email'}
                       </a>
                     </div>
 
@@ -250,7 +290,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                       </code>
                       <button
                         onClick={() => copyToClipboard(payment.rzp_order_id)}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+                        title="Copy to clipboard"
                       >
                         <Copy className="w-3 h-3" />
                       </button>
@@ -265,7 +306,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                       </code>
                       <button
                         onClick={() => copyToClipboard(payment.rzp_payment_id)}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+                        title="Copy to clipboard"
                       >
                         <Copy className="w-3 h-3" />
                       </button>
@@ -278,11 +320,26 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                       <span className="text-sm text-gray-600">{payment.receipt}</span>
                     </div>
                   )}
+
+                  {/* Razorpay Dashboard Link */}
+                  {payment.rzp_payment_id && (
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                      <span className="text-sm font-medium text-gray-700">Razorpay:</span>
+                      <button
+                        onClick={openRazorpayDashboard}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-primary-600 hover:text-primary-700 bg-primary-50 rounded border border-primary-200 hover:bg-primary-100 transition-colors"
+                        title="Open in Razorpay Dashboard"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        View in Dashboard
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Course Information */}
-              {payment.Course && (
+              {payment.course && (
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
@@ -290,23 +347,44 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                   </h4>
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h5 className="font-semibold text-gray-900">{payment.Course.title}</h5>
-                        <p className="text-sm text-gray-600 mt-1">{payment.Course.description}</p>
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-gray-900">{payment.course.title}</h5>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {payment.notes?.courseTitle || payment.course.title}
+                        </p>
+                        {payment.notes?.actualAmount && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            <strong>Original Price:</strong> ₹{(payment.notes.actualAmount).toFixed(2)}
+                          </p>
+                        )}
+                        {payment.notes?.paymentPlan && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            <strong>Payment Plan:</strong> {payment.notes.paymentPlan}
+                          </p>
+                        )}
                       </div>
-                      {payment.Course.thumbnail_image && (
-                        <img
-                          src={payment.Course.thumbnail_image}
-                          alt={payment.Course.title}
-                          className="w-16 h-12 object-cover rounded border"
-                        />
-                      )}
+                      <div className="w-16 h-12 flex-shrink-0 ml-4">
+                        {payment.course.thumbnail_image && !imageError ? (
+                          <img
+                            src={payment.course.thumbnail_image}
+                            alt={payment.course.title}
+                            className="w-full h-full object-cover rounded border"
+                            onError={handleImageError}
+                          />
+                        ) : (
+                          <div className={`w-full h-full bg-gradient-to-br ${getCourseGradient()} rounded border flex items-center justify-center`}>
+                            <span className="text-lg font-bold text-gray-700">
+                              {getCourseInitial()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {payment.Enrollment && (
+                    {payment.enrollment && (
                       <div className="mt-3 text-xs text-gray-500">
-                        <strong>Enrollment ID:</strong> {payment.Enrollment.enrollment_id} •
-                        <strong> Status:</strong> {payment.Enrollment.status} •
-                        <strong> Plan:</strong> {payment.Enrollment.payment_plan}
+                        <strong>Enrollment ID:</strong> {payment.enrollment.enrollment_id} • 
+                        <strong> Status:</strong> {payment.enrollment.status} • 
+                        <strong> Progress:</strong> {payment.enrollment.progress || 0}%
                       </div>
                     )}
                   </div>
@@ -330,45 +408,6 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                   </p>
                 </div>
 
-                {/* Status Update */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Update Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={e => handleInputChange('status', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="created">Created</option>
-                      <option value="paid">Paid</option>
-                      <option value="failed">Failed</option>
-                      <option value="refunded">Refunded</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-end">
-                    <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200 w-full">
-                      <strong>Status Guidelines:</strong>
-                      <ul className="mt-1 space-y-1">
-                        <li>
-                          • <strong>Created:</strong> Order created, payment pending
-                        </li>
-                        <li>
-                          • <strong>Paid:</strong> Payment successfully captured
-                        </li>
-                        <li>
-                          • <strong>Failed:</strong> Payment failed or declined
-                        </li>
-                        <li>
-                          • <strong>Refunded:</strong> Payment has been refunded
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Additional Metadata */}
                 {(payment.metadata || payment.notes) && (
                   <div className="border-t pt-4">
@@ -384,9 +423,24 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                           <strong>Attempts:</strong> {payment.attempts}
                         </div>
                       )}
+                      {payment.amount_due !== undefined && (
+                        <div>
+                          <strong>Amount Due:</strong> {formatAmount(payment.amount_due)}
+                        </div>
+                      )}
+                      {payment.amount_paid !== undefined && (
+                        <div>
+                          <strong>Amount Paid:</strong> {formatAmount(payment.amount_paid)}
+                        </div>
+                      )}
+                      {payment.metadata?.enrollment_type && (
+                        <div>
+                          <strong>Enrollment Type:</strong> {payment.metadata.enrollment_type}
+                        </div>
+                      )}
                       {payment.notes && (
                         <div className="md:col-span-2">
-                          <strong>Notes:</strong>
+                          <strong>Payment Notes:</strong>
                           <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
                             {JSON.stringify(payment.notes, null, 2)}
                           </pre>
@@ -394,7 +448,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                       )}
                       {payment.metadata && Object.keys(payment.metadata).length > 0 && (
                         <div className="md:col-span-2">
-                          <strong>Metadata:</strong>
+                          <strong>Razorpay Metadata:</strong>
                           <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
                             {JSON.stringify(payment.metadata, null, 2)}
                           </pre>
@@ -416,11 +470,23 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
           <div className="text-xs text-gray-500">
-            Payment ID: {payment?.payment_id || 'N/A'} • Razorpay:{' '}
-            {payment?.rzp_payment_id || 'N/A'}
+            Payment ID: {payment?.payment_id || 'N/A'} • 
+            Created: {payment?.createdAt ? formatDate(payment.createdAt) : 'N/A'}
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Refund Button for paid payments */}
+            {payment?.status === 'paid' && (
+              <button
+                onClick={handleRefund}
+                disabled={refundLoading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <RefreshCw className={`w-4 h-4 ${refundLoading ? 'animate-spin' : ''}`} />
+                {refundLoading ? 'Processing...' : 'Refund Payment'}
+              </button>
+            )}
+
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
@@ -428,6 +494,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
               Close
             </button>
 
+            {/* Save Changes button for admin notes only */}
             {payment && (
               <button
                 onClick={handleSubmit}
@@ -440,7 +507,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                     Saving...
                   </div>
                 ) : (
-                  'Save Changes'
+                  'Save Notes'
                 )}
               </button>
             )}
