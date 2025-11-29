@@ -1,5 +1,5 @@
 // src/components/dashboard/PaymentModal.jsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import {
   X,
   Mail,
@@ -23,14 +23,22 @@ import {
   Image,
 } from 'lucide-react'
 import { paymentsAPI } from '../../services/api'
+import { AuthContext } from '../../context/AuthContext'
 
 const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
+  const { user: authUser } = useContext(AuthContext)
   const [loading, setLoading] = useState(false)
   const [refundLoading, setRefundLoading] = useState(false)
   const [formData, setFormData] = useState({
     adminNotes: '',
   })
   const [imageError, setImageError] = useState(false)
+
+  // Get user role from auth context
+  const userRole = authUser?.user?.role || 'student'
+  const isAdmin = userRole === 'admin'
+
+  console.log('👤 PaymentModal - User Role:', userRole, 'Is Admin:', isAdmin)
 
   // Initialize form data when payment changes
   useEffect(() => {
@@ -48,7 +56,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
 
     setLoading(true)
     try {
-      // Update admin notes only
+      // Update admin notes only (admin feature)
       await paymentsAPI.updatePayment(payment.payment_id, {
         metadata: {
           ...payment.metadata,
@@ -182,6 +190,12 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
     return payment.course.title.charAt(0).toUpperCase()
   }
 
+  // Check if current user is the payment owner (for student view)
+  const isPaymentOwner = () => {
+    if (!authUser || !payment) return false
+    return authUser.user?.user_id === payment.user_id
+  }
+
   if (!show) return null
 
   return (
@@ -191,7 +205,9 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Payment Details</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {isAdmin ? 'Payment Details' : 'Payment Receipt'}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -217,7 +233,7 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                         {payment.user?.full_name || 'Unknown User'}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {payment.user?.occupation || 'Customer'}
+                        {isAdmin ? (payment.user?.occupation || 'Customer') : 'Student'}
                       </p>
                     </div>
                   </div>
@@ -321,8 +337,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                     </div>
                   )}
 
-                  {/* Razorpay Dashboard Link */}
-                  {payment.rzp_payment_id && (
+                  {/* Razorpay Dashboard Link - Only for admin */}
+                  {isAdmin && payment.rzp_payment_id && (
                     <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                       <span className="text-sm font-medium text-gray-700">Razorpay:</span>
                       <button
@@ -391,28 +407,30 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                 </div>
               )}
 
-              {/* Payment Metadata */}
+              {/* Payment Metadata - Different sections for admin vs student */}
               <div className="space-y-4">
-                {/* Admin Response Section */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Admin Notes</h4>
-                  <textarea
-                    value={formData.adminNotes}
-                    onChange={e => handleInputChange('adminNotes', e.target.value)}
-                    placeholder="Add internal notes about this payment..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 resize-none"
-                    rows="3"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    These notes are for internal use only.
-                  </p>
-                </div>
+                {/* Admin Notes Section - Only for admin */}
+                {isAdmin && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Admin Notes</h4>
+                    <textarea
+                      value={formData.adminNotes}
+                      onChange={e => handleInputChange('adminNotes', e.target.value)}
+                      placeholder="Add internal notes about this payment..."
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                      rows="3"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      These notes are for internal use only.
+                    </p>
+                  </div>
+                )}
 
                 {/* Additional Metadata */}
                 {(payment.metadata || payment.notes) && (
                   <div className="border-t pt-4">
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Additional Information
+                      {isAdmin ? 'Additional Information' : 'Payment Details'}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
                       <div>
@@ -433,20 +451,40 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
                           <strong>Amount Paid:</strong> {formatAmount(payment.amount_paid)}
                         </div>
                       )}
-                      {payment.metadata?.enrollment_type && (
+                      {isAdmin && payment.metadata?.enrollment_type && (
                         <div>
                           <strong>Enrollment Type:</strong> {payment.metadata.enrollment_type}
                         </div>
                       )}
+                      
+                      {/* Payment Notes - Show simplified version for students */}
                       {payment.notes && (
                         <div className="md:col-span-2">
                           <strong>Payment Notes:</strong>
-                          <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
-                            {JSON.stringify(payment.notes, null, 2)}
-                          </pre>
+                          {isAdmin ? (
+                            <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
+                              {JSON.stringify(payment.notes, null, 2)}
+                            </pre>
+                          ) : (
+                            <div className="mt-1 text-xs bg-gray-50 p-2 rounded border">
+                              <div>
+                                <strong>Course:</strong> {payment.notes.courseTitle}
+                              </div>
+                              <div>
+                                <strong>Plan:</strong> {payment.notes.paymentPlan}
+                              </div>
+                              {payment.notes.actualAmount && (
+                                <div>
+                                  <strong>Original Price:</strong> ₹{(payment.notes.actualAmount).toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
-                      {payment.metadata && Object.keys(payment.metadata).length > 0 && (
+                      
+                      {/* Razorpay Metadata - Only for admin */}
+                      {isAdmin && payment.metadata && Object.keys(payment.metadata).length > 0 && (
                         <div className="md:col-span-2">
                           <strong>Razorpay Metadata:</strong>
                           <pre className="mt-1 text-xs bg-gray-50 p-2 rounded border overflow-x-auto">
@@ -472,11 +510,12 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
           <div className="text-xs text-gray-500">
             Payment ID: {payment?.payment_id || 'N/A'} • 
             Created: {payment?.createdAt ? formatDate(payment.createdAt) : 'N/A'}
+            {isAdmin && payment?.user_id && ` • User ID: ${payment.user_id}`}
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Refund Button for paid payments */}
-            {payment?.status === 'paid' && (
+            {/* Refund Button - Only for admin and only for paid payments */}
+            {isAdmin && payment?.status === 'paid' && (
               <button
                 onClick={handleRefund}
                 disabled={refundLoading}
@@ -494,8 +533,8 @@ const PaymentModal = ({ show, payment, onClose, onUpdated }) => {
               Close
             </button>
 
-            {/* Save Changes button for admin notes only */}
-            {payment && (
+            {/* Save Changes button for admin notes - Only for admin */}
+            {isAdmin && payment && (
               <button
                 onClick={handleSubmit}
                 disabled={loading}

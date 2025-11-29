@@ -1,5 +1,5 @@
 // src/components/dashboard/PaymentManagement.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
 import {
   Search,
   User,
@@ -29,8 +29,10 @@ import {
 } from 'lucide-react'
 import { paymentsAPI } from '../../services/api'
 import PaymentModal from './PaymentModal'
+import { AuthContext } from '../../context/AuthContext'
 
 const PaymentManagement = () => {
+  const { user: authUser } = useContext(AuthContext)
   const [activeTab, setActiveTab] = useState('all')
   const [payments, setPayments] = useState([])
   const [allPayments, setAllPayments] = useState([])
@@ -43,6 +45,15 @@ const PaymentManagement = () => {
   const [editingPayment, setEditingPayment] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
   const [toast, setToast] = useState(null)
+
+  // Get user role from auth context
+  const userRole = useMemo(() => {
+    return authUser?.user?.role || 'student'
+  }, [authUser])
+
+  const isAdmin = userRole === 'admin'
+
+  console.log('👤 User Role:', userRole, 'Is Admin:', isAdmin)
 
   // Advanced Filter States
   const [filters, setFilters] = useState({
@@ -212,7 +223,7 @@ const PaymentManagement = () => {
     ]
   }, [allPayments])
 
-  // Fixed fetchPayments function
+  // Fetch payments with role-based API calls
   const fetchPayments = useCallback(async () => {
     try {
       setLoading(true)
@@ -229,8 +240,17 @@ const PaymentManagement = () => {
       }
 
       console.log('📤 Sending request data:', requestData)
+      console.log('👤 User role for API call:', userRole)
 
-      const response = await paymentsAPI.getUserPayments(requestData)
+      let response
+      if (isAdmin) {
+        // Admin: Get all user payments
+        response = await paymentsAPI.getAllUserPayments(requestData)
+      } else {
+        // Student: Get only their own payments
+        response = await paymentsAPI.getUserPayments(requestData)
+      }
+
       const responseData = response.data
 
       console.log('📦 Payment API Response:', responseData)
@@ -296,9 +316,9 @@ const PaymentManagement = () => {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [filters, isAdmin, userRole])
 
-  // Fixed fetchAllPayments function
+  // Fixed fetchAllPayments function with role-based API
   const fetchAllPayments = useCallback(async () => {
     try {
       const requestData = {
@@ -307,7 +327,13 @@ const PaymentManagement = () => {
         filters: {},
       }
 
-      const response = await paymentsAPI.getUserPayments(requestData)
+      let response
+      if (isAdmin) {
+        response = await paymentsAPI.getAllUserPayments(requestData)
+      } else {
+        response = await paymentsAPI.getUserPayments(requestData)
+      }
+
       const responseData = response.data
 
       if (responseData && responseData.success && responseData.data) {
@@ -334,9 +360,9 @@ const PaymentManagement = () => {
       console.error('Error fetching all payments:', err)
       setAllPayments([])
     }
-  }, [])
+  }, [isAdmin])
 
-  // Fixed fetchAllPaymentsForExport function
+  // Fixed fetchAllPaymentsForExport function with role-based API
   const fetchAllPaymentsForExport = async () => {
     try {
       const requestData = {
@@ -348,7 +374,13 @@ const PaymentManagement = () => {
         },
       }
 
-      const response = await paymentsAPI.getUserPayments(requestData)
+      let response
+      if (isAdmin) {
+        response = await paymentsAPI.getAllUserPayments(requestData)
+      } else {
+        response = await paymentsAPI.getUserPayments(requestData)
+      }
+
       const responseData = response.data
 
       if (responseData && responseData.success && responseData.data) {
@@ -461,7 +493,8 @@ const PaymentManagement = () => {
     console.log('🔍 Current filters:', filters)
     console.log('🔍 Payments state:', payments.length)
     console.log('🔍 Pagination state:', pagination)
-  }, [filters, payments, pagination])
+    console.log('👤 Current user role:', userRole, 'Is Admin:', isAdmin)
+  }, [filters, payments, pagination, userRole, isAdmin])
 
   // Debounced search and filter changes
   useEffect(() => {
@@ -808,18 +841,28 @@ const PaymentManagement = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          {/* <h1 className="text-xl font-bold text-gray-900">Payment Management</h1> */}
-          <p className="text-xs text-gray-600">Manage and track all payment transactions</p>
+          <h1 className="text-xl font-bold text-gray-900">
+            {isAdmin ? 'Payment Management' : 'My Payments'}
+          </h1>
+          <p className="text-xs text-gray-600">
+            {isAdmin 
+              ? 'Manage and track all payment transactions' 
+              : 'View your payment history and receipts'
+            }
+          </p>
         </div>
         <div className="flex gap-1 mt-2 lg:mt-0">
-          <button
-            onClick={exportToCSV}
-            disabled={exportLoading}
-            className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Download className="w-2.5 h-2.5" />
-            {exportLoading ? 'Exporting...' : 'Export'}
-          </button>
+          {/* Export button - only for admin */}
+          {isAdmin && (
+            <button
+              onClick={exportToCSV}
+              disabled={exportLoading}
+              className="flex items-center gap-0.5 px-2 py-0.5 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-2.5 h-2.5" />
+              {exportLoading ? 'Exporting...' : 'Export'}
+            </button>
+          )}
 
           <button
             onClick={() => fetchPayments()}
@@ -831,7 +874,7 @@ const PaymentManagement = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Show different stats based on role */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {stats.map((stat, index) => {
           const IconComponent = stat.icon
@@ -839,7 +882,13 @@ const PaymentManagement = () => {
             <div key={index} className="bg-white rounded-lg p-3 shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-xs font-medium text-gray-600">
+                    {isAdmin ? stat.label : 
+                      stat.label === 'Total Payments' ? 'My Payments' :
+                      stat.label === 'Total Revenue' ? 'Total Spent' :
+                      stat.label
+                    }
+                  </p>
                   <p className="text-lg font-bold text-gray-900">{stat.number}</p>
                 </div>
                 <div className={`p-2 rounded-lg bg-gray-50`}>
@@ -887,8 +936,8 @@ const PaymentManagement = () => {
 
             {/* Search and Bulk Actions */}
             <div className="flex flex-col sm:flex-row gap-1.5">
-              {/* Bulk Actions - UPDATED: Removed status update options */}
-              {selectedPayments.length > 0 && (
+              {/* Bulk Actions - UPDATED: Removed status update options, only for admin */}
+              {isAdmin && selectedPayments.length > 0 && (
                 <div className="flex items-center gap-1.5 bg-primary-50 rounded-md">
                   <select
                     value={bulkAction}
@@ -930,7 +979,7 @@ const PaymentManagement = () => {
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
                 <input
                   type="text"
-                  placeholder="Search payments..."
+                  placeholder={isAdmin ? "Search payments..." : "Search my payments..."}
                   value={filters.search}
                   onChange={e => handleSearchChange(e.target.value)}
                   className="pl-7 pr-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-40 text-xs"
@@ -1136,17 +1185,22 @@ const PaymentManagement = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
-                      <input
-                        type="checkbox"
-                        checked={selectedPayments.length === payments.length && payments.length > 0}
-                        onChange={toggleSelectAll}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
-                      />
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
+                    {/* Bulk selection checkbox - only for admin */}
+                    {isAdmin && (
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                        <input
+                          type="checkbox"
+                          checked={selectedPayments.length === payments.length && payments.length > 0}
+                          onChange={toggleSelectAll}
+                          className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                        />
+                      </th>
+                    )}
+                    {isAdmin && (
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                      </th>
+                    )}
                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Amount
                     </th>
@@ -1173,30 +1227,36 @@ const PaymentManagement = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {payments.map(payment => (
                     <tr key={payment.payment_id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedPayments.includes(payment.payment_id)}
-                          onChange={() => togglePaymentSelection(payment.payment_id)}
-                          className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
-                        />
-                      </td>
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs mr-2">
-                            {payment.user?.full_name?.charAt(0) || 'U'}
-                          </div>
-                          <div>
-                            <div className="text-xs font-medium text-gray-900 line-clamp-1">
-                              {payment.user?.full_name || 'Unknown User'}
+                      {/* Bulk selection checkbox - only for admin */}
+                      {isAdmin && (
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={selectedPayments.includes(payment.payment_id)}
+                            onChange={() => togglePaymentSelection(payment.payment_id)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-1 focus:ring-primary-500 w-3 h-3"
+                          />
+                        </td>
+                      )}
+                      {/* User column - only for admin */}
+                      {isAdmin && (
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-xs mr-2">
+                              {payment.user?.full_name?.charAt(0) || 'U'}
                             </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
-                              <Mail className="w-2.5 h-2.5" />
-                              <span>{payment.user?.email || payment.email || 'No email'}</span>
+                            <div>
+                              <div className="text-xs font-medium text-gray-900 line-clamp-1">
+                                {payment.user?.full_name || 'Unknown User'}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-0.5 mt-0.5">
+                                <Mail className="w-2.5 h-2.5" />
+                                <span>{payment.user?.email || payment.email || 'No email'}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
+                      )}
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="text-xs font-bold text-gray-900">
                           {formatAmount(payment.amount)}
@@ -1253,7 +1313,8 @@ const PaymentManagement = () => {
                           >
                             <Eye className="w-3 h-3" />
                           </button>
-                          {payment.status === 'paid' && (
+                          {/* Refund button - only for admin and only for paid payments */}
+                          {isAdmin && payment.status === 'paid' && (
                             <button
                               onClick={() => handleRefundPayment(payment.payment_id)}
                               className="text-purple-600 hover:text-purple-900 p-0.5 rounded hover:bg-purple-50 transition-colors"
@@ -1279,7 +1340,10 @@ const PaymentManagement = () => {
                 <p className="text-xs text-gray-600 mb-3 max-w-md mx-auto">
                   {hasActiveFilters
                     ? 'No payments match your search criteria. Try adjusting your filters.'
-                    : 'No payment transactions have been recorded yet.'}
+                    : isAdmin 
+                      ? 'No payment transactions have been recorded yet.'
+                      : 'You haven\'t made any payments yet.'
+                  }
                 </p>
               </div>
             </div>
