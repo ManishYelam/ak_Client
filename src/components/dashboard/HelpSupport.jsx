@@ -22,6 +22,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { AuthContext } from '../../context/AuthContext'
 import { getUserData } from '../../utils/getUserId'
@@ -721,6 +723,176 @@ const TicketTable = ({ tickets, isAdmin, onEditTicket, loading, pagination, onPa
   )
 }
 
+// FAQ Table Component - Uses same table format as TicketTable
+const FAQTable = ({ faqs, onEditFAQ, onToggleStatus, onDeleteFAQ, loading }) => {
+  const statusColors = {
+    active: 'bg-green-100 text-green-800',
+    inactive: 'bg-gray-100 text-gray-800',
+  }
+
+  const categoryColors = {
+    technical: 'bg-blue-100 text-blue-800',
+    billing: 'bg-purple-100 text-purple-800',
+    course: 'bg-yellow-100 text-yellow-800',
+    account: 'bg-red-100 text-red-800',
+    general: 'bg-gray-100 text-gray-800',
+  }
+
+  // Safe value getter to handle objects and null values
+  const getSafeValue = (value, defaultValue = '') => {
+    if (value === null || value === undefined) return defaultValue
+    if (typeof value === 'object') {
+      return JSON.stringify(value) || defaultValue
+    }
+    return String(value)
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-6">
+        <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-gray-500 text-xs mt-1.5">Loading FAQs...</p>
+      </div>
+    )
+  }
+
+  if (faqs.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <HelpCircle className="w-6 h-6 text-gray-400" />
+        </div>
+        <h3 className="text-base font-medium text-gray-900 mb-1.5">No FAQs created yet</h3>
+        <p className="text-gray-500 text-sm">Create your first FAQ to help users</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              FAQ ID
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Question & Answer
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Category
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Author
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Created
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {faqs.map(faq => {
+            const faqId = getSafeValue(faq.faq_id || faq.id)
+            
+            return (
+              <tr key={faqId} className="hover:bg-gray-50">
+                <td className="px-3 py-2 whitespace-nowrap text-xs">
+                  <div className="font-medium">FAQ-{faqId}</div>
+                  <div className="text-gray-500 text-xs mt-0.5">ID: {faqId}</div>
+                </td>
+                <td className="px-3 py-2">
+                  <div className="max-w-md">
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      {getSafeValue(faq.question)}
+                    </div>
+                    <div className="text-sm text-gray-600 whitespace-pre-wrap">
+                      {getSafeValue(faq.answer, 'No answer provided')}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${categoryColors[faq.category] || categoryColors.general}`}
+                  >
+                    {getSafeValue(faq.category, 'general').charAt(0).toUpperCase() + getSafeValue(faq.category, 'general').slice(1)}
+                  </span>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColors[faq.is_active ? 'active' : 'inactive']}`}
+                  >
+                    {faq.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className="px-3 py-2">
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900">
+                      {getSafeValue(faq.author?.full_name, 'Unknown')}
+                    </div>
+                    <div className="text-gray-500 text-xs">
+                      User ID: {getSafeValue(faq.created_by, 'N/A')}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                  <div>
+                    <div>
+                      Created:{' '}
+                      {faq.created_at
+                        ? new Date(faq.created_at).toLocaleDateString()
+                        : 'N/A'}
+                    </div>
+                    {faq.updated_at && (
+                      <div className="mt-0.5">
+                        Updated: {new Date(faq.updated_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onToggleStatus(faq.faq_id || faq.id, faq.is_active)}
+                      className={`transition-colors ${
+                        faq.is_active 
+                          ? 'text-yellow-600 hover:text-yellow-800' 
+                          : 'text-green-600 hover:text-green-800'
+                      }`}
+                      title={faq.is_active ? 'Deactivate FAQ' : 'Activate FAQ'}
+                    >
+                      {faq.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => onEditFAQ(faq)}
+                      className="text-gray-600 hover:text-primary-600 transition-colors"
+                      title="Edit FAQ"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteFAQ(faq.faq_id || faq.id)}
+                      className="text-gray-600 hover:text-red-600 transition-colors"
+                      title="Delete FAQ"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // Main HelpSupport Component
 const HelpSupport = () => {
   const { user } = useContext(AuthContext)
@@ -894,22 +1066,26 @@ const HelpSupport = () => {
   }
 
   const fetchFAQs = async () => {
-    try {
-      setLoadingFaqs(true)
-      const response = await supportAPI.getFAQs()
+  try {
+    setLoadingFaqs(true)
+    const response = await supportAPI.getFAQs()
 
-      if (response.data?.success) {
-        setFaqs(response.data.data || [])
-      } else {
-        setFaqs([])
-      }
-    } catch (error) {
-      console.error('Error fetching FAQs:', error)
+    // console.log(response, "............................");
+    
+    if (response.data?.success) {
+      // The FAQ data is nested under response.data.data.faqs
+      const faqsData = response.data.data?.faqs ?? []
+      setFaqs(faqsData)
+    } else {
       setFaqs([])
-    } finally {
-      setLoadingFaqs(false)
     }
+  } catch (error) {
+    console.error('Error fetching FAQs:', error)
+    setFaqs([])
+  } finally {
+    setLoadingFaqs(false)
   }
+}
 
   // Handlers
   const showToast = (message, type = 'success') => {
@@ -975,6 +1151,19 @@ const HelpSupport = () => {
   const handleFAQSaved = () => {
     fetchFAQs()
     showToast(editingFAQ ? 'FAQ updated successfully!' : 'FAQ created successfully!', 'success')
+  }
+
+  // Update FAQ status (is_active)
+  const handleToggleFAQStatus = async (faqId, currentStatus) => {
+    try {
+      const newStatus = !currentStatus
+      await supportAPI.updateFAQ(faqId, { is_active: newStatus })
+      fetchFAQs()
+      showToast(`FAQ ${newStatus ? 'activated' : 'deactivated'} successfully!`, 'success')
+    } catch (error) {
+      console.error('Error updating FAQ status:', error)
+      showToast('Failed to update FAQ status', 'error')
+    }
   }
 
   const handleDeleteFAQ = async faqId => {
@@ -1089,15 +1278,20 @@ const HelpSupport = () => {
                 <div className="space-y-3">
                   {faqs
                     .filter(faq => faq.is_active !== false)
-                    .map((faq, index) => (
+                    .map((faq) => (
                       <div
-                        key={faq.id || index}
+                        key={faq.faq_id || faq.id}
                         className="border border-gray-200 rounded p-3 hover:border-primary-200 transition-colors"
                       >
                         <h3 className="font-semibold text-gray-900 text-sm mb-1.5">
                           {faq.question}
                         </h3>
                         <p className="text-gray-600 text-sm">{faq.answer}</p>
+                        {faq.category && faq.category !== 'general' && (
+                          <div className="text-xs text-gray-500 mt-2">
+                            Category: <span className="capitalize">{faq.category}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                 </div>
@@ -1128,70 +1322,13 @@ const HelpSupport = () => {
                 </button>
               </div>
 
-              {loadingFaqs ? (
-                <div className="text-center py-6">
-                  <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="text-gray-500 text-xs mt-1.5">Loading FAQs...</p>
-                </div>
-              ) : faqs.length > 0 ? (
-                <div className="space-y-3">
-                  {faqs.map((faq, index) => (
-                    <div
-                      key={faq.id || index}
-                      className="border border-gray-200 rounded p-3 hover:border-primary-200 transition-colors"
-                    >
-                      <div className="flex justify-between items-start mb-1.5">
-                        <h3 className="font-semibold text-gray-900 text-sm">{faq.question}</h3>
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`px-1.5 py-0.5 text-xs rounded-full ${
-                              faq.is_active
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {faq.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                          <button
-                            onClick={() => openFAQModal(faq)}
-                            className="text-gray-600 hover:text-primary-600"
-                            title="Edit FAQ"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFAQ(faq.id)}
-                            className="text-gray-600 hover:text-red-600"
-                            title="Delete FAQ"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-gray-600 text-sm mb-1.5">{faq.answer}</p>
-                      <div className="text-xs text-gray-500">
-                        Category: <span className="capitalize">{faq.category}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <HelpCircle className="w-6 h-6 text-gray-400" />
-                  </div>
-                  <h3 className="text-base font-medium text-gray-900 mb-1.5">
-                    No FAQs created yet
-                  </h3>
-                  <p className="text-gray-500 text-sm mb-3">Create your first FAQ to help users</p>
-                  <button
-                    onClick={() => openFAQModal()}
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-1.5 rounded text-sm font-medium"
-                  >
-                    Create FAQ
-                  </button>
-                </div>
-              )}
+              <FAQTable
+                faqs={faqs}
+                onEditFAQ={openFAQModal}
+                onToggleStatus={handleToggleFAQStatus}
+                onDeleteFAQ={handleDeleteFAQ}
+                loading={loadingFaqs}
+              />
             </div>
           )}
 

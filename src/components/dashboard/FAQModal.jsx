@@ -56,7 +56,7 @@ const FAQModal = ({ show, faq, onClose, onSaved }) => {
     setIsSubmitting(true)
     try {
       if (faq) {
-        await supportAPI.updateFAQ(faq.id, formData)
+        await supportAPI.updateFAQ(faq.faq_id, formData)
       } else {
         await supportAPI.createFAQ(formData)
       }
