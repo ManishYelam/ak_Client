@@ -203,7 +203,7 @@ const AuthModal = ({ course, onClose, onSuccess }) => {
           console.log(loginData)
 
           const loginResponse = await authAPI.login(loginData)
-          console.log('..............', loginResponse)
+          // console.log('..............', loginResponse)
 
           if (loginResponse.data) {
             const { user, token } = loginResponse.data

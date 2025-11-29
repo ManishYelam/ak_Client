@@ -91,7 +91,7 @@ const TicketModal = ({ show, ticket, onClose, onSaved }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  console.log(formData, '...................')
+  // console.log(formData, '...................')
 
   const prepareApiData = () => {
     const apiData = {
