@@ -10,7 +10,6 @@ const TicketModal = ({ show, ticket, onClose, onSaved }) => {
   const userData = getUserData(user)
   const isAdmin = userData?.role === 'admin'
   const isEditing = !!ticket
-  console.log(ticket, '/////////////////////////////////////////////////////////////////////////')
 
   const [formData, setFormData] = useState({
     subject: '',
@@ -127,7 +126,6 @@ const TicketModal = ({ show, ticket, onClose, onSaved }) => {
     setIsSubmitting(true)
     try {
       const apiData = prepareApiData()
-      console.log(apiData, '//////////////////////////////////')
 
       if (isEditing) {
         await supportAPI.updateTicket(ticket.support_ticket_id, apiData)
