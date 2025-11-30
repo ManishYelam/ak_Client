@@ -23,7 +23,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react'
 import { AuthContext } from '../../context/AuthContext'
 import { getUserData } from '../../utils/getUserId'
@@ -799,7 +799,7 @@ const FAQTable = ({ faqs, onEditFAQ, onToggleStatus, onDeleteFAQ, loading }) => 
         <tbody className="bg-white divide-y divide-gray-200">
           {faqs.map(faq => {
             const faqId = getSafeValue(faq.faq_id || faq.id)
-            
+
             return (
               <tr key={faqId} className="hover:bg-gray-50">
                 <td className="px-3 py-2 whitespace-nowrap text-xs">
@@ -820,7 +820,8 @@ const FAQTable = ({ faqs, onEditFAQ, onToggleStatus, onDeleteFAQ, loading }) => 
                   <span
                     className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${categoryColors[faq.category] || categoryColors.general}`}
                   >
-                    {getSafeValue(faq.category, 'general').charAt(0).toUpperCase() + getSafeValue(faq.category, 'general').slice(1)}
+                    {getSafeValue(faq.category, 'general').charAt(0).toUpperCase() +
+                      getSafeValue(faq.category, 'general').slice(1)}
                   </span>
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
@@ -844,9 +845,7 @@ const FAQTable = ({ faqs, onEditFAQ, onToggleStatus, onDeleteFAQ, loading }) => 
                   <div>
                     <div>
                       Created:{' '}
-                      {faq.created_at
-                        ? new Date(faq.created_at).toLocaleDateString()
-                        : 'N/A'}
+                      {faq.created_at ? new Date(faq.created_at).toLocaleDateString() : 'N/A'}
                     </div>
                     {faq.updated_at && (
                       <div className="mt-0.5">
@@ -860,8 +859,8 @@ const FAQTable = ({ faqs, onEditFAQ, onToggleStatus, onDeleteFAQ, loading }) => 
                     <button
                       onClick={() => onToggleStatus(faq.faq_id || faq.id, faq.is_active)}
                       className={`transition-colors ${
-                        faq.is_active 
-                          ? 'text-yellow-600 hover:text-yellow-800' 
+                        faq.is_active
+                          ? 'text-yellow-600 hover:text-yellow-800'
                           : 'text-green-600 hover:text-green-800'
                       }`}
                       title={faq.is_active ? 'Deactivate FAQ' : 'Activate FAQ'}
@@ -1066,26 +1065,26 @@ const HelpSupport = () => {
   }
 
   const fetchFAQs = async () => {
-  try {
-    setLoadingFaqs(true)
-    const response = await supportAPI.getFAQs()
+    try {
+      setLoadingFaqs(true)
+      const response = await supportAPI.getFAQs()
 
-    // console.log(response, "............................");
-    
-    if (response.data?.success) {
-      // The FAQ data is nested under response.data.data.faqs
-      const faqsData = response.data.data?.faqs ?? []
-      setFaqs(faqsData)
-    } else {
+      // console.log(response, "............................");
+
+      if (response.data?.success) {
+        // The FAQ data is nested under response.data.data.faqs
+        const faqsData = response.data.data?.faqs ?? []
+        setFaqs(faqsData)
+      } else {
+        setFaqs([])
+      }
+    } catch (error) {
+      console.error('Error fetching FAQs:', error)
       setFaqs([])
+    } finally {
+      setLoadingFaqs(false)
     }
-  } catch (error) {
-    console.error('Error fetching FAQs:', error)
-    setFaqs([])
-  } finally {
-    setLoadingFaqs(false)
   }
-}
 
   // Handlers
   const showToast = (message, type = 'success') => {
@@ -1278,7 +1277,7 @@ const HelpSupport = () => {
                 <div className="space-y-3">
                   {faqs
                     .filter(faq => faq.is_active !== false)
-                    .map((faq) => (
+                    .map(faq => (
                       <div
                         key={faq.faq_id || faq.id}
                         className="border border-gray-200 rounded p-3 hover:border-primary-200 transition-colors"

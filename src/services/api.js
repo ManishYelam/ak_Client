@@ -38,10 +38,11 @@ export const paymentsAPI = {
   getUserPayments: data => api.post('/payments/user-payments', data),
   getAllUserPayments: data => api.post('/payments/all-user-payments', data),
   checkEnrollment: courseId => api.get(`/payments/check-enrollment/${courseId}`),
-  getUserEnrollments: (params = {}) => api.get('/payments/user-enrollments', { params }),
+  getUserEnrollments: () => api.get('/payments/user-enrollments'),
   getPaymentDetails: paymentId => api.get(`/payments/payment-details/${paymentId}`),
   getPaymentMethods: () => api.get('/payments/payment-methods'),
   refundPayment: (paymentId, refundData) => api.post(`/payments/${paymentId}/refund`, refundData),
+  updatePaymentMetadata: data => api.post(`/payments/update-metadata`, data),
 }
 
 export const studentAPI = {
